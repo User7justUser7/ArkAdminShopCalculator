@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>247 Always Online — Admin Shop</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #e9ebe9; font-family: 'Rajdhani', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #e9ebe9; }
+  ::-webkit-scrollbar-thumb { background: #a0bcc2; border-radius: 3px; }
+  button { cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  button:hover { opacity: 0.85; }
+  button:active { transform: scale(0.97); }
+  input:focus, select:focus { outline: none; border-color: #2a6a7a !important; }
+  input, select { transition: border-color 0.2s; }
+  .qty-input { width: 44px; text-align: center; padding: 3px 4px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem; border: 1px solid #88a8b4; background: #f4f8f8; color: #1a2a30; -moz-appearance: textfield; }
+  .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  @media (max-width: 640px) {
+    .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .list-row { grid-template-columns: 1fr auto !important; padding: 10px !important; }
+    .nav-wrap { gap: 4px !important; }
+    .nav-wrap button { padding: 5px 7px !important; font-size: 0.76rem !important; letter-spacing: 0 !important; }
+    .qty-input { width: 38px !important; font-size: 0.85rem !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const MATERIAL_TIERS = {
+  'Wood':1/20,'Thatch':1/20,'Fiber':1/20,'Stone':1/20,'Flint':1/20,'Raw Meat':1/20,'Raw Fish':1/20,
+  'Hide':1/10,'Chitin':1/10,'Keratin':1/10,'Sap':1/10,'Cooked Meat':1/10,'Charcoal':1/10,
+  'Crystal':1/5,'Oil':1/5,'Obsidian':1/5,
+  'Raw Metal':1/2,'Silica Pearls':1/2,'Pelt':1/2,'Organic Polymer':1/2,'Meat Jerky':1/2,
+  'Metal Ingot':1,'Gunpowder':1,'Berry Seed':1,
+  'Full Water Skin':2,'Raw Prime Meat':2,'Raw Prime Fish':2,
+  'Electronics':5,'Polymer':5,'Cementing Paste':5,'Gasoline':5,'Cooked Prime Meat':5,'Cooked Prime Fish':5,'Vegetable Seeds':5,
+  'Raw Mutton':10,'Rare Flower':10,'Rare Mushroom':10,
+  'Absorbent Substrate':20,'Lamb Chops':20,'Prime Jerky':20,
+  'Black Pearls':50,'Aggeravic Mushroom':50,'Aquatic Mushroom':50,'Ascerbic Mushroom':50,'Auric Mushroom':50,
+  'Congealed Gas Ball':200,
+  'Red Gems':500,'Blue Gems':500,
+};
+const ALL_MATERIALS = Object.keys(MATERIAL_TIERS).sort();
+
+const DEFAULT_ITEMS = [
+  { id:'c1', name:'Adv Rifle Bullet',     category:'Ammo',             icon:'🔹', price:10,   fixed:true,  engram:0,  recipe:[], desc:'Advanced rifle ammo' },
+  { id:'c2', name:'Ammo Box',             category:'Ammo',             icon:'📦', price:204,  fixed:true,  engram:0,  recipe:[], desc:'Box of assorted ammo' },
+  { id:'c3', name:'Cryopod',              category:'Taming & Utility', icon:'🧊', price:194,  fixed:true,  engram:0,  recipe:[], desc:'Store tamed dinos' },
+  { id:'c4', name:'Incubator',            category:'Taming & Utility', icon:'🥚', price:8258, fixed:true,  engram:0,  recipe:[], desc:'Egg incubation station' },
+  { id:'c5', name:'Dino Leash',           category:'Taming & Utility', icon:'🔗', price:97,   fixed:true,  engram:0,  recipe:[], desc:'Keep dinos in place' },
+  { id:'w1', name:'Simple Pistol',        category:'Weapons',          icon:'🔫', price:70,   fixed:false, engram:8,  recipe:[{material:'Metal Ingot',qty:35},{material:'Wood',qty:10}] },
+  { id:'w2', name:'Longneck Rifle',       category:'Weapons',          icon:'🎯', price:190,  fixed:false, engram:35, recipe:[{material:'Metal Ingot',qty:60},{material:'Wood',qty:20},{material:'Crystal',qty:5}] },
+  { id:'w3', name:'Pump Shotgun',         category:'Weapons',          icon:'💥', price:356,  fixed:false, engram:55, recipe:[{material:'Metal Ingot',qty:85},{material:'Wood',qty:25},{material:'Polymer',qty:15}] },
+  { id:'w4', name:'Assault Rifle',        category:'Weapons',          icon:'⚔️', price:980,  fixed:false, engram:65, recipe:[{material:'Metal Ingot',qty:125},{material:'Polymer',qty:50},{material:'Crystal',qty:15},{material:'Electronics',qty:10}] },
+  { id:'w5', name:'Fabricated Pistol',    category:'Weapons',          icon:'🔫', price:556,  fixed:false, engram:45, recipe:[{material:'Metal Ingot',qty:60},{material:'Polymer',qty:20},{material:'Electronics',qty:15}] },
+  { id:'w6', name:'Fabricated Sniper',    category:'Weapons',          icon:'🎯', price:1190, fixed:false, engram:85, recipe:[{material:'Metal Ingot',qty:150},{material:'Polymer',qty:60},{material:'Crystal',qty:20},{material:'Electronics',qty:15}] },
+  { id:'w7', name:'Rocket Launcher',      category:'Weapons',          icon:'🚀', price:2054, fixed:false, engram:87, recipe:[{material:'Metal Ingot',qty:200},{material:'Polymer',qty:100},{material:'Crystal',qty:30},{material:'Electronics',qty:20}] },
+  { id:'w8', name:'Compound Bow',         category:'Weapons',          icon:'🏹', price:262,  fixed:false, engram:51, recipe:[{material:'Metal Ingot',qty:40},{material:'Wood',qty:30},{material:'Fiber',qty:50},{material:'Polymer',qty:10}] },
+  { id:'a1', name:'Flak Helmet',          category:'Armor',            icon:'⛑️', price:342,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:120},{material:'Hide',qty:60},{material:'Fiber',qty:15}] },
+  { id:'a2', name:'Flak Chestpiece',      category:'Armor',            icon:'🛡️', price:614,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:250},{material:'Hide',qty:120},{material:'Fiber',qty:30}] },
+  { id:'a3', name:'Flak Leggings',        category:'Armor',            icon:'🦺', price:468,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:180},{material:'Hide',qty:90},{material:'Fiber',qty:25}] },
+  { id:'a4', name:'Flak Gauntlets',       category:'Armor',            icon:'🧤', price:298,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:100},{material:'Hide',qty:50},{material:'Fiber',qty:10}] },
+  { id:'a5', name:'Flak Boots',           category:'Armor',            icon:'👢', price:342,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:120},{material:'Hide',qty:60},{material:'Fiber',qty:15}] },
+  { id:'a6', name:'Riot Helmet',          category:'Armor',            icon:'⛑️', price:924,  fixed:false, engram:70, recipe:[{material:'Metal Ingot',qty:100},{material:'Polymer',qty:60},{material:'Crystal',qty:40},{material:'Electronics',qty:10}] },
+  { id:'a7', name:'Riot Chestpiece',      category:'Armor',            icon:'🛡️', price:1734, fixed:false, engram:70, recipe:[{material:'Metal Ingot',qty:200},{material:'Polymer',qty:100},{material:'Crystal',qty:80},{material:'Electronics',qty:20}] },
+  { id:'s1', name:'Metal Foundation',     category:'Structures',       icon:'🏗️', price:440,  fixed:false, engram:20, recipe:[{material:'Metal Ingot',qty:220}] },
+  { id:'s2', name:'Metal Wall',           category:'Structures',       icon:'🧱', price:80,   fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:40}] },
+  { id:'s3', name:'Metal Ceiling',        category:'Structures',       icon:'🏠', price:80,   fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:40}] },
+  { id:'s4', name:'Metal Doorframe',      category:'Structures',       icon:'🚪', price:50,   fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:25}] },
+  { id:'s5', name:'Metal Door',           category:'Structures',       icon:'🚪', price:100,  fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:50}] },
+  { id:'s6', name:'Metal Ramp',           category:'Structures',       icon:'📐', price:120,  fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:60}] },
+  { id:'s7', name:'Large Storage Box',    category:'Structures',       icon:'📦', price:60,   fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:50},{material:'Wood',qty:200},{material:'Fiber',qty:50}] },
+  { id:'s8', name:'Vault',                category:'Structures',       icon:'🏦', price:1600, fixed:false, engram:0,  recipe:[{material:'Metal Ingot',qty:800}] },
+  { id:'s9', name:'Auto Turret',          category:'Structures',       icon:'🔫', price:2560, fixed:false, engram:96, recipe:[{material:'Metal Ingot',qty:140},{material:'Polymer',qty:50},{material:'Electronics',qty:70},{material:'Crystal',qty:20}] },
+  { id:'s10',name:'Fabricator',           category:'Structures',       icon:'⚙️', price:960,  fixed:false, engram:55, recipe:[{material:'Metal Ingot',qty:35},{material:'Polymer',qty:20},{material:'Electronics',qty:15},{material:'Crystal',qty:5},{material:'Cementing Paste',qty:20}] },
+  { id:'s11',name:'Industrial Forge',     category:'Structures',       icon:'🔥', price:1320, fixed:false, engram:80, recipe:[{material:'Metal Ingot',qty:100},{material:'Electronics',qty:50},{material:'Gasoline',qty:80}] },
+  { id:'sd1',name:'Rex Saddle',           category:'Saddles',          icon:'🦕', price:710,  fixed:false, engram:74, recipe:[{material:'Hide',qty:550},{material:'Fiber',qty:130},{material:'Metal Ingot',qty:100}] },
+  { id:'sd2',name:'Argentavis Saddle',    category:'Saddles',          icon:'🦅', price:578,  fixed:false, engram:62, recipe:[{material:'Hide',qty:450},{material:'Fiber',qty:100},{material:'Metal Ingot',qty:80}] },
+  { id:'sd3',name:'Raptor Saddle',        category:'Saddles',          icon:'🦖', price:100,  fixed:false, engram:18, recipe:[{material:'Hide',qty:100},{material:'Fiber',qty:30},{material:'Wood',qty:50}] },
+  { id:'sd4',name:'Quetzal Saddle',       category:'Saddles',          icon:'🦕', price:758,  fixed:false, engram:86, recipe:[{material:'Hide',qty:500},{material:'Fiber',qty:200},{material:'Metal Ingot',qty:120},{material:'Crystal',qty:50}] },
+  { id:'bp1',name:'Assault Rifle BP',     category:'Blueprints',       icon:'📋', price:980,  fixed:false, engram:65, recipe:[{material:'Metal Ingot',qty:125},{material:'Polymer',qty:50},{material:'Crystal',qty:15},{material:'Electronics',qty:10}] },
+  { id:'bp2',name:'Flak Chestpiece BP',   category:'Blueprints',       icon:'📋', price:614,  fixed:false, engram:46, recipe:[{material:'Metal Ingot',qty:250},{material:'Hide',qty:120},{material:'Fiber',qty:30}] },
+  { id:'bp3',name:'Fabricated Sniper BP', category:'Blueprints',       icon:'📋', price:1190, fixed:false, engram:85, recipe:[{material:'Metal Ingot',qty:150},{material:'Polymer',qty:60},{material:'Crystal',qty:20},{material:'Electronics',qty:15}] },
+];
+
+function getOrderIdFromHash() {
+  const h = window.location.hash;
+  if (!h.startsWith('#order=')) return null;
+  return h.slice(7);
+}
+
+function App() {
+  const [items, setItems] = useState(() => {
+    try { const s = localStorage.getItem('ark_items'); return s ? JSON.parse(s) : DEFAULT_ITEMS; }
+    catch { return DEFAULT_ITEMS; }
+  });
+  const [shopName] = useState('247 Always Online');
+  const [currency, setCurrency] = useState(() => localStorage.getItem('ark_currency') || 'Iron Ingots');
+
+  useEffect(() => { localStorage.setItem('ark_items', JSON.stringify(items)); }, [items]);
+  useEffect(() => { localStorage.setItem('ark_currency', currency); }, [currency]);
+
+  const [view,         setView]         = useState('shop');
+  const [shopLayout,   setShopLayout]   = useState('grid');
+  const [catFilter,    setCatFilter]    = useState('All');
+  const [searchQ,      setSearchQ]      = useState('');
+  const [cart,         setCart]         = useState({});
+  const [playerName,   setPlayerName]   = useState('');
+  const [discord,      setDiscord]      = useState('');
+  const [orderLink,    setOrderLink]    = useState('');
+  const [copied,       setCopied]       = useState(false);
+  const [orderView,    setOrderView]    = useState(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+
+  const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem('ark_admin') === 'yes');
+  const [passInput,     setPassInput]     = useState('');
+  const [passError,     setPassError]     = useState('');
+  const [passLoading,   setPassLoading]   = useState(false);
+  const [adminTab,      setAdminTab]      = useState('items');
+  const [editItem,      setEditItem]      = useState(null);
+  const [editCurrency,  setEditCurrency]  = useState(currency);
+
+  const [calcRecipe, setCalcRecipe] = useState([{material:'Metal Ingot',qty:''}]);
+  const [calcEngram, setCalcEngram] = useState('');
+  const [calcFixed,  setCalcFixed]  = useState(false);
+  const [calcFixedP, setCalcFixedP] = useState('');
+  const [calcResult, setCalcResult] = useState(null);
+  const [calcName,   setCalcName]   = useState('');
+  const [calcCat,    setCalcCat]    = useState('Weapons');
+  const [calcIcon,   setCalcIcon]   = useState('📦');
+  const [calcDesc,   setCalcDesc]   = useState('');
+
+  useEffect(() => {
+    const orderId = getOrderIdFromHash();
+    if (orderId) {
+      setView('order');
+      // ✅ CHANGED: Cloudflare endpoint
+      fetch(`/get-order?id=${orderId}`)
+        .then(r => r.json())
+        .then(data => setOrderView(data))
+        .catch(() => setOrderView({ error: true }));
+    }
+  }, []);
+
+  const setQty    = (id, val) => {
+    const n = parseInt(val);
+    if (isNaN(n) || n <= 0) { setCart(c => { const x={...c}; delete x[id]; return x; }); return; }
+    setCart(c => ({...c, [id]: n}));
+  };
+  const addToCart      = id => setCart(c => ({...c,[id]:(c[id]||0)+1}));
+  const decCart        = id => setCart(c => { const n={...c}; if(n[id]>1) n[id]--; else delete n[id]; return n; });
+  const removeFromCart = id => setCart(c => { const n={...c}; delete n[id]; return n; });
+  const clearCart      = ()  => { if(confirm('Clear your entire cart?')) setCart({}); };
+
+  const cartEntries = Object.entries(cart)
+    .map(([id,qty]) => { const it=items.find(i=>i.id===id); return it?{...it,qty}:null; })
+    .filter(Boolean);
+  const cartTotal = cartEntries.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartCount = Object.values(cart).reduce((a,b)=>a+b,0);
+
+  const categories = ['All',...new Set(items.map(i=>i.category))];
+  const filtered   = items.filter(i=>
+    (catFilter==='All'||i.category===catFilter) &&
+    i.name.toLowerCase().includes(searchQ.toLowerCase())
+  );
+
+  const generateOrder = async () => {
+    if (!playerName.trim()) { alert('Please enter your player name!'); return; }
+    setOrderLoading(true);
+    try {
+      const order = {
+        player: playerName.trim(), discord: discord.trim(),
+        timestamp: new Date().toISOString(),
+        items: cartEntries.map(i => ({ id: i.id, qty: i.qty }))
+      };
+      // ✅ CHANGED: Cloudflare endpoint
+      const res = await fetch('/save-order', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error('Failed');
+      setOrderLink(`${window.location.href.split('#')[0]}#order=${data.id}`);
+    } catch { alert('Something went wrong saving your order. Please try again.'); }
+    setOrderLoading(false);
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(orderLink).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2500); });
+  };
+
+  const adminLogin = async () => {
+    setPassLoading(true); setPassError('');
+    try {
+      // ✅ CHANGED: Cloudflare endpoint
+      const res = await fetch('/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:passInput})
+      });
+      if (res.ok) { sessionStorage.setItem('ark_admin','yes'); setAdminUnlocked(true); setPassInput(''); }
+      else setPassError('Incorrect password.');
+    } catch { setPassError('Could not connect. Are you running on Cloudflare?'); }
+    setPassLoading(false);
+  };
+
+  const deleteItem     = id => { if(confirm('Remove this item?')) setItems(p=>p.filter(i=>i.id!==id)); };
+  const saveEdit       = () => { if(!editItem) return; setItems(p=>p.map(i=>i.id===editItem.id?{...editItem,price:Number(editItem.price)}:i)); setEditItem(null); };
+  const saveSettings   = () => { setCurrency(editCurrency); alert('Saved!'); };
+  const resetToDefault = () => { if(confirm('Reset ALL items to defaults?')) { setItems(DEFAULT_ITEMS); localStorage.removeItem('ark_items'); } };
+
+  const exportItems = () => {
+    const exportData = JSON.stringify(items, null, 2);
+    const blob = new Blob([exportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '247-shop-items.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const runCalc = () => {
+    if (calcFixed) { setCalcResult({price:parseInt(calcFixedP)||0,fixed:true}); return; }
+    const materialIron = calcRecipe.reduce((sum,row)=>{ const rate=MATERIAL_TIERS[row.material]; if(!rate||!row.qty) return sum; return sum+parseFloat(row.qty)*rate; },0);
+    const e = parseFloat(calcEngram)||0;
+    const usedEngram = e<=materialIron;
+    setCalcResult({price:Math.round(usedEngram?(materialIron+e)*2:materialIron*2),materialIron:Math.round(materialIron*100)/100,engram:e,usedEngram,fixed:false});
+  };
+  const addCalcItem = () => {
+    if(!calcName||!calcResult) { alert('Calculate a price and enter an item name first.'); return; }
+    const price = calcFixed?parseInt(calcFixedP):calcResult.price;
+    setItems(p=>[...p,{id:Date.now().toString(),name:calcName,category:calcCat,icon:calcIcon,desc:calcDesc,price,fixed:calcFixed,recipe:calcFixed?[]:calcRecipe.filter(r=>r.qty),engram:calcFixed?0:parseFloat(calcEngram)||0}]);
+    setCalcName(''); setCalcDesc(''); setCalcResult(null); setCalcIcon('📦');
+    setCalcRecipe([{material:'Metal Ingot',qty:''}]); setCalcEngram('');
+    alert(`"${calcName}" added at ${price} ${currency}!`);
+  };
+
+  const C = {
+    bg:'#e9ebe9',bg2:'#d0e1e4',bg3:'#c0d4d8',bg4:'#b0c8cc',
+    border:'#a8c0c8',border2:'#88a8b4',
+    accent:'#2a5a6a',accentL:'#3a7a8e',accentD:'#1a3a46',
+    text:'#1a2a30',dim:'#4a6a74',mute:'#7a9aa4',white:'#f4f8f8',
+    green:'#2a7a4a',red:'#9a3030',
+  };
+  const btn = (v='secondary') => {
+    const map = {
+      primary:  {bg:C.accent,  color:C.white, border:C.accent},
+      secondary:{bg:C.bg3,     color:C.text,  border:C.border2},
+      danger:   {bg:'#f0d8d8', color:C.red,   border:'#d0a0a0'},
+      ghost:    {bg:'transparent',color:C.accent,border:C.accent},
+      remove:   {bg:'#f0d8d8', color:C.red,   border:'#d0a0a0'},
+    };
+    const s=map[v]||map.secondary;
+    return {background:s.bg,color:s.color,border:`1px solid ${s.border}`,padding:'7px 16px',fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:'0.9rem',letterSpacing:'0.05em'};
+  };
+  const inp = {background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:'8px 12px',fontFamily:"'Rajdhani',sans-serif",fontSize:'1rem',width:'100%'};
+  const sel = {...inp,cursor:'pointer'};
+  const lbl = {fontSize:'0.73rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',display:'block',marginBottom:'4px'};
+  const sec = {background:C.bg2,border:`1px solid ${C.border}`,padding:'20px 24px',marginBottom:'16px',borderRadius:'2px'};
+  const stl = {fontFamily:"'Cinzel',serif",color:C.accentD,fontSize:'0.95rem',letterSpacing:'0.06em',marginBottom:'16px',paddingBottom:'10px',borderBottom:`1px solid ${C.border}`};
+  const row = {display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:`1px solid ${C.border}`,flexWrap:'wrap',gap:'8px'};
+  const bdg = color=>({background:`${color}22`,border:`1px solid ${color}66`,color,padding:'3px 10px',fontSize:'0.73rem',letterSpacing:'0.1em',fontWeight:700,borderRadius:'2px'});
+  const nav = active=>({...btn(active?'primary':'ghost'),padding:'6px 14px',fontSize:'0.85rem',letterSpacing:'0.06em'});
+
+  const QtyControls = ({ id }) => {
+    const qty = cart[id] || 0;
+    const [draft, setDraft] = useState(String(qty));
+    useEffect(() => { setDraft(String(cart[id] || 0)); }, [cart[id]]);
+    const commit = (val) => {
+      const n = parseInt(val);
+      if (isNaN(n) || n <= 0) removeFromCart(id);
+      else setCart(c => ({...c, [id]: n}));
+    };
+    if (qty === 0) return null;
+    return (
+      <div style={{position:'relative',display:'inline-block'}}>
+        <div style={{display:'flex',flexDirection:'row',flexWrap:'nowrap',gap:'3px',alignItems:'center'}}>
+          <button style={{...btn('secondary'),padding:'3px 8px',fontSize:'0.95rem',lineHeight:1}} onClick={()=>decCart(id)}>−</button>
+          <input
+            className="qty-input"
+            type="number" min="1"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={e => commit(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { commit(e.target.value); e.target.blur(); } }}
+          />
+          <button style={{...btn('primary'),padding:'3px 8px',fontSize:'0.95rem',lineHeight:1}} onClick={()=>addToCart(id)}>+</button>
+        </div>
+        <button 
+          style={{
+            position:'absolute',
+            top:'-6px',
+            right:'-6px',
+            background:'#f0d8d8',
+            border:`1px solid #d0a0a0`,
+            color:C.red,
+            width:'20px',
+            height:'20px',
+            borderRadius:'50%',
+            display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+            fontSize:'0.75rem',
+            padding:0,
+            lineHeight:1,
+            cursor:'pointer'
+          }} 
+          onClick={()=>removeFromCart(id)}
+          title="Remove"
+        >✕</button>
+      </div>
+    );
+  };
+
+  /* ORDER VIEW */
+  if (view==='order') {
+    if (!orderView) return (
+      <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div style={{textAlign:'center',color:C.dim}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>⏳</div><div>Loading order...</div></div>
+      </div>
+    );
+    if (orderView.error) return (
+      <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div style={{textAlign:'center',color:C.red}}>
+          <div style={{fontSize:'2rem',marginBottom:'12px'}}>❌</div>
+          <div>Order not found or expired.</div>
+          <button style={{...btn('ghost'),marginTop:'16px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back to Shop</button>
+        </div>
+      </div>
+    );
+    const hydratedItems = (orderView.items||[]).map(entry => {
+      const shopItem = items.find(i=>i.id===entry.id);
+      if (!shopItem) return {id:entry.id,name:'Unknown Item',icon:'❓',category:'',price:0,qty:entry.qty};
+      return {...shopItem,qty:entry.qty};
+    });
+    const orderTotal = hydratedItems.reduce((s,i)=>s+i.price*i.qty,0);
+    const orderId = getOrderIdFromHash();
+    return (
+      <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
+        <div style={{background:C.accentD,padding:'14px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',flexWrap:'wrap',gap:'8px'}}>
+          <div style={{cursor:'pointer'}} onClick={()=>{window.location.hash='';window.location.reload();}}>
+            <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.3rem',color:C.bg2,letterSpacing:'0.08em'}}>{shopName}</div>
+            <div style={{fontSize:'0.75rem',color:C.mute,letterSpacing:'0.12em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
+          </div>
+          <div style={bdg(C.green)}>✓ VERIFIED ORDER</div>
+        </div>
+        <div style={{padding:'24px',maxWidth:'800px',margin:'0 auto'}}>
+          <div style={sec}>
+            <div style={stl}>Order #{orderId}</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:'16px',marginBottom:'20px'}}>
+              <div><span style={lbl}>Player Name</span><span style={{fontSize:'1.25rem',color:C.accent,fontWeight:700}}>{orderView.player}</span></div>
+              {orderView.discord&&<div><span style={lbl}>Discord</span><span style={{color:'#5865F2',fontWeight:600}}>{orderView.discord}</span></div>}
+              <div><span style={lbl}>Order Date</span><span style={{fontSize:'0.9rem'}}>{new Date(orderView.timestamp).toLocaleString()}</span></div>
+            </div>
+            <div style={{...stl,marginBottom:'0'}}>Items Ordered</div>
+            {hydratedItems.map(item=>(
+              <div key={item.id} style={row}>
+                <span style={{flex:'1 1 160px',fontSize:'1.05rem'}}>{item.icon} <strong>{item.name}</strong></span>
+                <span style={{color:C.mute,fontSize:'0.85rem'}}>{item.category}</span>
+                <span style={{color:C.dim}}>x{item.qty}</span>
+                <span style={{color:C.accent,fontWeight:700,minWidth:'150px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+              </div>
+            ))}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px',marginTop:'8px'}}>
+              <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem',letterSpacing:'0.1em'}}>TOTAL DUE</span>
+              <span style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>{orderTotal.toLocaleString()} <span style={{fontSize:'1rem',color:C.dim}}>{currency}</span></span>
+            </div>
+          </div>
+          <button style={btn('ghost')} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back to Shop</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* MAIN APP */
+  return (
+    <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
+
+      {/* HEADER with Admin button in top-right corner */}
+      <div style={{background:C.accentD,padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',flexWrap:'wrap',gap:'8px'}}>
+        <div style={{cursor:'pointer'}} onClick={()=>setView('shop')}>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.4rem',color:C.bg2,letterSpacing:'0.08em',lineHeight:1.2}}>247 Always Online</div>
+          <div style={{fontSize:'0.72rem',color:C.mute,letterSpacing:'0.15em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
+        </div>
+        <div style={{display:'flex',gap:'6px',alignItems:'center',flex:1,justifyContent:'center'}}>
+          <div className="nav-wrap" style={{display:'flex',gap:'6px',flexWrap:'nowrap'}}>
+            {[
+              {id:'shop',     label:'🏪 Shop'},
+              {id:'cart',     label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},
+              {id:'checkout', label:'📋 Order'},
+            ].map(({id,label:lbl2})=>(
+              <button key={id} style={{...nav(view===id),background:view===id?C.bg2:'transparent',color:view===id?C.accentD:C.bg2,border:`1px solid ${view===id?C.bg2:C.bg4}`}} onClick={()=>setView(id)}>{lbl2}</button>
+            ))}
+          </div>
+        </div>
+        <button 
+          style={{
+            background:'transparent',
+            color:C.mute,
+            border:`1px solid ${C.bg4}`,
+            padding:'6px 12px',
+            fontFamily:"'Rajdhani',sans-serif",
+            fontWeight:600,
+            fontSize:'0.78rem',
+            letterSpacing:'0.05em',
+            cursor:'pointer',
+            transition:'all 0.2s',
+            whiteSpace:'nowrap',
+            marginLeft:'auto'
+          }}
+          onMouseEnter={e=>{e.target.style.color=C.white;e.target.style.borderColor=C.accent;}}
+          onMouseLeave={e=>{e.target.style.color=C.mute;e.target.style.borderColor=C.bg4;}}
+          onClick={()=>setView('admin')}
+        >
+          🔧 Admin
+        </button>
+      </div>
+
+      <div style={{padding:'24px',maxWidth:'1200px',margin:'0 auto'}}>
+
+        {/* SHOP */}
+        {view==='shop'&&<>
+          <div style={{display:'flex',gap:'10px',marginBottom:'14px',flexWrap:'wrap',alignItems:'center'}}>
+            <input style={{...inp,flex:'1 1 200px'}} placeholder="🔍 Search items..." value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+            <div style={{display:'flex',gap:'4px'}}>
+              <button title="Grid view" onClick={()=>setShopLayout('grid')} style={{...btn(shopLayout==='grid'?'primary':'secondary'),padding:'7px 13px',fontSize:'1.1rem'}}>⊞</button>
+              <button title="List view" onClick={()=>setShopLayout('list')} style={{...btn(shopLayout==='list'?'primary':'secondary'),padding:'7px 13px',fontSize:'1.1rem'}}>☰</button>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'20px'}}>
+            {categories.map(cat=>(
+              <button key={cat} onClick={()=>setCatFilter(cat)} style={{
+                background:catFilter===cat?C.accent:'transparent',color:catFilter===cat?C.white:C.dim,
+                border:`1px solid ${catFilter===cat?C.accent:C.border}`,padding:'5px 13px',
+                fontFamily:"'Rajdhani',sans-serif",fontWeight:600,fontSize:'0.84rem',letterSpacing:'0.05em',transition:'all 0.2s'
+              }}>{cat}</button>
+            ))}
+          </div>
+
+          {filtered.length===0 ? (
+            <div style={{textAlign:'center',color:C.mute,padding:'60px'}}>No items found.</div>
+          ) : shopLayout==='grid' ? (
+            <div className="shop-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:'14px'}}>
+              {filtered.map(item=>(
+                <div key={item.id} style={{
+                  background:C.bg2,
+                  border:`2px solid ${cart[item.id]?C.accent:C.border}`,
+                  padding:'16px',
+                  transition:'border-color 0.2s',
+                  borderRadius:'2px',
+                  display:'flex',
+                  flexDirection:'column',
+                  minHeight:'280px'
+                }}>
+                  <div style={{fontSize:'2.2rem',marginBottom:'8px'}}>{item.icon}</div>
+                  <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.86rem',color:C.accentD,marginBottom:'3px',lineHeight:1.3,flexShrink:0}}>{item.name}</div>
+                  <div style={{fontSize:'0.72rem',color:C.mute,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:'6px',flexShrink:0}}>
+                    {item.category}
+                  </div>
+                  {item.desc&&<div style={{fontSize:'0.79rem',color:C.dim,marginBottom:'8px',lineHeight:1.4,flexShrink:0,flexGrow:1}}>{item.desc}</div>}
+                  <div style={{fontSize:'1.1rem',color:C.accent,fontWeight:700,marginBottom:'12px',flexShrink:0}}>
+                    {item.price.toLocaleString()} <span style={{fontSize:'0.7rem',color:C.dim,fontWeight:400}}>{currency}</span>
+                  </div>
+                  <div style={{marginTop:'auto'}}>
+                    {cart[item.id] ? <QtyControls id={item.id}/> : (
+                      <button style={{...btn('primary'),width:'100%'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+              <div style={{
+                display:'grid',
+                gridTemplateColumns:'1fr auto',
+                gap:'12px',
+                padding:'8px 12px',
+                background:C.bg3,
+                borderRadius:'2px',
+                fontSize:'0.72rem',
+                color:C.dim,
+                textTransform:'uppercase',
+                letterSpacing:'0.07em',
+                fontWeight:700
+              }}>
+                <span>Item</span>
+                <span style={{textAlign:'right'}}>Price & Qty</span>
+              </div>
+              {filtered.map(item=>(
+                <div key={item.id} className="list-row" style={{
+                  display:'grid',
+                  gridTemplateColumns:'1fr auto',
+                  gap:'12px',
+                  alignItems:'center',
+                  padding:'12px',
+                  background:cart[item.id]?`${C.accent}18`:C.bg2,
+                  border:`1px solid ${cart[item.id]?C.accent:C.border}`,
+                  borderRadius:'2px',
+                  transition:'all 0.15s',
+                  minHeight:'70px'
+                }}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0}}>
+                    <span style={{fontSize:'1.4rem',flexShrink:0}}>{item.icon}</span>
+                    <div style={{minWidth:0,flex:1}}>
+                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.88rem',color:C.accentD,lineHeight:1.2,marginBottom:'2px'}}>{item.name}</div>
+                      <div style={{fontSize:'0.75rem',color:C.mute}}>{item.category}</div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
+                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.95rem',whiteSpace:'nowrap'}}>
+                      {item.price.toLocaleString()} <span style={{fontSize:'0.7rem',color:C.dim}}>{currency}</span>
+                    </div>
+                    {cart[item.id] ? <QtyControls id={item.id}/> : (
+                      <button style={{...btn('primary'),padding:'5px 16px',fontSize:'0.84rem',whiteSpace:'nowrap'}} onClick={()=>addToCart(item.id)}>Add</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>}
+
+        {/* CART */}
+        {view==='cart'&&(
+          <div style={sec}>
+            <div style={stl}>🧺 Your Cart</div>
+            {cartEntries.length===0?(
+              <div style={{textAlign:'center',color:C.mute,padding:'50px'}}>
+                <div style={{fontSize:'3rem',marginBottom:'12px'}}>🛒</div>
+                <div style={{marginBottom:'20px'}}>Your cart is empty.</div>
+                <button style={btn('ghost')} onClick={()=>setView('shop')}>Browse Shop →</button>
+              </div>
+            ):<>
+              {cartEntries.map(item=>(
+                <div key={item.id} style={{...row,alignItems:'center'}}>
+                  <span style={{flex:'1 1 150px',fontSize:'1.05rem'}}>{item.icon} <strong>{item.name}</strong></span>
+                  <span style={{color:C.mute,fontSize:'0.82rem'}}>{item.category}</span>
+                  <QtyControls id={item.id}/>
+                  <span style={{color:C.accent,fontWeight:700,minWidth:'150px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+                </div>
+              ))}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'14px',marginTop:'8px'}}>
+                <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem'}}>TOTAL</span>
+                <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.9rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} <span style={{fontSize:'1rem',color:C.dim}}>{currency}</span></span>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'16px',flexWrap:'wrap'}}>
+                <button style={btn('danger')} onClick={clearCart}>Clear All</button>
+                <button style={btn('primary')} onClick={()=>setView('checkout')}>Place Order →</button>
+              </div>
+            </>}
+          </div>
+        )}
+
+        {/* CHECKOUT */}
+        {view==='checkout'&&<>
+          {cartEntries.length===0?(
+            <div style={sec}>
+              <div style={{textAlign:'center',color:C.mute,padding:'50px'}}>
+                <div style={{fontSize:'3rem',marginBottom:'12px'}}>📋</div>
+                <div style={{marginBottom:'20px'}}>Your cart is empty. Add items first!</div>
+                <button style={btn('ghost')} onClick={()=>setView('shop')}>Browse Shop →</button>
+              </div>
+            </div>
+          ):<>
+            <div style={sec}>
+              <div style={stl}>Your Details</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}>
+                <div>
+                  <label style={lbl}>ARK Player Name *</label>
+                  <input style={inp} placeholder="Your in-game name" value={playerName} onChange={e=>setPlayerName(e.target.value)}/>
+                </div>
+                <div>
+                  <label style={lbl}>Discord Username (optional)</label>
+                  <input style={inp} placeholder="YourName#0000" value={discord} onChange={e=>setDiscord(e.target.value)}/>
+                </div>
+              </div>
+            </div>
+            <div style={sec}>
+              <div style={stl}>Order Summary</div>
+              {cartEntries.map(item=>(
+                <div key={item.id} style={row}>
+                  <span style={{flex:'1 1 150px'}}>{item.icon} {item.name}</span>
+                  <span style={{color:C.dim}}>x{item.qty}</span>
+                  <span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+                </div>
+              ))}
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'12px',marginTop:'8px'}}>
+                <span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span>
+                <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span>
+              </div>
+            </div>
+            {!orderLink?(
+              <button style={{...btn('primary'),fontSize:'1rem',padding:'10px 24px'}} onClick={generateOrder} disabled={orderLoading}>
+                {orderLoading?'⏳ Saving order...':'✓ Generate Order Link'}
+              </button>
+            ):(
+              <div style={sec}>
+                <div style={stl}>✅ Order Ready!</div>
+                <p style={{color:C.dim,marginBottom:'14px',fontSize:'0.95rem',lineHeight:1.5}}>
+                  Copy this link and paste it in Discord. The admin clicks it to see your verified order.
+                </p>
+                <div style={{background:C.white,border:`1px solid ${C.accent}`,color:C.accent,padding:'12px',wordBreak:'break-all',fontSize:'0.82rem',fontFamily:'monospace',lineHeight:1.6}}>
+                  {orderLink}
+                </div>
+                <div style={{display:'flex',gap:'10px',marginTop:'12px',flexWrap:'wrap'}}>
+                  <button style={btn(copied?'secondary':'primary')} onClick={copyLink}>{copied?'✓ Copied!':'📋 Copy Link'}</button>
+                  <button style={btn('ghost')} onClick={()=>{setOrderLink('');setPlayerName('');setDiscord('');setCart({});setView('shop');}}>Start New Order</button>
+                </div>
+              </div>
+            )}
+          </>}
+        </>}
+
+        {/* ADMIN */}
+        {view==='admin'&&(!adminUnlocked?(
+          <div style={{...sec,maxWidth:'380px'}}>
+            <div style={stl}>🔒 Admin Login</div>
+            <div style={{background:'#e8f4f8',border:`1px solid ${C.border}`,padding:'10px 14px',color:C.dim,fontSize:'0.83rem',lineHeight:1.5,marginBottom:'16px'}}>
+              Password is verified securely via Cloudflare — it is not stored anywhere in this page's code.
+            </div>
+            <label style={lbl}>Admin Password</label>
+            <input type="password" style={{...inp,marginBottom:'10px'}} placeholder="Enter admin password"
+              value={passInput} onChange={e=>setPassInput(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&adminLogin()}/>
+            {passError&&<div style={{color:C.red,fontSize:'0.85rem',marginBottom:'10px'}}>{passError}</div>}
+            <button style={btn('primary')} onClick={adminLogin} disabled={passLoading}>
+              {passLoading?'Checking...':'Unlock Admin Panel'}
+            </button>
+          </div>
+        ):(
+          <>
+            <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
+              {[['items','📦 Items'],['calc','🧮 Price Calc'],['settings','⚙️ Settings']].map(([id,lbl2])=>(
+                <button key={id} style={nav(adminTab===id)} onClick={()=>setAdminTab(id)}>{lbl2}</button>
+              ))}
+              <button style={{...btn('secondary'),marginLeft:'auto'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button>
+            </div>
+
+            {adminTab==='items'&&(
+              <div style={sec}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',...stl}}>
+                  <span>📦 All Items — {items.length}</span>
+                  <button style={{...btn('danger'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={resetToDefault}>Reset Defaults</button>
+                </div>
+                {items.map(item=>(
+                  <div key={item.id} style={{...row,alignItems:'flex-start'}}>
+                    {editItem?.id===item.id?(
+                      <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'8px'}}>
+                        {[{lbl:'Icon',field:'icon'},{lbl:'Name',field:'name'},{lbl:'Category',field:'category'},{lbl:'Price',field:'price',type:'number'},{lbl:'Engram',field:'engram',type:'number'},{lbl:'Desc',field:'desc'}].map(({lbl:l,field,type})=>(
+                          <div key={field}>
+                            <label style={{...lbl,fontSize:'0.67rem'}}>{l}</label>
+                            <input type={type||'text'} style={{...inp,padding:'5px 8px',fontSize:'0.9rem'}}
+                              value={editItem[field]||''} onChange={e=>setEditItem(ei=>({...ei,[field]:e.target.value}))}/>
+                          </div>
+                        ))}
+                        <div style={{display:'flex',gap:'6px',alignItems:'flex-end'}}>
+                          <button style={{...btn('primary'),padding:'6px 12px'}} onClick={saveEdit}>Save</button>
+                          <button style={{...btn('secondary'),padding:'6px 12px'}} onClick={()=>setEditItem(null)}>Cancel</button>
+                        </div>
+                      </div>
+                    ):<>
+                      <div style={{flex:1}}>
+                        <span style={{fontSize:'1.05rem'}}>{item.icon} <strong style={{color:C.accentD}}>{item.name}</strong></span>
+                        <span style={{color:C.mute,fontSize:'0.8rem',marginLeft:'8px'}}>{item.category}</span>
+                        {!item.fixed&&item.recipe?.length>0&&(
+                          <div style={{color:C.dim,fontSize:'0.75rem',marginTop:'3px'}}>
+                            {item.recipe.map(r=>`${r.qty}x ${r.material}`).join(', ')} · Engram {item.engram}
+                          </div>
+                        )}
+                        {item.fixed&&<span style={{...bdg(C.accentL),marginLeft:'6px'}}>FIXED</span>}
+                      </div>
+                      <span style={{color:C.accent,fontWeight:700,marginRight:'12px'}}>{item.price.toLocaleString()} {currency}</span>
+                      <div style={{display:'flex',gap:'6px'}}>
+                        <button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.82rem'}} onClick={()=>setEditItem({...item})}>Edit</button>
+                        <button style={{...btn('danger'),padding:'4px 10px',fontSize:'0.82rem'}} onClick={()=>deleteItem(item.id)}>Del</button>
+                      </div>
+                    </>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {adminTab==='calc'&&<>
+              <div style={sec}>
+                <div style={stl}>🧮 Price Calculator</div>
+                <p style={{color:C.dim,fontSize:'0.9rem',lineHeight:1.6,marginBottom:'18px'}}>
+                  Enter the recipe and engram level to get the correct shop price.<br/>
+                  <strong style={{color:C.accent}}>Formula:</strong> engram ≤ materials → 2x(materials+engram) | engram &gt; materials → 2x materials only
+                </p>
+                <div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
+                  <button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Use Formula</button>
+                  <button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed Price</button>
+                </div>
+                {calcFixed?(
+                  <div style={{marginBottom:'18px'}}>
+                    <label style={lbl}>Fixed Price ({currency})</label>
+                    <input type="number" style={{...inp,maxWidth:'200px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/>
+                  </div>
+                ):<>
+                  <div style={{marginBottom:'14px'}}>
+                    <label style={lbl}>Recipe Materials</label>
+                    {calcRecipe.map((r2,i)=>(
+                      <div key={i} style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center',flexWrap:'wrap'}}>
+                        <select style={{...sel,flex:'1 1 180px'}} value={r2.material}
+                          onChange={e=>{const r=[...calcRecipe];r[i]={...r[i],material:e.target.value};setCalcRecipe(r);}}>
+                          {ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}
+                        </select>
+                        <input type="number" style={{...inp,width:'90px'}} placeholder="Qty"
+                          value={r2.qty} onChange={e=>{const r=[...calcRecipe];r[i]={...r[i],qty:e.target.value};setCalcRecipe(r);}}/>
+                        <span style={{color:C.dim,fontSize:'0.8rem',minWidth:'90px'}}>
+                          {r2.qty&&MATERIAL_TIERS[r2.material]?`= ${Math.round(r2.qty*MATERIAL_TIERS[r2.material]*100)/100} iron`:''}
+                        </span>
+                        {calcRecipe.length>1&&(
+                          <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>x</button>
+                        )}
+                      </div>
+                    ))}
+                    <button style={{...btn('ghost'),padding:'4px 14px',fontSize:'0.82rem'}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add Material</button>
+                  </div>
+                  <div style={{marginBottom:'18px'}}>
+                    <label style={lbl}>Engram Level</label>
+                    <input type="number" style={{...inp,maxWidth:'160px'}} placeholder="e.g. 65" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/>
+                  </div>
+                </>}
+                <button style={{...btn('primary'),padding:'9px 24px',fontSize:'1rem'}} onClick={runCalc}>Calculate Price</button>
+                {calcResult&&(
+                  <div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'16px 20px'}}>
+                    <div style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900,marginBottom:'8px'}}>
+                      {calcResult.price.toLocaleString()} {currency}
+                    </div>
+                    {!calcResult.fixed&&<div style={{color:C.dim,fontSize:'0.85rem',lineHeight:1.8}}>
+                      Material iron value: <strong style={{color:C.text}}>{calcResult.materialIron}</strong><br/>
+                      Engram level: <strong style={{color:C.text}}>{calcResult.engram}</strong><br/>
+                      {calcResult.usedEngram
+                        ?<span style={{color:C.green}}>Engram included (engram is less than or equal to materials)</span>
+                        :<span style={{color:'#c07020'}}>Engram dropped (would inflate price)</span>
+                      }
+                    </div>}
+                  </div>
+                )}
+              </div>
+              {calcResult&&(
+                <div style={sec}>
+                  <div style={stl}>Add to Shop</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:'12px',marginBottom:'14px'}}>
+                    {[{lbl:'Icon',field:'calcIcon',val:calcIcon,set:setCalcIcon},{lbl:'Item Name *',field:'calcName',val:calcName,set:setCalcName},{lbl:'Description',field:'calcDesc',val:calcDesc,set:setCalcDesc}].map(({lbl:l,field,val,set})=>(
+                      <div key={field}><label style={lbl}>{l}</label><input style={inp} value={val} onChange={e=>set(e.target.value)}/></div>
+                    ))}
+                    <div>
+                      <label style={lbl}>Category</label>
+                      <select style={sel} value={calcCat} onChange={e=>setCalcCat(e.target.value)}>
+                        {['Weapons','Armor','Ammo','Structures','Saddles','Blueprints','Taming & Utility','Resources','Other'].map(c=><option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <button style={btn('primary')} onClick={addCalcItem}>Add to Shop at {calcResult.price.toLocaleString()} {currency}</button>
+                </div>
+              )}
+              <div style={sec}>
+                <div style={stl}>Tier Reference</div>
+                {[
+                  ['Tier 1 — 20 per ingot',['Wood','Thatch','Fiber','Stone','Flint','Raw Meat','Raw Fish']],
+                  ['Tier 2 — 10 per ingot',['Hide','Chitin','Keratin','Sap','Cooked Meat','Charcoal']],
+                  ['Tier 3 — 5 per ingot', ['Crystal','Oil','Obsidian']],
+                  ['Tier 4 — 2 per ingot', ['Raw Metal','Silica Pearls','Pelt','Organic Polymer','Meat Jerky']],
+                  ['Tier 5 — 1 per ingot', ['Metal Ingot','Gunpowder','Berry Seed']],
+                  ['Tier 6 — 1 costs 2',   ['Full Water Skin','Raw Prime Meat','Raw Prime Fish']],
+                  ['Tier 7 — 1 costs 5',   ['Electronics','Polymer','Cementing Paste','Gasoline','Cooked Prime Meat','Vegetable Seeds']],
+                  ['Tier 8 — 1 costs 10',  ['Raw Mutton','Rare Flower','Rare Mushroom']],
+                  ['Tier 9 — 1 costs 20',  ['Absorbent Substrate','Lamb Chops','Prime Jerky']],
+                  ['Tier 10 — 1 costs 50', ['Black Pearls','Aggeravic Mushroom','Aquatic Mushroom','Ascerbic Mushroom','Auric Mushroom']],
+                  ['Tier 11 — 1 costs 100',['(none defined)']],
+                  ['Tier 12 — 1 costs 200',['Congealed Gas Ball']],
+                  ['Tier 13 — 1 costs 500',['Red Gems','Blue Gems']],
+                ].map(([title,mats])=>(
+                  <div key={title} style={{marginBottom:'10px',paddingBottom:'10px',borderBottom:`1px solid ${C.border}`}}>
+                    <div style={{color:C.accent,fontSize:'0.82rem',fontWeight:700,marginBottom:'3px'}}>{title}</div>
+                    <div style={{color:C.dim,fontSize:'0.82rem'}}>{mats.join(' · ')}</div>
+                  </div>
+                ))}
+              </div>
+            </>}
+
+            {adminTab==='settings'&&(
+              <div style={sec}>
+                <div style={stl}>Settings</div>
+                <div style={{marginBottom:'16px'}}>
+                  <label style={lbl}>Currency Name</label>
+                  <input style={{...inp,maxWidth:'280px'}} value={editCurrency} onChange={e=>setEditCurrency(e.target.value)}/>
+                </div>
+                <button style={btn('primary')} onClick={saveSettings}>Save</button>
+                <div style={{marginTop:'20px',paddingTop:'20px',borderTop:`1px solid ${C.border}`}}>
+                  <div style={{fontFamily:"'Cinzel',serif",color:C.accentD,fontSize:'0.9rem',marginBottom:'10px'}}>Export Items</div>
+                  <p style={{color:C.dim,fontSize:'0.85rem',marginBottom:'12px',lineHeight:1.5}}>Download your full item list as a file. Bring this file back to update the shop code on GitHub.</p>
+                  <button style={{...btn('primary'),padding:'8px 20px'}} onClick={exportItems}>⬇ Download Item List</button>
+                </div>
+                <div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'14px',color:C.dim,fontSize:'0.83rem',lineHeight:1.7}}>
+                  <strong style={{color:C.text}}>To change your admin password:</strong><br/>
+                  Go to your Cloudflare Pages dashboard → Settings → Environment variables → update ADMIN_PASS.
+                </div>
+              </div>
+            )}
+          </>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
