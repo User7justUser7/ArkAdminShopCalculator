@@ -268,7 +268,7 @@ function App() {
   const bdg = color=>({background:`${color}22`,border:`1px solid ${color}66`,color,padding:'3px 10px',fontSize:'0.73rem',letterSpacing:'0.1em',fontWeight:700,borderRadius:'2px'});
   const nav = active=>({...btn(active?'primary':'ghost'),padding:'6px 14px',fontSize:'0.85rem',letterSpacing:'0.06em'});
 
-  // ✅ FIXED: QtyControls with "✕ Remove" text button
+  // QtyControls with "✕ Remove" text button
   const QtyControls = ({ id }) => {
     const qty = cart[id] || 0;
     const [draft, setDraft] = useState(String(qty));
@@ -433,7 +433,6 @@ function App() {
           {filtered.length===0 ? (
             <div style={{textAlign:'center',color:C.mute,padding:'60px'}}>No items found.</div>
           ) : shopLayout==='grid' ? (
-            // ✅ FIXED: Pokemon-card perfect alignment
             <div className="shop-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'14px'}}>
               {filtered.map(item=>(
                 <div key={item.id} style={{
@@ -447,12 +446,9 @@ function App() {
                   minHeight:'340px',
                   position:'relative'
                 }}>
-                  {/* Icon - Fixed height */}
                   <div style={{fontSize:'2.5rem',marginBottom:'12px',height:'40px',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     {item.icon}
                   </div>
-                  
-                  {/* Name - Fixed height */}
                   <div style={{
                     fontFamily:"'Cinzel',serif",
                     fontSize:'0.9rem',
@@ -466,8 +462,6 @@ function App() {
                   }}>
                     {item.name.toUpperCase()}
                   </div>
-                  
-                  {/* Category - Fixed height */}
                   <div style={{
                     fontSize:'0.7rem',
                     color:C.mute,
@@ -478,8 +472,6 @@ function App() {
                   }}>
                     {item.category}
                   </div>
-                  
-                  {/* Description - Flexible height */}
                   <div style={{
                     fontSize:'0.8rem',
                     color:C.dim,
@@ -490,8 +482,6 @@ function App() {
                   }}>
                     {item.desc}
                   </div>
-                  
-                  {/* Price - Fixed height */}
                   <div style={{
                     fontSize:'1.2rem',
                     color:C.accent,
@@ -503,18 +493,15 @@ function App() {
                   }}>
                     {item.price.toLocaleString()} <span style={{fontSize:'0.75rem',color:C.dim,fontWeight:400,marginLeft:'2px'}}>{currency}</span>
                   </div>
-                  
-                  {/* Button - Always at bottom */}
                   <div style={{marginTop:'auto'}}>
                     {cart[item.id] ? <QtyControls id={item.id}/> : (
-                      <button style={{...btn('primary'),width:'100%',padding:'10px',fontSize:'0.9rem'}}>Add to Cart</button>
+                      <button style={{...btn('primary'),width:'100%',padding:'10px',fontSize:'0.9rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            // List view
             <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
               <div style={{
                 display:'grid',
