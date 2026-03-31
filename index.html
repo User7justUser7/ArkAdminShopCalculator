@@ -236,6 +236,7 @@ function App() {
     );
   };
 
+  // ORDER VIEW
   if (view==='order') {
     if (!orderView) {
       return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>⏳</div><div>Loading...</div></div></div>;
@@ -277,6 +278,7 @@ function App() {
     );
   }
 
+  // MAIN APP
   return (
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
       <header style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
@@ -498,12 +500,10 @@ function App() {
                 {adminTab==='calc' && (
                   <div style={sec}>
                     <div style={stl}>🧮 Calculator</div>
-                    
                     <div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
                       <button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button>
                       <button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button>
                     </div>
-                    
                     {calcFixed ? (
                       <div style={{marginBottom:'18px'}}>
                         <label style={lbl}>Fixed Price</label>
@@ -512,23 +512,24 @@ function App() {
                     ) : (
                       <div style={{marginBottom:'14px'}}>
                         <label style={lbl}>Materials</label>
-                        {calcRecipe.map((r,i)=>(
-                          <div key={i} style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
-                            <select style={{...sel,flex:1}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>
-                              {ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}
-                            </select>
-                            <input type="number" style={{...inp,width:'90px'}} placeholder="Qty" value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>
-                            {calcRecipe.length>1 && <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button>
-                          </div>
-                        ))}
+                        {calcRecipe.map((r,i)=>{
+                          return (
+                            <div key={i} style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
+                              <select style={{...sel,flex:1}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>
+                                {ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}
+                              </select>
+                              <input type="number" style={{...inp,width:'90px'}} placeholder="Qty" value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>
+                              {calcRecipe.length>1 ? (
+                                <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                         <button style={{...btn('ghost')}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button>
                       </div>
                     )}
-                    
                     <input type="number" style={{...inp,maxWidth:'160px',marginBottom:'18px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/>
-                    
                     <button style={{...btn('primary'),padding:'9px 24px'}} onClick={runCalc}>Calculate</button>
-                    
                     {calcResult && (
                       <div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'16px'}}>
                         <div style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>
@@ -536,7 +537,6 @@ function App() {
                         </div>
                       </div>
                     )}
-                    
                     {calcResult && (
                       <div style={sec}>
                         <input style={{...inp,marginBottom:'10px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/>
