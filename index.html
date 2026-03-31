@@ -13,162 +13,48 @@
   body { background: #e9ebe9; font-family: 'Rajdhani', sans-serif; }
   button { cursor: pointer; font-family: 'Rajdhani', sans-serif; }
   .qty-input { width: 36px; text-align: center; padding: 2px; font-weight: 700; border: 1px solid #88a8b4; background: #f4f8f8; font-size: 0.8rem; }
-  
-  /* TOP BAR - Logo only, never changes */
-  .top-bar {
-    background: #1a3a46;
-    padding: 8px 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .top-bar-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    color: #d0e1e4;
-    font-weight: 700;
-  }
-  .top-bar-subtitle {
-    font-size: 0.5rem;
-    color: #7a9aa4;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-  }
-  
-  /* NAV BAR - Separate, fixed height */
-  .nav-bar {
-    background: #1a3a46;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 45px;
-    z-index: 99;
-    height: 38px;
-  }
-  .nav-buttons {
-    display: flex;
-    gap: 4px;
-  }
-  .nav-btn {
-    background: transparent;
-    color: #d0e1e4;
-    border: 1px solid #7a9aa4;
-    padding: 4px 8px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border-radius: 2px;
-    white-space: nowrap;
-    min-width: 65px;
-    text-align: center;
-  }
-  .nav-btn.active {
-    background: #d0e1e4;
-    color: #1a3a46;
-    border-color: #d0e1e4;
-  }
-  .nav-btn-cart {
-    min-width: 85px; /* Fixed width for cart count */
-  }
-  .admin-btn {
-    background: transparent;
-    color: #7a9aa4;
-    border: 1px solid #4a6a74;
-    padding: 4px 8px;
-    font-size: 0.7rem;
-    border-radius: 2px;
-  }
-  .admin-btn.active {
-    background: #ffffff22;
-    color: #d0e1e4;
-    border-color: #d0e1e4;
-  }
-  
-  /* Grid cards - FIXED HEIGHT */
-  .shop-card { 
-    background: #d0e1e4; 
-    border: 2px solid #a8c0c8; 
-    border-radius: 4px; 
-    padding: 10px; 
-    display: flex; 
-    flex-direction: column;
-    height: 285px;
-  }
+  .top-bar { background: #1a3a46; padding: 8px 12px; position: sticky; top: 0; z-index: 100; }
+  .top-bar-title { font-family: 'Cinzel', serif; font-size: 1rem; color: #d0e1e4; font-weight: 700; }
+  .top-bar-subtitle { font-size: 0.5rem; color: #7a9aa4; text-transform: uppercase; letter-spacing: 0.15em; }
+  .nav-bar { background: #1a3a46; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 45px; z-index: 99; height: 38px; }
+  .nav-buttons { display: flex; gap: 4px; }
+  .nav-btn { background: transparent; color: #d0e1e4; border: 1px solid #7a9aa4; padding: 4px 8px; font-size: 0.7rem; font-weight: 600; border-radius: 2px; white-space: nowrap; min-width: 65px; text-align: center; }
+  .nav-btn.active { background: #d0e1e4; color: #1a3a46; border-color: #d0e1e4; }
+  .nav-btn-cart { min-width: 85px; }
+  .admin-btn { background: transparent; color: #7a9aa4; border: 1px solid #4a6a74; padding: 4px 8px; font-size: 0.7rem; border-radius: 2px; }
+  .admin-btn.active { background: #ffffff22; color: #d0e1e4; border-color: #d0e1e4; }
+  .shop-card { background: #d0e1e4; border: 2px solid #a8c0c8; border-radius: 4px; padding: 10px; display: flex; flex-direction: column; height: 285px; }
   .shop-card.in-cart { border-color: #2a5a6a; }
-  .card-icon { height: 40px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; }
-  .card-name { height: 34px; font-family:'Cinzel',serif; font-size:0.72rem; font-weight:700; color:#1a3a46; margin-top:4px; overflow:hidden; flex-shrink:0; }
-  .card-cat { height: 13px; font-size:0.6rem; color:#7a9aa4; text-transform:uppercase; flex-shrink:0; overflow:hidden; white-space:nowrap; }
-  .card-desc { height: 26px; font-size:0.68rem; color:#4a6a74; margin-top:3px; overflow:hidden; flex-shrink:0; }
-  .card-price { height: 22px; display:flex; align-items:center; font-size:0.9rem; color:#2a5a6a; font-weight:700; margin-top:4px; flex-shrink:0; }
-  .card-price span { font-size:0.6rem; color:#4a6a74; margin-left:2px; }
-  .card-action { margin-top:auto; padding-top:6px; flex-shrink:0; height: 34px; }
-  
-  .shop-grid { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 6px;
-  }
-  
-  /* List view - FIXED HEIGHT ROWS */
-  .list-row {
-    display: grid;
-    grid-template-columns: 28px 1fr 75px;
-    gap: 4px;
-    align-items: center;
-    padding: 4px 6px;
-    background: #d0e1e4;
-    border: 1px solid #a8c0c8;
-    border-radius: 2px;
-    height: 42px;
-  }
+  .card-icon { height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+  .card-name { height: 34px; font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 700; color: #1a3a46; margin-top: 4px; overflow: hidden; flex-shrink: 0; }
+  .card-cat { height: 13px; font-size: 0.6rem; color: #7a9aa4; text-transform: uppercase; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
+  .card-desc { height: 26px; font-size: 0.68rem; color: #4a6a74; margin-top: 3px; overflow: hidden; flex-shrink: 0; }
+  .card-price { height: 22px; display: flex; align-items: center; font-size: 0.9rem; color: #2a5a6a; font-weight: 700; margin-top: 4px; flex-shrink: 0; }
+  .card-price span { font-size: 0.6rem; color: #4a6a74; margin-left: 2px; }
+  .card-action { margin-top: auto; padding-top: 6px; flex-shrink: 0; height: 34px; }
+  .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .list-row { display: grid; grid-template-columns: 28px 1fr 75px; gap: 4px; align-items: center; padding: 4px 6px; background: #d0e1e4; border: 1px solid #a8c0c8; border-radius: 2px; height: 42px; }
   .list-row.in-cart { background: #c0d4d8; border-color: #2a5a6a; }
-  .list-name { font-family:'Cinzel',serif; font-size:0.72rem; color:#1a3a46; font-weight:700; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-  .list-cat { font-size:0.58rem; color:#7a9aa4; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-  .list-price { text-align:right; color:#2a5a6a; font-weight:700; font-size:0.75rem; white-space:nowrap; }
-  .list-qty { display:flex; justify-content:flex-end; }
-  
-  /* DESKTOP */
+  .list-name { font-family: 'Cinzel', serif; font-size: 0.72rem; color: #1a3a46; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .list-cat { font-size: 0.58rem; color: #7a9aa4; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .list-price { text-align: right; color: #2a5a6a; font-weight: 700; font-size: 0.75rem; white-space: nowrap; }
+  .list-qty { display: flex; justify-content: flex-end; }
   @media (min-width: 601px) {
-    .top-bar {
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 50px;
-    }
+    .top-bar { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; height: 50px; }
     .top-bar-title { font-size: 1.3rem; }
     .top-bar-subtitle { font-size: 0.55rem; }
-    .nav-bar {
-      top: 50px;
-      height: 44px;
-      padding: 8px 16px;
-    }
-    .nav-btn {
-      padding: 5px 12px;
-      font-size: 0.8rem;
-      min-width: 80px;
-    }
+    .nav-bar { top: 50px; height: 44px; padding: 8px 16px; }
+    .nav-btn { padding: 5px 12px; font-size: 0.8rem; min-width: 80px; }
     .nav-btn-cart { min-width: 100px; }
-    .admin-btn {
-      padding: 5px 12px;
-      font-size: 0.8rem;
-    }
-    .shop-grid { 
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-      gap: 8px;
-    }
+    .admin-btn { padding: 5px 12px; font-size: 0.8rem; }
+    .shop-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
     .shop-card { height: 310px; padding: 12px; }
     .card-icon { height: 44px; font-size: 2rem; }
     .card-name { height: 38px; font-size: 0.78rem; }
     .card-desc { height: 28px; font-size: 0.72rem; }
     .card-price { font-size: 0.95rem; }
     .card-action { height: 38px; }
-    .list-row {
-      grid-template-columns: 32px 1fr 85px 130px;
-      height: 52px;
-      padding: 6px 8px;
-    }
+    .list-row { grid-template-columns: 32px 1fr 85px 130px; height: 52px; padding: 6px 8px; }
     .list-name { font-size: 0.78rem; }
     .list-cat { font-size: 0.62rem; }
     .list-price { font-size: 0.82rem; }
@@ -244,14 +130,27 @@ function getOrderIdFromHash() {
 }
 
 function App() {
-  const [items, setItems] = useState(() => {
-    try { const s = localStorage.getItem('ark_items'); return s ? JSON.parse(s) : DEFAULT_ITEMS; }
-    catch { return DEFAULT_ITEMS; }
+  const [items, setItems] = useState(function() {
+    try {
+      const s = localStorage.getItem('ark_items');
+      return s ? JSON.parse(s) : DEFAULT_ITEMS;
+    } catch(e) {
+      return DEFAULT_ITEMS;
+    }
   });
+  
   const [shopName] = useState('247 Always Online');
-  const [currency, setCurrency] = useState(() => localStorage.getItem('ark_currency') || 'Iron Ingots');
-  useEffect(() => { localStorage.setItem('ark_items', JSON.stringify(items)); }, [items]);
-  useEffect(() => { localStorage.setItem('ark_currency', currency); }, [currency]);
+  const [currency, setCurrency] = useState(function() {
+    return localStorage.getItem('ark_currency') || 'Iron Ingots';
+  });
+  
+  useEffect(function() {
+    localStorage.setItem('ark_items', JSON.stringify(items));
+  }, [items]);
+  
+  useEffect(function() {
+    localStorage.setItem('ark_currency', currency);
+  }, [currency]);
 
   const [view, setView] = useState('shop');
   const [shopLayout, setShopLayout] = useState('grid');
@@ -264,7 +163,9 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [orderView, setOrderView] = useState(null);
   const [orderLoading, setOrderLoading] = useState(false);
-  const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem('ark_admin') === 'yes');
+  const [adminUnlocked, setAdminUnlocked] = useState(function() {
+    return sessionStorage.getItem('ark_admin') === 'yes';
+  });
   const [passInput, setPassInput] = useState('');
   const [passError, setPassError] = useState('');
   const [passLoading, setPassLoading] = useState(false);
@@ -282,259 +183,936 @@ function App() {
   const [calcDesc, setCalcDesc] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+  useEffect(function() {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 600);
+    }
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return function() {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
-  useEffect(() => {
+  useEffect(function() {
     const orderId = getOrderIdFromHash();
     if (orderId) {
       setView('order');
-      fetch(`/get-order?id=${orderId}`).then(r => r.json()).then(data => setOrderView(data)).catch(() => setOrderView({ error: true }));
+      fetch('/get-order?id=' + orderId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { setOrderView(data); })
+        .catch(function() { setOrderView({ error: true }); });
     }
   }, []);
 
-  const addToCart = id => setCart(c => ({...c,[id]:(c[id]||0)+1}));
-  const decCart = id => setCart(c => { const n={...c}; if(n[id]>1) n[id]--; else delete n[id]; return n; });
-  const removeFromCart = id => setCart(c => { const n={...c}; delete n[id]; return n; });
-  const clearCart = () => { if(confirm('Clear cart?')) setCart({}); };
+  function addToCart(id) {
+    setCart(function(c) {
+      var next = {};
+      for (var k in c) next[k] = c[k];
+      next[id] = (next[id] || 0) + 1;
+      return next;
+    });
+  }
+  
+  function decCart(id) {
+    setCart(function(c) {
+      var next = {};
+      for (var k in c) next[k] = c[k];
+      if (next[id] > 1) {
+        next[id]--;
+      } else {
+        delete next[id];
+      }
+      return next;
+    });
+  }
+  
+  function removeFromCart(id) {
+    setCart(function(c) {
+      var next = {};
+      for (var k in c) next[k] = c[k];
+      delete next[id];
+      return next;
+    });
+  }
+  
+  function clearCart() {
+    if (confirm('Clear cart?')) setCart({});
+  }
 
-  const cartEntries = Object.entries(cart).map(([id,qty]) => { const it=items.find(i=>i.id===id); return it?{...it,qty}:null; }).filter(Boolean);
-  const cartTotal = cartEntries.reduce((s,i)=>s+i.price*i.qty,0);
-  const cartCount = Object.values(cart).reduce((a,b)=>a+b,0);
-  const categories = ['All',...new Set(items.map(i=>i.category))];
-  const filtered = items.filter(i=> (catFilter==='All'||i.category===catFilter) && i.name.toLowerCase().includes(searchQ.toLowerCase()));
+  var cartEntries = [];
+  Object.entries(cart).forEach(function(entry) {
+    var id = entry[0];
+    var qty = entry[1];
+    var it = items.find(function(i) { return i.id === id; });
+    if (it) cartEntries.push(Object.assign({}, it, {qty: qty}));
+  });
+  
+  var cartTotal = cartEntries.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+  var cartCount = Object.values(cart).reduce(function(a, b) { return a + b; }, 0);
+  
+  var categories = ['All'];
+  items.forEach(function(i) {
+    if (categories.indexOf(i.category) === -1) categories.push(i.category);
+  });
+  
+  var filtered = items.filter(function(i) {
+    return (catFilter === 'All' || i.category === catFilter) &&
+           i.name.toLowerCase().indexOf(searchQ.toLowerCase()) !== -1;
+  });
 
-  const generateOrder = async () => {
-    if (!playerName.trim()) { alert('Enter player name!'); return; }
+  function generateOrder() {
+    if (!playerName.trim()) {
+      alert('Enter player name!');
+      return;
+    }
     setOrderLoading(true);
-    try {
-      const order = { player: playerName.trim(), discord: discord.trim(), timestamp: new Date().toISOString(), items: cartEntries.map(i => ({ id: i.id, qty: i.qty })) };
-      const res = await fetch('/save-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
-      const data = await res.json();
-      if (!res.ok) throw new Error('Failed');
-      setOrderLink(`${window.location.href.split('#')[0]}#order=${data.id}`);
-    } catch { alert('Failed to save order.'); }
-    setOrderLoading(false);
-  };
+    fetch('/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        player: playerName.trim(),
+        discord: discord.trim(),
+        timestamp: new Date().toISOString(),
+        items: cartEntries.map(function(i) { return { id: i.id, qty: i.qty }; })
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      setOrderLink(window.location.href.split('#')[0] + '#order=' + data.id);
+    })
+    .catch(function() {
+      alert('Failed to save order.');
+    })
+    .finally(function() {
+      setOrderLoading(false);
+    });
+  }
 
-  const copyLink = () => { navigator.clipboard.writeText(orderLink).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2500); }); };
+  function copyLink() {
+    navigator.clipboard.writeText(orderLink).then(function() {
+      setCopied(true);
+      setTimeout(function() { setCopied(false); }, 2500);
+    });
+  }
 
-  const adminLogin = async () => {
-    setPassLoading(true); setPassError('');
-    try {
-      const res = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:passInput}) });
-      if (res.ok) { sessionStorage.setItem('ark_admin','yes'); setAdminUnlocked(true); setPassInput(''); }
-      else setPassError('Incorrect password.');
-    } catch { setPassError('Connection failed.'); }
-    setPassLoading(false);
-  };
+  function adminLogin() {
+    setPassLoading(true);
+    setPassError('');
+    fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: passInput })
+    })
+    .then(function(r) {
+      if (r.ok) {
+        sessionStorage.setItem('ark_admin', 'yes');
+        setAdminUnlocked(true);
+        setPassInput('');
+      } else {
+        setPassError('Incorrect password.');
+      }
+    })
+    .catch(function() {
+      setPassError('Connection failed.');
+    })
+    .finally(function() {
+      setPassLoading(false);
+    });
+  }
 
-  const deleteItem = id => { if(confirm('Remove?')) setItems(p=>p.filter(i=>i.id!==id)); };
-  const saveEdit = () => { if(!editItem) return; setItems(p=>p.map(i=>i.id===editItem.id?{...editItem,price:Number(editItem.price)}:i)); setEditItem(null); };
-  const saveSettings = () => { setCurrency(editCurrency); alert('Saved!'); };
-  const resetToDefault = () => { if(confirm('Reset all?')) { setItems(DEFAULT_ITEMS); localStorage.removeItem('ark_items'); } };
-  const exportItems = () => { const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'shop-items.json'; a.click(); URL.revokeObjectURL(url); };
-
-  const runCalc = () => {
-    if (calcFixed) { setCalcResult({price:parseInt(calcFixedP)||0,fixed:true}); return; }
-    const materialIron = calcRecipe.reduce((sum,row)=>{ const rate=MATERIAL_TIERS[row.material]; if(!rate||!row.qty) return sum; return sum+parseFloat(row.qty)*rate; },0);
-    const e = parseFloat(calcEngram)||0;
-    const usedEngram = e<=materialIron;
-    setCalcResult({price:Math.round(usedEngram?(materialIron+e)*2:materialIron*2),materialIron:Math.round(materialIron*100)/100,engram:e,usedEngram,fixed:false});
-  };
-
-  const addCalcItem = () => {
-    if(!calcName||!calcResult) { alert('Enter name and calculate first.'); return; }
-    const price = calcFixed?parseInt(calcFixedP):calcResult.price;
-    setItems(p=>[...p,{id:Date.now().toString(),name:calcName,category:calcCat,icon:calcIcon,desc:calcDesc,price,fixed:calcFixed,recipe:calcFixed?[]:calcRecipe.filter(r=>r.qty),engram:calcFixed?0:parseFloat(calcEngram)||0}]);
-    setCalcName(''); setCalcDesc(''); setCalcResult(null); setCalcIcon('📦'); setCalcRecipe([{material:'Metal Ingot',qty:''}]); setCalcEngram('');
-    alert(`"${calcName}" added!`);
-  };
-
-  const C = { bg:'#e9ebe9',bg2:'#d0e1e4',bg3:'#c0d4d8',bg4:'#b0c8cc', border:'#a8c0c8',border2:'#88a8b4', accent:'#2a5a6a',accentL:'#3a7a8e',accentD:'#1a3a46', text:'#1a2a30',dim:'#4a6a74',mute:'#7a9aa4',white:'#f4f8f8', green:'#2a7a4a',red:'#9a3030' };
+  function deleteItem(id) {
+    if (confirm('Remove?')) {
+      setItems(function(p) { return p.filter(function(i) { return i.id !== id; }); });
+    }
+  }
   
-  const btn = (v='secondary') => {
-    const map = { primary:{bg:C.accent,color:C.white,border:C.accent}, secondary:{bg:C.bg3,color:C.text,border:C.border2}, danger:{bg:'#f0d8d8',color:C.red,border:'#d0a0a0'}, ghost:{bg:'transparent',color:C.accent,border:C.accent} };
-    const s=map[v]||map.secondary;
-    return {background:s.bg,color:s.color,border:`1px solid ${s.border}`,padding:'5px 10px',fontWeight:700,fontSize:'0.8rem'};
+  function saveEdit() {
+    if (!editItem) return;
+    setItems(function(p) {
+      return p.map(function(i) {
+        if (i.id === editItem.id) {
+          return Object.assign({}, editItem, { price: Number(editItem.price) });
+        }
+        return i;
+      });
+    });
+    setEditItem(null);
+  }
+  
+  function saveSettings() {
+    setCurrency(editCurrency);
+    alert('Saved!');
+  }
+  
+  function resetToDefault() {
+    if (confirm('Reset all?')) {
+      setItems(DEFAULT_ITEMS);
+      localStorage.removeItem('ark_items');
+    }
+  }
+  
+  function exportItems() {
+    var blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'shop-items.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function runCalc() {
+    if (calcFixed) {
+      setCalcResult({ price: parseInt(calcFixedP) || 0, fixed: true });
+      return;
+    }
+    var materialIron = calcRecipe.reduce(function(sum, row) {
+      var rate = MATERIAL_TIERS[row.material];
+      if (!rate || !row.qty) return sum;
+      return sum + parseFloat(row.qty) * rate;
+    }, 0);
+    var e = parseFloat(calcEngram) || 0;
+    var usedEngram = e <= materialIron;
+    setCalcResult({
+      price: Math.round(usedEngram ? (materialIron + e) * 2 : materialIron * 2),
+      materialIron: Math.round(materialIron * 100) / 100,
+      engram: e,
+      usedEngram: usedEngram,
+      fixed: false
+    });
+  }
+
+  function addCalcItem() {
+    if (!calcName || !calcResult) {
+      alert('Enter name and calculate first.');
+      return;
+    }
+    var price = calcFixed ? parseInt(calcFixedP) : calcResult.price;
+    var newItem = {
+      id: Date.now().toString(),
+      name: calcName,
+      category: calcCat,
+      icon: calcIcon,
+      desc: calcDesc,
+      price: price,
+      fixed: calcFixed,
+      recipe: calcFixed ? [] : calcRecipe.filter(function(r) { return r.qty; }),
+      engram: calcFixed ? 0 : (parseFloat(calcEngram) || 0)
+    };
+    setItems(function(p) { return p.concat([newItem]); });
+    setCalcName('');
+    setCalcDesc('');
+    setCalcResult(null);
+    setCalcIcon('📦');
+    setCalcRecipe([{ material: 'Metal Ingot', qty: '' }]);
+    setCalcEngram('');
+    alert('"' + calcName + '" added!');
+  }
+
+  var C = {
+    bg: '#e9ebe9',
+    bg2: '#d0e1e4',
+    bg3: '#c0d4d8',
+    bg4: '#b0c8cc',
+    border: '#a8c0c8',
+    border2: '#88a8b4',
+    accent: '#2a5a6a',
+    accentL: '#3a7a8e',
+    accentD: '#1a3a46',
+    text: '#1a2a30',
+    dim: '#4a6a74',
+    mute: '#7a9aa4',
+    white: '#f4f8f8',
+    green: '#2a7a4a',
+    red: '#9a3030'
   };
   
-  const inp = {background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:'5px 8px',fontSize:'0.85rem',width:'100%'};
-  const sel = {...inp,cursor:'pointer'};
-  const lbl = {fontSize:'0.65rem',color:C.dim,textTransform:'uppercase',display:'block',marginBottom:'2px'};
-  const sec = {background:C.bg2,border:`1px solid ${C.border}`,padding:'14px 16px',marginBottom:'12px',borderRadius:'2px'};
-  const stl = {fontFamily:"'Cinzel',serif",color:C.accentD,fontSize:'0.85rem',marginBottom:'12px',paddingBottom:'6px',borderBottom:`1px solid ${C.border}`};
-  const row = {display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:`1px solid ${C.border}`,flexWrap:'wrap',gap:'4px'};
-  const bdg = color=>({background:`${color}22`,border:`1px solid ${color}66`,color,padding:'2px 6px',fontSize:'0.65rem',fontWeight:700,borderRadius:'2px'});
+  function btn(v) {
+    var map = {
+      primary: { bg: C.accent, color: C.white, border: C.accent },
+      secondary: { bg: C.bg3, color: C.text, border: C.border2 },
+      danger: { bg: '#f0d8d8', color: C.red, border: '#d0a0a0' },
+      ghost: { bg: 'transparent', color: C.accent, border: C.accent }
+    };
+    var s = map[v] || map.secondary;
+    return {
+      background: s.bg,
+      color: s.color,
+      border: '1px solid ' + s.border,
+      padding: '5px 10px',
+      fontWeight: 700,
+      fontSize: '0.8rem'
+    };
+  }
+  
+  var inp = {
+    background: C.white,
+    border: '1px solid ' + C.border,
+    color: C.text,
+    padding: '5px 8px',
+    fontSize: '0.85rem',
+    width: '100%'
+  };
+  
+  var sel = Object.assign({}, inp, { cursor: 'pointer' });
+  
+  var lbl = {
+    fontSize: '0.65rem',
+    color: C.dim,
+    textTransform: 'uppercase',
+    display: 'block',
+    marginBottom: '2px'
+  };
+  
+  var sec = {
+    background: C.bg2,
+    border: '1px solid ' + C.border,
+    padding: '14px 16px',
+    marginBottom: '12px',
+    borderRadius: '2px'
+  };
+  
+  var stl = {
+    fontFamily: "'Cinzel', serif",
+    color: C.accentD,
+    fontSize: '0.85rem',
+    marginBottom: '12px',
+    paddingBottom: '6px',
+    borderBottom: '1px solid ' + C.border
+  };
+  
+  var row = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '6px 0',
+    borderBottom: '1px solid ' + C.border,
+    flexWrap: 'wrap',
+    gap: '4px'
+  };
+  
+  function bdg(color) {
+    return {
+      background: color + '22',
+      border: '1px solid ' + color + '66',
+      color: color,
+      padding: '2px 6px',
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      borderRadius: '2px'
+    };
+  }
 
-  const QtyControls = ({ id }) => {
-    const qty = cart[id] || 0;
-    const [draft, setDraft] = useState(String(qty));
-    useEffect(() => { setDraft(String(cart[id] || 0)); }, [cart[id]]);
-    const commit = val => { const n = parseInt(val); if (isNaN(n) || n <= 0) removeFromCart(id); else setCart(c => ({...c,[id]:n})); };
+  function QtyControls(props) {
+    var id = props.id;
+    var qty = cart[id] || 0;
+    var draft = useState(String(qty))[0];
+    var setDraft = useState(String(qty))[1];
+    
+    useEffect(function() {
+      setDraft(String(cart[id] || 0));
+    }, [cart[id]]);
+    
+    function commit(val) {
+      var n = parseInt(val);
+      if (isNaN(n) || n <= 0) {
+        removeFromCart(id);
+      } else {
+        setCart(function(c) {
+          var next = {};
+          for (var k in c) next[k] = c[k];
+          next[id] = n;
+          return next;
+        });
+      }
+    }
+    
     if (qty === 0) return null;
-    return (
-      <div style={{display:'flex',gap:'2px',alignItems:'center'}}>
-        <button style={{...btn('secondary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>decCart(id)}>−</button>
-        <input className="qty-input" type="number" min="1" value={draft} onChange={e=>setDraft(e.target.value)} onBlur={e=>commit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){commit(e.target.value);e.target.blur();}}} />
-        <button style={{...btn('primary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>addToCart(id)}>+</button>
-        <button title="Remove" onClick={()=>removeFromCart(id)} style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'2px 5px',fontSize:'0.75rem',fontWeight:700,minWidth:'26px'}}>✕</button>
-      </div>
+    
+    return React.createElement('div', {
+      style: { display: 'flex', gap: '2px', alignItems: 'center' }
+    },
+      React.createElement('button', {
+        style: Object.assign({}, btn('secondary'), { padding: '2px 6px', fontSize: '0.75rem', minWidth: '26px' }),
+        onClick: function() { decCart(id); }
+      }, '−'),
+      React.createElement('input', {
+        className: 'qty-input',
+        type: 'number',
+        min: '1',
+        value: draft,
+        onChange: function(e) { setDraft(e.target.value); },
+        onBlur: function(e) { commit(e.target.value); },
+        onKeyDown: function(e) {
+          if (e.key === 'Enter') {
+            commit(e.target.value);
+            e.target.blur();
+          }
+        }
+      }),
+      React.createElement('button', {
+        style: Object.assign({}, btn('primary'), { padding: '2px 6px', fontSize: '0.75rem', minWidth: '26px' }),
+        onClick: function() { addToCart(id); }
+      }, '+'),
+      React.createElement('button', {
+        title: 'Remove',
+        onClick: function() { removeFromCart(id); },
+        style: {
+          background: '#f0d8d8',
+          color: C.red,
+          border: '1px solid #d0a0a0',
+          borderRadius: '2px',
+          padding: '2px 5px',
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          minWidth: '26px'
+        }
+      }, '✕')
     );
-  };
+  }
 
   // ORDER VIEW
-  if (view==='order') {
-    if (!orderView) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}>⏳ Loading...</div></div>;
-    if (orderView.error) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}>❌ Order not found.<button style={{...btn('ghost'),marginTop:'10px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button></div></div>;
-    const hydratedItems = (orderView.items||[]).map(entry => { const shopItem = items.find(i=>i.id===entry.id); if (!shopItem) return {id:entry.id,name:'Unknown',icon:'❓',category:'',price:0,qty:entry.qty}; return {...shopItem,qty:entry.qty}; });
-    const orderTotal = hydratedItems.reduce((s,i)=>s+i.price*i.qty,0);
-    const orderId = getOrderIdFromHash();
-    return (
-      <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
-        <div style={{background:C.accentD,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0}}>
-          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem',color:C.bg2,cursor:'pointer'}} onClick={()=>{window.location.hash='';window.location.reload();}}>{shopName}</div>
-          <div style={bdg(C.green)}>✓ VERIFIED</div>
-        </div>
-        <div style={{padding:'14px',maxWidth:'700px',margin:'0 auto'}}>
-          <div style={sec}>
-            <div style={stl}>Order #{orderId}</div>
-            <div style={{marginBottom:'12px',fontSize:'0.9rem'}}><strong>Player:</strong> {orderView.player}</div>
-            <div style={{...stl,marginBottom:'0'}}>Items</div>
-            {hydratedItems.map(item=>(<div key={item.id} style={row}><span>{item.icon} {item.name}</span><span style={{color:C.dim}}>x{item.qty}</span><span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'10px'}}><span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.5rem',color:C.accent,fontWeight:900}}>{orderTotal.toLocaleString()} {currency}</span></div>
-          </div>
-          <button style={btn('ghost')} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button>
-        </div>
-      </div>
+  if (view === 'order') {
+    if (!orderView) {
+      return React.createElement('div', {
+        style: { fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: '100vh', color: C.text, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }, React.createElement('div', { style: { textAlign: 'center', color: C.dim } }, '⏳ Loading...'));
+    }
+    if (orderView.error) {
+      return React.createElement('div', {
+        style: { fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: '100vh', color: C.text, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }, React.createElement('div', { style: { textAlign: 'center', color: C.red } },
+        React.createElement('div', null, '❌ Order not found.'),
+        React.createElement('button', {
+          style: Object.assign({}, btn('ghost'), { marginTop: '10px' }),
+          onClick: function() { window.location.hash = ''; window.location.reload(); }
+        }, '← Back')
+      ));
+    }
+    
+    var hydratedItems = (orderView.items || []).map(function(entry) {
+      var shopItem = items.find(function(i) { return i.id === entry.id; });
+      if (!shopItem) return { id: entry.id, name: 'Unknown', icon: '❓', category: '', price: 0, qty: entry.qty };
+      return Object.assign({}, shopItem, { qty: entry.qty });
+    });
+    var orderTotal = hydratedItems.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    var orderId = getOrderIdFromHash();
+    
+    return React.createElement('div', {
+      style: { fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: '100vh', color: C.text }
+    },
+      React.createElement('div', {
+        style: { background: C.accentD, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0 }
+      },
+        React.createElement('div', {
+          style: { fontFamily: "'Cinzel', serif", fontSize: '1.1rem', color: C.bg2, cursor: 'pointer' },
+          onClick: function() { window.location.hash = ''; window.location.reload(); }
+        }, shopName),
+        React.createElement('div', { style: bdg(C.green) }, '✓ VERIFIED')
+      ),
+      React.createElement('div', { style: { padding: '14px', maxWidth: '700px', margin: '0 auto' } },
+        React.createElement('div', { style: sec },
+          React.createElement('div', { style: stl }, 'Order #' + orderId),
+          React.createElement('div', { style: { marginBottom: '12px', fontSize: '0.9rem' } },
+            React.createElement('strong', null, 'Player: '),
+            orderView.player
+          ),
+          React.createElement('div', { style: Object.assign({}, stl, { marginBottom: '0' }) }, 'Items'),
+          hydratedItems.map(function(item) {
+            return React.createElement('div', { key: item.id, style: row },
+              React.createElement('span', null, item.icon, ' ', item.name),
+              React.createElement('span', { style: { color: C.dim } }, 'x' + item.qty),
+              React.createElement('span', { style: { color: C.accent, fontWeight: 700 } }, (item.price * item.qty).toLocaleString() + ' ' + currency)
+            );
+          }),
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px' }
+          },
+            React.createElement('span', { style: { fontFamily: "'Cinzel', serif" } }, 'TOTAL'),
+            React.createElement('span', { style: { fontFamily: "'Cinzel', serif", fontSize: '1.5rem', color: C.accent, fontWeight: 900 } },
+              orderTotal.toLocaleString() + ' ' + currency
+            )
+          )
+        ),
+        React.createElement('button', {
+          style: btn('ghost'),
+          onClick: function() { window.location.hash = ''; window.location.reload(); }
+        }, '← Back')
+      )
     );
   }
 
   // MAIN APP
-  return (
-    <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
-      {/* TOP BAR - Logo only, never changes */}
-      <div className="top-bar">
-        <div className="top-bar-title">247 ALWAYS ONLINE</div>
-        <div className="top-bar-subtitle">Admin Shop</div>
-      </div>
-      
-      {/* NAV BAR - Fixed height, cart count has fixed width */}
-      <div className="nav-bar">
-        <div className="nav-buttons">
-          <button className={`nav-btn ${view==='shop'?'active':''}`} onClick={()=>setView('shop')}>🏪 Shop</button>
-          <button className={`nav-btn nav-btn-cart ${view==='cart'?'active':''}`} onClick={()=>setView('cart')}>🧺 Cart ({cartCount})</button>
-          <button className={`nav-btn ${view==='checkout'?'active':''}`} onClick={()=>setView('checkout')}>📋 Order</button>
-        </div>
-        {!isMobile && <button className={`admin-btn ${view==='admin'?'active':''}`} onClick={()=>setView('admin')}>🔧 Admin</button>}
-      </div>
-
-      <div style={{padding:'10px',maxWidth:'1100px',margin:'0 auto'}}>
-        {view==='shop' && (
-          <div>
-            <div style={{display:'flex',gap:'6px',marginBottom:'8px',flexWrap:'wrap'}}>
-              <input style={{...inp,flex:'1 1 140px'}} placeholder="🔍 Search..." value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
-              <button onClick={()=>setShopLayout('grid')} style={{...btn(shopLayout==='grid'?'primary':'secondary'),padding:'4px 8px',fontSize:'0.85rem'}}>⊞</button>
-              <button onClick={()=>setShopLayout('list')} style={{...btn(shopLayout==='list'?'primary':'secondary'),padding:'4px 8px',fontSize:'0.85rem'}}>☰</button>
-            </div>
-            <div style={{display:'flex',gap:'3px',flexWrap:'wrap',marginBottom:'10px'}}>
-              {categories.map(cat=>(<button key={cat} onClick={()=>setCatFilter(cat)} style={{background:catFilter===cat?C.accent:'transparent',color:catFilter===cat?C.white:C.dim,border:`1px solid ${catFilter===cat?C.accent:C.border}`,padding:'3px 8px',fontWeight:600,fontSize:'0.7rem'}}>{cat}</button>))}
-            </div>
-            {filtered.length===0 ? (
-              <div style={{textAlign:'center',color:C.mute,padding:'40px'}}>No items found.</div>
-            ) : shopLayout==='grid' ? (
-              <div className="shop-grid">
-                {filtered.map(item=>(
-                  <div key={item.id} className={`shop-card${cart[item.id]?' in-cart':''}`}>
-                    <div className="card-icon">{item.icon}</div>
-                    <div className="card-name">{item.name}</div>
-                    <div className="card-cat">{item.category}</div>
-                    <div className="card-desc">{item.desc||' '}</div>
-                    <div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div>
-                    <div className="card-action">
-                      {cart[item.id] ? <QtyControls id={item.id}/> : <button style={{...btn('primary'),width:'100%',padding:'5px',fontSize:'0.75rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
-                {filtered.map(item=>(
-                  <div key={item.id} className={`list-row${cart[item.id]?' in-cart':''}`}>
-                    <span style={{fontSize:'1rem'}}>{item.icon}</span>
-                    <div style={{minWidth:0}}>
-                      <div className="list-name">{item.name}</div>
-                      <div className="list-cat">{item.category}</div>
-                    </div>
-                    <div className="list-price">{item.price.toLocaleString()} <span style={{fontSize:'0.55rem'}}>{currency}</span></div>
-                    <div className="list-qty">
-                      {cart[item.id] ? <QtyControls id={item.id}/> : <button style={{...btn('primary'),padding:'2px 7px',fontSize:'0.7rem'}} onClick={()=>addToCart(item.id)}>Add</button>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {view==='cart' && (
-          <div style={sec}>
-            <div style={stl}>🧺 Your Cart</div>
-            {cartEntries.length===0 ? (
-              <div style={{textAlign:'center',color:C.mute,padding:'30px'}}>
-                <div style={{fontSize:'2rem',marginBottom:'8px'}}>🛒</div>
-                <div>Cart is empty.</div>
-                <button style={btn('ghost')} onClick={()=>setView('shop')}>Browse →</button>
-              </div>
-            ) : (
-              <div>
-                {cartEntries.map(item=>(<div key={item.id} style={{...row}}><span style={{flex:'1',fontSize:'0.9rem'}}>{item.icon} <strong>{item.name}</strong></span><QtyControls id={item.id}/><span style={{color:C.accent,fontWeight:700,minWidth:'100px',textAlign:'right',fontSize:'0.85rem'}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'10px'}}><span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.5rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span></div>
-                <div style={{display:'flex',gap:'6px',marginTop:'12px'}}><button style={btn('danger')} onClick={clearCart}>Clear</button><button style={btn('primary')} onClick={()=>setView('checkout')}>Checkout →</button></div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {view==='checkout' && (
-          <div>
-            {cartEntries.length===0 ? (
-              <div style={sec}><div style={{textAlign:'center',color:C.mute,padding:'30px'}}><div style={{fontSize:'2rem',marginBottom:'8px'}}>📋</div><div>Cart empty.</div><button style={btn('ghost')} onClick={()=>setView('shop')}>Browse →</button></div></div>
-            ) : (
-              <div>
-                <div style={sec}><div style={stl}>Details</div><div style={{display:'grid',gap:'10px'}}><div><label style={lbl}>Player Name *</label><input style={inp} value={playerName} onChange={e=>setPlayerName(e.target.value)}/></div><div><label style={lbl}>Discord</label><input style={inp} value={discord} onChange={e=>setDiscord(e.target.value)}/></div></div></div>
-                <div style={sec}><div style={stl}>Summary</div>{cartEntries.map(item=>(<div key={item.id} style={row}><span>{item.name}</span><span style={{color:C.dim}}>x{item.qty}</span><span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}<div style={{display:'flex',justifyContent:'space-between',paddingTop:'8px'}}><span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.4rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span></div></div>
-                {!orderLink ? (<button style={{...btn('primary'),padding:'7px 18px'}} onClick={generateOrder} disabled={orderLoading}>{orderLoading?'⏳ Saving...':'✓ Generate Link'}</button>) : (
-                  <div style={sec}><div style={stl}>✅ Ready!</div><div style={{background:C.white,border:`1px solid ${C.accent}`,padding:'8px',fontSize:'0.75rem',fontFamily:'monospace',wordBreak:'break-all'}}>{orderLink}</div><div style={{display:'flex',gap:'6px',marginTop:'8px'}}><button style={btn(copied?'secondary':'primary')} onClick={copyLink}>{copied?'✓ Copied':'📋 Copy'}</button><button style={btn('ghost')} onClick={()=>{setOrderLink('');setPlayerName('');setDiscord('');setCart({});setView('shop');}}>New</button></div></div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {view==='admin' && (
-          <div>
-            {!adminUnlocked ? (
-              <div style={{...sec,maxWidth:'320px'}}><div style={stl}>🔒 Admin</div><label style={lbl}>Password</label><input type="password" style={{...inp,marginBottom:'6px'}} value={passInput} onChange={e=>setPassInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&adminLogin()}/>{passError && <div style={{color:C.red,marginBottom:'6px',fontSize:'0.75rem'}}>{passError}</div>}<button style={btn('primary')} onClick={adminLogin} disabled={passLoading}>{passLoading?'...':'Unlock'}</button></div>
-            ) : (
-              <div>
-                <div style={{display:'flex',gap:'4px',marginBottom:'12px',flexWrap:'wrap'}}>{[['items','📦 Items'],['calc','🧮 Calc'],['settings','⚙️ Settings']].map(([id,label])=>(<button key={id} style={{...btn(adminTab===id?'primary':'secondary'),padding:'4px 8px',fontSize:'0.75rem'}} onClick={()=>setAdminTab(id)}>{label}</button>))}<button style={{...btn('secondary'),marginLeft:'auto',padding:'4px 8px',fontSize:'0.75rem'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button></div>
-                {adminTab==='items' && (<div style={sec}><div style={{display:'flex',justifyContent:'space-between',...stl}}><span>Items: {items.length}</span><button style={{...btn('danger'),padding:'3px 8px',fontSize:'0.7rem'}} onClick={resetToDefault}>Reset</button></div>{items.map(item=>(<div key={item.id} style={{...row}}>{editItem?.id===item.id ? (<div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'4px'}}>{['icon','name','category','price','engram','desc'].map(f=>(<div key={f}><label style={lbl}>{f}</label><input style={{...inp,padding:'3px',fontSize:'0.8rem'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/></div>))}<div style={{gridColumn:'1/-1',display:'flex',gap:'3px'}}><button style={btn('primary')} onClick={saveEdit}>Save</button><button style={{...btn('secondary')}} onClick={()=>setEditItem(null)}>Cancel</button></div></div>):(<><span style={{fontSize:'0.9rem'}}>{item.icon} <strong>{item.name}</strong></span><span style={{color:C.mute,fontSize:'0.75rem'}}>- {item.category}</span><span style={{color:C.accent,fontWeight:700,fontSize:'0.85rem'}}>{item.price} {currency}</span><div style={{display:'flex',gap:'3px'}}><button style={{...btn('secondary'),padding:'2px 6px',fontSize:'0.7rem'}} onClick={()=>setEditItem({...item})}>Edit</button><button style={{...btn('danger'),padding:'2px 6px',fontSize:'0.7rem'}} onClick={()=>deleteItem(item.id)}>Del</button></div></>)}</div>))}</div>)}
-                {adminTab==='calc' && (<div style={sec}><div style={stl}>🧮 Calculator</div><div style={{display:'flex',gap:'6px',marginBottom:'12px'}}><button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button><button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button></div>{calcFixed ? (<div style={{marginBottom:'12px'}}><label style={lbl}>Fixed Price</label><input type="number" style={{...inp,maxWidth:'160px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/></div>) : (<div style={{marginBottom:'10px'}}><label style={lbl}>Materials</label>{calcRecipe.map((r,i)=>(<div key={i} style={{display:'flex',gap:'4px',marginBottom:'4px',alignItems:'center'}}><select style={{...sel,flex:1,padding:'3px',fontSize:'0.8rem'}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>{ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}</select><input type="number" style={{...inp,width:'70px',padding:'3px',fontSize:'0.8rem'}} value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>{calcRecipe.length>1 && <button style={{...btn('danger'),padding:'2px 6px',fontSize:'0.68rem'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button></div>))}<button style={{...btn('ghost'),padding:'3px 8px',fontSize:'0.75rem'}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button></div>)}<input type="number" style={{...inp,maxWidth:'120px',marginBottom:'12px',padding:'4px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/><button style={{...btn('primary'),padding:'6px 16px'}} onClick={runCalc}>Calculate</button>{calcResult && (<div style={{marginTop:'14px',background:C.white,border:`1px solid ${C.border}`,padding:'12px'}}><div style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>{calcResult.price.toLocaleString()} {currency}</div></div>)}{calcResult && (<div style={sec}><input style={{...inp,marginBottom:'6px',padding:'4px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/><button style={btn('primary')} onClick={addCalcItem}>Add to Shop</button></div>)}</div>)}
-                {adminTab==='settings' && (<div style={sec}><div style={stl}>Settings</div><label style={lbl}>Currency</label><input style={{...inp,maxWidth:'240px',marginBottom:'12px'}} value={editCurrency} onChange={e=>setEditCurrency(e.target.value)}/><button style={btn('primary')} onClick={saveSettings}>Save</button><div style={{marginTop:'14px',paddingTop:'14px',borderTop:`1px solid ${C.border}`}}><button style={{...btn('primary'),padding:'5px 14px'}} onClick={exportItems}>⬇ Export</button></div></div>)}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+  return React.createElement('div', {
+    style: { fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: '100vh', color: C.text }
+  },
+    React.createElement('div', { className: 'top-bar' },
+      React.createElement('div', { className: 'top-bar-title' }, '247 ALWAYS ONLINE'),
+      React.createElement('div', { className: 'top-bar-subtitle' }, 'Admin Shop')
+    ),
+    React.createElement('div', { className: 'nav-bar' },
+      React.createElement('div', { className: 'nav-buttons' },
+        React.createElement('button', {
+          className: 'nav-btn' + (view === 'shop' ? ' active' : ''),
+          onClick: function() { setView('shop'); }
+        }, '🏪 Shop'),
+        React.createElement('button', {
+          className: 'nav-btn nav-btn-cart' + (view === 'cart' ? ' active' : ''),
+          onClick: function() { setView('cart'); }
+        }, '🧺 Cart (' + cartCount + ')'),
+        React.createElement('button', {
+          className: 'nav-btn' + (view === 'checkout' ? ' active' : ''),
+          onClick: function() { setView('checkout'); }
+        }, '📋 Order')
+      ),
+      !isMobile ? React.createElement('button', {
+        className: 'admin-btn' + (view === 'admin' ? ' active' : ''),
+        onClick: function() { setView('admin'); }
+      }, '🔧 Admin') : null
+    ),
+    React.createElement('div', { style: { padding: '10px', maxWidth: '1100px', margin: '0 auto' } },
+      view === 'shop' ? React.createElement('div', null,
+        React.createElement('div', { style: { display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' } },
+          React.createElement('input', {
+            style: Object.assign({}, inp, { flex: '1 1 140px' }),
+            placeholder: '🔍 Search...',
+            value: searchQ,
+            onChange: function(e) { setSearchQ(e.target.value); }
+          }),
+          React.createElement('button', {
+            style: btn(shopLayout === 'grid' ? 'primary' : 'secondary'),
+            onClick: function() { setShopLayout('grid'); }
+          }, '⊞'),
+          React.createElement('button', {
+            style: btn(shopLayout === 'list' ? 'primary' : 'secondary'),
+            onClick: function() { setShopLayout('list'); }
+          }, '☰')
+        ),
+        React.createElement('div', { style: { display: 'flex', gap: '3px', flexWrap: 'wrap', marginBottom: '10px' } },
+          categories.map(function(cat) {
+            return React.createElement('button', {
+              key: cat,
+              onClick: function() { setCatFilter(cat); },
+              style: {
+                background: catFilter === cat ? C.accent : 'transparent',
+                color: catFilter === cat ? C.white : C.dim,
+                border: '1px solid ' + (catFilter === cat ? C.accent : C.border),
+                padding: '3px 8px',
+                fontWeight: 600,
+                fontSize: '0.7rem'
+              }
+            }, cat);
+          })
+        ),
+        filtered.length === 0 ?
+          React.createElement('div', { style: { textAlign: 'center', color: C.mute, padding: '40px' } }, 'No items found.') :
+          shopLayout === 'grid' ?
+            React.createElement('div', { className: 'shop-grid' },
+              filtered.map(function(item) {
+                return React.createElement('div', {
+                  key: item.id,
+                  className: 'shop-card' + (cart[item.id] ? ' in-cart' : '')
+                },
+                  React.createElement('div', { className: 'card-icon' }, item.icon),
+                  React.createElement('div', { className: 'card-name' }, item.name),
+                  React.createElement('div', { className: 'card-cat' }, item.category),
+                  React.createElement('div', { className: 'card-desc' }, item.desc || ' '),
+                  React.createElement('div', { className: 'card-price' },
+                    item.price.toLocaleString(),
+                    React.createElement('span', null, ' ' + currency)
+                  ),
+                  React.createElement('div', { className: 'card-action' },
+                    cart[item.id] ?
+                      React.createElement(QtyControls, { id: item.id }) :
+                      React.createElement('button', {
+                        style: Object.assign({}, btn('primary'), { width: '100%', padding: '5px', fontSize: '0.75rem' }),
+                        onClick: function() { addToCart(item.id); }
+                      }, 'Add to Cart')
+                  )
+                );
+              })
+            ) :
+            React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+              filtered.map(function(item) {
+                return React.createElement('div', {
+                  key: item.id,
+                  className: 'list-row' + (cart[item.id] ? ' in-cart' : '')
+                },
+                  React.createElement('span', { style: { fontSize: '1rem' } }, item.icon),
+                  React.createElement('div', { style: { minWidth: 0 } },
+                    React.createElement('div', { className: 'list-name' }, item.name),
+                    React.createElement('div', { className: 'list-cat' }, item.category)
+                  ),
+                  React.createElement('div', { className: 'list-price' },
+                    item.price.toLocaleString(),
+                    React.createElement('span', { style: { fontSize: '0.55rem' } }, ' ' + currency)
+                  ),
+                  React.createElement('div', { className: 'list-qty' },
+                    cart[item.id] ?
+                      React.createElement(QtyControls, { id: item.id }) :
+                      React.createElement('button', {
+                        style: Object.assign({}, btn('primary'), { padding: '2px 7px', fontSize: '0.7rem' }),
+                        onClick: function() { addToCart(item.id); }
+                      }, 'Add')
+                  )
+                );
+              })
+            )
+      ) : null,
+      view === 'cart' ? React.createElement('div', { style: sec },
+        React.createElement('div', { style: stl }, '🧺 Your Cart'),
+        cartEntries.length === 0 ?
+          React.createElement('div', { style: { textAlign: 'center', color: C.mute, padding: '30px' } },
+            React.createElement('div', { style: { fontSize: '2rem', marginBottom: '8px' } }, '🛒'),
+            React.createElement('div', null, 'Cart is empty.'),
+            React.createElement('button', {
+              style: btn('ghost'),
+              onClick: function() { setView('shop'); }
+            }, 'Browse →')
+          ) :
+          React.createElement('div', null,
+            cartEntries.map(function(item) {
+              return React.createElement('div', { key: item.id, style: row },
+                React.createElement('span', { style: { flex: '1', fontSize: '0.9rem' } },
+                  item.icon, ' ', React.createElement('strong', null, item.name)
+                ),
+                React.createElement(QtyControls, { id: item.id }),
+                React.createElement('span', {
+                  style: { color: C.accent, fontWeight: 700, minWidth: '100px', textAlign: 'right', fontSize: '0.85rem' }
+                }, (item.price * item.qty).toLocaleString() + ' ' + currency)
+              );
+            }),
+            React.createElement('div', {
+              style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px' }
+            },
+              React.createElement('span', { style: { fontFamily: "'Cinzel', serif" } }, 'TOTAL'),
+              React.createElement('span', {
+                style: { fontFamily: "'Cinzel', serif", fontSize: '1.5rem', color: C.accent, fontWeight: 900 }
+              }, cartTotal.toLocaleString() + ' ' + currency)
+            ),
+            React.createElement('div', { style: { display: 'flex', gap: '6px', marginTop: '12px' } },
+              React.createElement('button', { style: btn('danger'), onClick: clearCart }, 'Clear'),
+              React.createElement('button', { style: btn('primary'), onClick: function() { setView('checkout'); } }, 'Checkout →')
+            )
+          )
+      ) : null,
+      view === 'checkout' ? React.createElement('div', null,
+        cartEntries.length === 0 ?
+          React.createElement('div', { style: sec },
+            React.createElement('div', { style: { textAlign: 'center', color: C.mute, padding: '30px' } },
+              React.createElement('div', { style: { fontSize: '2rem', marginBottom: '8px' } }, '📋'),
+              React.createElement('div', null, 'Cart empty.'),
+              React.createElement('button', {
+                style: btn('ghost'),
+                onClick: function() { setView('shop'); }
+              }, 'Browse →')
+            )
+          ) :
+          React.createElement('div', null,
+            React.createElement('div', { style: sec },
+              React.createElement('div', { style: stl }, 'Details'),
+              React.createElement('div', { style: { display: 'grid', gap: '10px' } },
+                React.createElement('div', null,
+                  React.createElement('label', { style: lbl }, 'Player Name *'),
+                  React.createElement('input', {
+                    style: inp,
+                    value: playerName,
+                    onChange: function(e) { setPlayerName(e.target.value); }
+                  })
+                ),
+                React.createElement('div', null,
+                  React.createElement('label', { style: lbl }, 'Discord'),
+                  React.createElement('input', {
+                    style: inp,
+                    value: discord,
+                    onChange: function(e) { setDiscord(e.target.value); }
+                  })
+                )
+              )
+            ),
+            React.createElement('div', { style: sec },
+              React.createElement('div', { style: stl }, 'Summary'),
+              cartEntries.map(function(item) {
+                return React.createElement('div', { key: item.id, style: row },
+                  React.createElement('span', null, item.name),
+                  React.createElement('span', { style: { color: C.dim } }, 'x' + item.qty),
+                  React.createElement('span', { style: { color: C.accent, fontWeight: 700 } },
+                    (item.price * item.qty).toLocaleString() + ' ' + currency
+                  )
+                );
+              }),
+              React.createElement('div', {
+                style: { display: 'flex', justifyContent: 'space-between', paddingTop: '8px' }
+              },
+                React.createElement('span', { style: { fontFamily: "'Cinzel', serif" } }, 'TOTAL'),
+                React.createElement('span', {
+                  style: { fontFamily: "'Cinzel', serif", fontSize: '1.4rem', color: C.accent, fontWeight: 900 }
+                }, cartTotal.toLocaleString() + ' ' + currency)
+              )
+            ),
+            !orderLink ?
+              React.createElement('button', {
+                style: Object.assign({}, btn('primary'), { padding: '7px 18px' }),
+                onClick: generateOrder,
+                disabled: orderLoading
+              }, orderLoading ? '⏳ Saving...' : '✓ Generate Link') :
+              React.createElement('div', { style: sec },
+                React.createElement('div', { style: stl }, '✅ Ready!'),
+                React.createElement('div', {
+                  style: {
+                    background: C.white,
+                    border: '1px solid ' + C.accent,
+                    padding: '8px',
+                    fontSize: '0.75rem',
+                    fontFamily: 'monospace',
+                    wordBreak: 'break-all'
+                  }
+                }, orderLink),
+                React.createElement('div', { style: { display: 'flex', gap: '6px', marginTop: '8px' } },
+                  React.createElement('button', {
+                    style: btn(copied ? 'secondary' : 'primary'),
+                    onClick: copyLink
+                  }, copied ? '✓ Copied' : '📋 Copy'),
+                  React.createElement('button', {
+                    style: btn('ghost'),
+                    onClick: function() {
+                      setOrderLink('');
+                      setPlayerName('');
+                      setDiscord('');
+                      setCart({});
+                      setView('shop');
+                    }
+                  }, 'New')
+                )
+              )
+          )
+      ) : null,
+      view === 'admin' ? React.createElement('div', null,
+        !adminUnlocked ?
+          React.createElement('div', { style: Object.assign({}, sec, { maxWidth: '320px' }) },
+            React.createElement('div', { style: stl }, '🔒 Admin'),
+            React.createElement('label', { style: lbl }, 'Password'),
+            React.createElement('input', {
+              type: 'password',
+              style: Object.assign({}, inp, { marginBottom: '6px' }),
+              value: passInput,
+              onChange: function(e) { setPassInput(e.target.value); },
+              onKeyDown: function(e) { if (e.key === 'Enter') adminLogin(); }
+            }),
+            passError ? React.createElement('div', { style: { color: C.red, marginBottom: '6px', fontSize: '0.75rem' } }, passError) : null,
+            React.createElement('button', {
+              style: btn('primary'),
+              onClick: adminLogin,
+              disabled: passLoading
+            }, passLoading ? '...' : 'Unlock')
+          ) :
+          React.createElement('div', null,
+            React.createElement('div', { style: { display: 'flex', gap: '4px', marginBottom: '12px', flexWrap: 'wrap' } },
+              [['items', '📦 Items'], ['calc', '🧮 Calc'], ['settings', '⚙️ Settings']].map(function(tab) {
+                return React.createElement('button', {
+                  key: tab[0],
+                  style: Object.assign({}, btn(adminTab === tab[0] ? 'primary' : 'secondary'), { padding: '4px 8px', fontSize: '0.75rem' }),
+                  onClick: function() { setAdminTab(tab[0]); }
+                }, tab[1]);
+              }),
+              React.createElement('button', {
+                style: Object.assign({}, btn('secondary'), { marginLeft: 'auto', padding: '4px 8px', fontSize: '0.75rem' }),
+                onClick: function() {
+                  sessionStorage.removeItem('ark_admin');
+                  setAdminUnlocked(false);
+                }
+              }, '🔒 Lock')
+            ),
+            adminTab === 'items' ? React.createElement('div', { style: sec },
+              React.createElement('div', { style: Object.assign({}, stl, { display: 'flex', justifyContent: 'space-between' }) },
+                React.createElement('span', null, 'Items: ' + items.length),
+                React.createElement('button', {
+                  style: Object.assign({}, btn('danger'), { padding: '3px 8px', fontSize: '0.7rem' }),
+                  onClick: resetToDefault
+                }, 'Reset')
+              ),
+              items.map(function(item) {
+                return React.createElement('div', { key: item.id, style: row },
+                  editItem && editItem.id === item.id ?
+                    React.createElement('div', { style: { flex: 1, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' } },
+                      ['icon', 'name', 'category', 'price', 'engram', 'desc'].map(function(f) {
+                        return React.createElement('div', { key: f },
+                          React.createElement('label', { style: lbl }, f),
+                          React.createElement('input', {
+                            style: Object.assign({}, inp, { padding: '3px', fontSize: '0.8rem' }),
+                            value: editItem[f] || '',
+                            onChange: function(e) {
+                              setEditItem(function(ei) {
+                                var next = {};
+                                for (var k in ei) next[k] = ei[k];
+                                next[f] = e.target.value;
+                                return next;
+                              });
+                            }
+                          })
+                        );
+                      }),
+                      React.createElement('div', { style: { gridColumn: '1 / -1', display: 'flex', gap: '3px' } },
+                        React.createElement('button', { style: btn('primary'), onClick: saveEdit }, 'Save'),
+                        React.createElement('button', {
+                          style: btn('secondary'),
+                          onClick: function() { setEditItem(null); }
+                        }, 'Cancel')
+                      )
+                    ) :
+                    React.createElement(React.Fragment, null,
+                      React.createElement('span', { style: { fontSize: '0.9rem' } },
+                        item.icon, ' ', React.createElement('strong', null, item.name)
+                      ),
+                      React.createElement('span', { style: { color: C.mute, fontSize: '0.75rem' } }, ' - ' + item.category),
+                      React.createElement('span', { style: { color: C.accent, fontWeight: 700, fontSize: '0.85rem' } },
+                        item.price + ' ' + currency
+                      ),
+                      React.createElement('div', { style: { display: 'flex', gap: '3px' } },
+                        React.createElement('button', {
+                          style: Object.assign({}, btn('secondary'), { padding: '2px 6px', fontSize: '0.7rem' }),
+                          onClick: function() { setEditItem(Object.assign({}, item)); }
+                        }, 'Edit'),
+                        React.createElement('button', {
+                          style: Object.assign({}, btn('danger'), { padding: '2px 6px', fontSize: '0.7rem' }),
+                          onClick: function() { deleteItem(item.id); }
+                        }, 'Del')
+                      )
+                    )
+                );
+              })
+            ) : null,
+            adminTab === 'calc' ? React.createElement('div', { style: sec },
+              React.createElement('div', { style: stl }, '🧮 Calculator'),
+              React.createElement('div', { style: { display: 'flex', gap: '6px', marginBottom: '12px' } },
+                React.createElement('button', {
+                  style: btn(calcFixed ? 'secondary' : 'primary'),
+                  onClick: function() { setCalcFixed(false); }
+                }, 'Formula'),
+                React.createElement('button', {
+                  style: btn(calcFixed ? 'primary' : 'secondary'),
+                  onClick: function() { setCalcFixed(true); }
+                }, 'Fixed')
+              ),
+              calcFixed ?
+                React.createElement('div', { style: { marginBottom: '12px' } },
+                  React.createElement('label', { style: lbl }, 'Fixed Price'),
+                  React.createElement('input', {
+                    type: 'number',
+                    style: Object.assign({}, inp, { maxWidth: '160px' }),
+                    value: calcFixedP,
+                    onChange: function(e) { setCalcFixedP(e.target.value); }
+                  })
+                ) :
+                React.createElement('div', { style: { marginBottom: '10px' } },
+                  React.createElement('label', { style: lbl }, 'Materials'),
+                  calcRecipe.map(function(r, i) {
+                    return React.createElement('div', {
+                      key: i,
+                      style: { display: 'flex', gap: '4px', marginBottom: '4px', alignItems: 'center' }
+                    },
+                      React.createElement('select', {
+                        style: Object.assign({}, sel, { flex: 1, padding: '3px', fontSize: '0.8rem' }),
+                        value: r.material,
+                        onChange: function(e) {
+                          var x = calcRecipe.slice();
+                          x[i] = Object.assign({}, x[i], { material: e.target.value });
+                          setCalcRecipe(x);
+                        }
+                      },
+                        ALL_MATERIALS.map(function(m) {
+                          return React.createElement('option', { key: m }, m);
+                        })
+                      ),
+                      React.createElement('input', {
+                        type: 'number',
+                        style: Object.assign({}, inp, { width: '70px', padding: '3px', fontSize: '0.8rem' }),
+                        value: r.qty,
+                        onChange: function(e) {
+                          var x = calcRecipe.slice();
+                          x[i] = Object.assign({}, x[i], { qty: e.target.value });
+                          setCalcRecipe(x);
+                        }
+                      }),
+                      calcRecipe.length > 1 ?
+                        React.createElement('button', {
+                          style: Object.assign({}, btn('danger'), { padding: '2px 6px', fontSize: '0.68rem' }),
+                          onClick: function() {
+                            setCalcRecipe(calcRecipe.filter(function(_, j) { return j !== i; }));
+                          }
+                        }, '✕') : null
+                    );
+                  }),
+                  React.createElement('button', {
+                    style: Object.assign({}, btn('ghost'), { padding: '3px 8px', fontSize: '0.75rem' }),
+                    onClick: function() {
+                      setCalcRecipe(calcRecipe.concat([{ material: 'Metal Ingot', qty: '' }]));
+                    }
+                  }, '+ Add')
+                ),
+              React.createElement('input', {
+                type: 'number',
+                style: Object.assign({}, inp, { maxWidth: '120px', marginBottom: '12px', padding: '4px' }),
+                placeholder: 'Engram',
+                value: calcEngram,
+                onChange: function(e) { setCalcEngram(e.target.value); }
+              }),
+              React.createElement('button', {
+                style: Object.assign({}, btn('primary'), { padding: '6px 16px' }),
+                onClick: runCalc
+              }, 'Calculate'),
+              calcResult ?
+                React.createElement('div', {
+                  style: {
+                    marginTop: '14px',
+                    background: C.white,
+                    border: '1px solid ' + C.border,
+                    padding: '12px'
+                  }
+                },
+                  React.createElement('div', {
+                    style: {
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: '1.6rem',
+                      color: C.accent,
+                      fontWeight: 900
+                    }
+                  }, calcResult.price.toLocaleString() + ' ' + currency)
+                ) : null,
+              calcResult ?
+                React.createElement('div', { style: sec },
+                  React.createElement('input', {
+                    style: Object.assign({}, inp, { marginBottom: '6px', padding: '4px' }),
+                    placeholder: 'Item Name',
+                    value: calcName,
+                    onChange: function(e) { setCalcName(e.target.value); }
+                  }),
+                  React.createElement('button', { style: btn('primary'), onClick: addCalcItem }, 'Add to Shop')
+                ) : null
+            ) : null,
+            adminTab === 'settings' ? React.createElement('div', { style: sec },
+              React.createElement('div', { style: stl }, 'Settings'),
+              React.createElement('label', { style: lbl }, 'Currency'),
+              React.createElement('input', {
+                style: Object.assign({}, inp, { maxWidth: '240px', marginBottom: '12px' }),
+                value: editCurrency,
+                onChange: function(e) { setEditCurrency(e.target.value); }
+              }),
+              React.createElement('button', { style: btn('primary'), onClick: saveSettings }, 'Save'),
+              React.createElement('div', { style: { marginTop: '14px', paddingTop: '14px', borderTop: '1px solid ' + C.border } },
+                React.createElement('button', {
+                  style: Object.assign({}, btn('primary'), { padding: '5px 14px' }),
+                  onClick: exportItems
+                }, '⬇ Export')
+              )
+            ) : null
+          )
+      ) : null
+    )
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
 </body>
 </html>
