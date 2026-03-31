@@ -236,22 +236,41 @@ function App() {
     );
   };
 
+  // ORDER VIEW
   if (view==='order') {
-    if (!orderView) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>⏳</div><div>Loading...</div></div></div>;
-    if (orderView.error) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>❌</div><div>Order not found.</div><button style={{...btn('ghost'),marginTop:'16px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button></div></div>;
+    if (!orderView) {
+      return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>⏳</div><div>Loading...</div></div></div>;
+    }
+    if (orderView.error) {
+      return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>❌</div><div>Order not found.</div><button style={{...btn('ghost'),marginTop:'16px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button></div></div>;
+    }
     const hydratedItems = (orderView.items||[]).map(entry => { const shopItem = items.find(i=>i.id===entry.id); if (!shopItem) return {id:entry.id,name:'Unknown',icon:'❓',category:'',price:0,qty:entry.qty}; return {...shopItem,qty:entry.qty}; });
     const orderTotal = hydratedItems.reduce((s,i)=>s+i.price*i.qty,0);
     const orderId = getOrderIdFromHash();
     return (
       <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
-        <div style={{background:C.accentD,padding:'14px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}><div style={{cursor:'pointer'}} onClick={()=>{window.location.hash='';window.location.reload();}}><div style={{fontFamily:"'Cinzel',serif",fontSize:'1.3rem',color:C.bg2}}>{shopName}</div></div><div style={bdg(C.green)}>✓ VERIFIED</div></div>
+        <div style={{background:C.accentD,padding:'14px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
+          <div style={{cursor:'pointer'}} onClick={()=>{window.location.hash='';window.location.reload();}}>
+            <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.3rem',color:C.bg2}}>{shopName}</div>
+          </div>
+          <div style={bdg(C.green)}>✓ VERIFIED</div>
+        </div>
         <div style={{padding:'24px',maxWidth:'800px',margin:'0 auto'}}>
           <div style={sec}>
             <div style={stl}>Order #{orderId}</div>
             <div style={{marginBottom:'20px'}}><strong>Player:</strong> {orderView.player}</div>
             <div style={{...stl,marginBottom:'0'}}>Items</div>
-            {hydratedItems.map(item=>(<div key={item.id} style={row}><span>{item.icon} {item.name}</span><span style={{color:C.dim}}>x{item.qty}</span><span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px'}}><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem'}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>{orderTotal.toLocaleString()} {currency}</span></div>
+            {hydratedItems.map(item=>(
+              <div key={item.id} style={row}>
+                <span>{item.icon} {item.name}</span>
+                <span style={{color:C.dim}}>x{item.qty}</span>
+                <span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+              </div>
+            ))}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'16px'}}>
+              <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem'}}>TOTAL</span>
+              <span style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>{orderTotal.toLocaleString()} {currency}</span>
+            </div>
           </div>
           <button style={btn('ghost')} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button>
         </div>
@@ -259,12 +278,18 @@ function App() {
     );
   }
 
+  // MAIN APP
   return (
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
       <header style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
-        <div style={{cursor:'pointer'}} onClick={()=>setView('shop')}><div style={{fontFamily:"'Cinzel',serif",fontSize:'1.15rem',color:C.bg2}}>247 Always Online</div><div style={{fontSize:'0.6rem',color:C.mute,textTransform:'uppercase'}}>Admin Shop</div></div>
+        <div style={{cursor:'pointer'}} onClick={()=>setView('shop')}>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.15rem',color:C.bg2'}}>247 Always Online</div>
+          <div style={{fontSize:'0.6rem',color:C.mute,textTransform:'uppercase'}}>Admin Shop</div>
+        </div>
         <div style={{display:'flex',gap:'5px'}}>
-          {[{id:'shop',label:'🏪 Shop'},{id:'cart',label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},{id:'checkout',label:'📋 Order'}].map(({id,label})=>(<button key={id} style={{...nav(view===id),background:view===id?C.bg2:'transparent',color:view===id?C.accentD:C.bg2}} onClick={()=>setView(id)}>{label}</button>))}
+          {[{id:'shop',label:'🏪 Shop'},{id:'cart',label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},{id:'checkout',label:'📋 Order'}].map(({id,label})=>(
+            <button key={id} style={{...nav(view===id),background:view===id?C.bg2:'transparent',color:view===id?C.accentD:C.bg2}} onClick={()=>setView(id)}>{label}</button>
+          ))}
         </div>
         <button onClick={()=>setView('admin')} style={{...btn('ghost'),padding:'5px 9px',fontSize:'0.73rem'}}>🔧 Admin</button>
       </header>
@@ -277,13 +302,52 @@ function App() {
               <button onClick={()=>setShopLayout('grid')} style={{...btn(shopLayout==='grid'?'primary':'secondary'),padding:'6px 11px'}}>⊞</button>
               <button onClick={()=>setShopLayout('list')} style={{...btn(shopLayout==='list'?'primary':'secondary'),padding:'6px 11px'}}>☰</button>
             </div>
-            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'16px'}}>{categories.map(cat=>(<button key={cat} onClick={()=>setCatFilter(cat)} style={{background:catFilter===cat?C.accent:'transparent',color:catFilter===cat?C.white:C.dim,border:`1px solid ${catFilter===cat?C.accent:C.border}`,padding:'4px 11px',fontWeight:600,fontSize:'0.8rem'}}>{cat}</button>))}</div>
+            <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'16px'}}>
+              {categories.map(cat=>(
+                <button key={cat} onClick={()=>setCatFilter(cat)} style={{background:catFilter===cat?C.accent:'transparent',color:catFilter===cat?C.white:C.dim,border:`1px solid ${catFilter===cat?C.accent:C.border}`,padding:'4px 11px',fontWeight:600,fontSize:'0.8rem'}}>{cat}</button>
+              ))}
+            </div>
             {filtered.length===0 ? (
               <div style={{textAlign:'center',color:C.mute,padding:'60px'}}>No items found.</div>
             ) : shopLayout==='grid' ? (
-              <div className="shop-grid">{filtered.map(item=>(<div key={item.id} className={`shop-card${cart[item.id]?' in-cart':''}`}><div className="card-icon">{item.icon}</div><div className="card-name">{item.name}</div><div className="card-cat">{item.category}</div><div className="card-desc">{item.desc||' '}</div><div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div><div className="card-action">{cart[item.id]?<QtyControls id={item.id}/>:<button style={{...btn('primary'),width:'100%',padding:'7px',fontSize:'0.85rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>}</div></div>))}</div>
+              <div className="shop-grid">
+                {filtered.map(item=>(
+                  <div key={item.id} className={`shop-card${cart[item.id]?' in-cart':''}`}>
+                    <div className="card-icon">{item.icon}</div>
+                    <div className="card-name">{item.name}</div>
+                    <div className="card-cat">{item.category}</div>
+                    <div className="card-desc">{item.desc||' '}</div>
+                    <div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div>
+                    <div className="card-action">
+                      {cart[item.id] ? (
+                        <QtyControls id={item.id}/>
+                      ) : (
+                        <button style={{...btn('primary'),width:'100%',padding:'7px',fontSize:'0.85rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>{filtered.map(item=>(<div key={item.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'8px',alignItems:'center',padding:'8px 10px',background:cart[item.id]?`${C.accent}18`:C.bg2,border:`1px solid ${cart[item.id]?C.accent:C.border}`,borderRadius:'2px',minHeight:'52px'}}><span style={{fontSize:'1.2rem',width:'28px'}}>{item.icon}</span><div><div style={{fontFamily:"'Cinzel',serif",fontSize:'0.78rem',color:C.accentD}}>{item.name}</div><div style={{fontSize:'0.68rem',color:C.mute}}>{item.category}</div></div><div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.85rem'}}>{item.price.toLocaleString()} <span style={{fontSize:'0.63rem',color:C.dim}}>{currency}</span></div><div style={{width:'140px',display:'flex',justifyContent:'center'}}>{cart[item.id]?<QtyControls id={item.id}/>:<button style={{...btn('primary'),padding:'4px 11px',fontSize:'0.78rem'}} onClick={()=>addToCart(item.id)}>Add</button>}</div></div>))}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+                {filtered.map(item=>(
+                  <div key={item.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'8px',alignItems:'center',padding:'8px 10px',background:cart[item.id]?`${C.accent}18`:C.bg2,border:`1px solid ${cart[item.id]?C.accent:C.border}`,borderRadius:'2px',minHeight:'52px'}}>
+                    <span style={{fontSize:'1.2rem',width:'28px'}}>{item.icon}</span>
+                    <div>
+                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.78rem',color:C.accentD}}>{item.name}</div>
+                      <div style={{fontSize:'0.68rem',color:C.mute}}>{item.category}</div>
+                    </div>
+                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.85rem'}}>{item.price.toLocaleString()} <span style={{fontSize:'0.63rem',color:C.dim}}>{currency}</span></div>
+                    <div style={{width:'140px',display:'flex',justifyContent:'center'}}>
+                      {cart[item.id] ? (
+                        <QtyControls id={item.id}/>
+                      ) : (
+                        <button style={{...btn('primary'),padding:'4px 11px',fontSize:'0.78rem'}} onClick={()=>addToCart(item.id)}>Add</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -292,12 +356,29 @@ function App() {
           <div style={sec}>
             <div style={stl}>🧺 Your Cart</div>
             {cartEntries.length===0 ? (
-              <div style={{textAlign:'center',color:C.mute,padding:'50px'}}><div style={{fontSize:'3rem',marginBottom:'12px'}}>🛒</div><div>Your cart is empty.</div><button style={btn('ghost')} onClick={()=>setView('shop')}>Browse Shop →</button></div>
+              <div style={{textAlign:'center',color:C.mute,padding:'50px'}}>
+                <div style={{fontSize:'3rem',marginBottom:'12px'}}>🛒</div>
+                <div>Your cart is empty.</div>
+                <button style={btn('ghost')} onClick={()=>setView('shop')}>Browse Shop →</button>
+              </div>
             ) : (
               <div>
-                {cartEntries.map(item=>(<div key={item.id} style={{...row,alignItems:'center'}}><span style={{flex:'1'}}>{item.icon} <strong>{item.name}</strong></span><span style={{color:C.mute}}>{item.category}</span><QtyControls id={item.id}/><span style={{color:C.accent,fontWeight:700,minWidth:'130px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'14px'}}><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem'}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.9rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span></div>
-                <div style={{display:'flex',gap:'10px',marginTop:'16px'}}><button style={btn('danger')} onClick={clearCart}>Clear</button><button style={btn('primary')} onClick={()=>setView('checkout')}>Checkout →</button></div>
+                {cartEntries.map(item=>(
+                  <div key={item.id} style={{...row,alignItems:'center'}}>
+                    <span style={{flex:'1'}}>{item.icon} <strong>{item.name}</strong></span>
+                    <span style={{color:C.mute}}>{item.category}</span>
+                    <QtyControls id={item.id}/>
+                    <span style={{color:C.accent,fontWeight:700,minWidth:'130px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+                  </div>
+                ))}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'14px'}}>
+                  <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem'}}>TOTAL</span>
+                  <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.9rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span>
+                </div>
+                <div style={{display:'flex',gap:'10px',marginTop:'16px'}}>
+                  <button style={btn('danger')} onClick={clearCart}>Clear</button>
+                  <button style={btn('primary')} onClick={()=>setView('checkout')}>Checkout →</button>
+                </div>
               </div>
             )}
           </div>
@@ -306,15 +387,55 @@ function App() {
         {view==='checkout' && (
           <div>
             {cartEntries.length===0 ? (
-              <div style={sec}><div style={{textAlign:'center',color:C.mute,padding:'50px'}}><div style={{fontSize:'3rem',marginBottom:'12px'}}>📋</div><div>Cart is empty.</div><button style={btn('ghost')} onClick={()=>setView('shop')}>Browse →</button></div></div>
+              <div style={sec}>
+                <div style={{textAlign:'center',color:C.mute,padding:'50px'}}>
+                  <div style={{fontSize:'3rem',marginBottom:'12px'}}>📋</div>
+                  <div>Cart is empty.</div>
+                  <button style={btn('ghost')} onClick={()=>setView('shop')}>Browse →</button>
+                </div>
+              </div>
             ) : (
               <div>
-                <div style={sec}><div style={stl}>Your Details</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}><div><label style={lbl}>Player Name *</label><input style={inp} value={playerName} onChange={e=>setPlayerName(e.target.value)}/></div><div><label style={lbl}>Discord</label><input style={inp} value={discord} onChange={e=>setDiscord(e.target.value)}/></div></div></div>
-                <div style={sec}><div style={stl}>Summary</div>{cartEntries.map(item=>(<div key={item.id} style={row}><span>{item.name}</span><span style={{color:C.dim}}>x{item.qty}</span><span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}<div style={{display:'flex',justifyContent:'space-between',paddingTop:'12px'}}><span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span></div></div>
+                <div style={sec}>
+                  <div style={stl}>Your Details</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}>
+                    <div>
+                      <label style={lbl}>Player Name *</label>
+                      <input style={inp} value={playerName} onChange={e=>setPlayerName(e.target.value)}/>
+                    </div>
+                    <div>
+                      <label style={lbl}>Discord</label>
+                      <input style={inp} value={discord} onChange={e=>setDiscord(e.target.value)}/>
+                    </div>
+                  </div>
+                </div>
+                <div style={sec}>
+                  <div style={stl}>Summary</div>
+                  {cartEntries.map(item=>(
+                    <div key={item.id} style={row}>
+                      <span>{item.name}</span>
+                      <span style={{color:C.dim}}>x{item.qty}</span>
+                      <span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',justifyContent:'space-between',paddingTop:'12px'}}>
+                    <span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span>
+                    <span style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>{cartTotal.toLocaleString()} {currency}</span>
+                  </div>
+                </div>
                 {!orderLink ? (
-                  <button style={{...btn('primary'),padding:'10px 24px'}} onClick={generateOrder} disabled={orderLoading}>{orderLoading?'⏳ Saving...':'✓ Generate Link'}</button>
+                  <button style={{...btn('primary'),padding:'10px 24px'}} onClick={generateOrder} disabled={orderLoading}>
+                    {orderLoading?'⏳ Saving...':'✓ Generate Link'}
+                  </button>
                 ) : (
-                  <div style={sec}><div style={stl}>✅ Ready!</div><div style={{background:C.white,border:`1px solid ${C.accent}`,padding:'12px',fontSize:'0.82rem',fontFamily:'monospace',wordBreak:'break-all'}}>{orderLink}</div><div style={{display:'flex',gap:'10px',marginTop:'12px'}}><button style={btn(copied?'secondary':'primary')} onClick={copyLink}>{copied?'✓ Copied':'📋 Copy'}</button><button style={btn('ghost')} onClick={()=>{setOrderLink('');setPlayerName('');setDiscord('');setCart({});setView('shop');}}>New Order</button></div></div>
+                  <div style={sec}>
+                    <div style={stl}>✅ Ready!</div>
+                    <div style={{background:C.white,border:`1px solid ${C.accent}`,padding:'12px',fontSize:'0.82rem',fontFamily:'monospace',wordBreak:'break-all'}}>{orderLink}</div>
+                    <div style={{display:'flex',gap:'10px',marginTop:'12px'}}>
+                      <button style={btn(copied?'secondary':'primary')} onClick={copyLink}>{copied?'✓ Copied':'📋 Copy'}</button>
+                      <button style={btn('ghost')} onClick={()=>{setOrderLink('');setPlayerName('');setDiscord('');setCart({});setView('shop');}}>New Order</button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -324,38 +445,119 @@ function App() {
         {view==='admin' && (
           <div>
             {!adminUnlocked ? (
-              <div style={{...sec,maxWidth:'380px'}}><div style={stl}>🔒 Admin</div><label style={lbl}>Password</label><input type="password" style={{...inp,marginBottom:'10px'}} value={passInput} onChange={e=>setPassInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&adminLogin()}/>{passError&&<div style={{color:C.red,marginBottom:'10px'}}>{passError}</div>}<button style={btn('primary')} onClick={adminLogin} disabled={passLoading}>{passLoading?'...':'Unlock'}</button></div>
+              <div style={{...sec,maxWidth:'380px'}}>
+                <div style={stl}>🔒 Admin</div>
+                <label style={lbl}>Password</label>
+                <input type="password" style={{...inp,marginBottom:'10px'}} value={passInput} onChange={e=>setPassInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&adminLogin()}/>
+                {passError && <div style={{color:C.red,marginBottom:'10px'}}>{passError}</div>}
+                <button style={btn('primary')} onClick={adminLogin} disabled={passLoading}>{passLoading?'...':'Unlock'}</button>
+              </div>
             ) : (
               <div>
-                <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>{[['items','📦 Items'],['calc','🧮 Calc'],['settings','⚙️ Settings']].map(([id,label])=>(<button key={id} style={nav(adminTab===id)} onClick={()=>setAdminTab(id)}>{label}</button>))}<button style={{...btn('secondary'),marginLeft:'auto'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button></div>
+                <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+                  {[['items','📦 Items'],['calc','🧮 Calc'],['settings','⚙️ Settings']].map(([id,label])=>(
+                    <button key={id} style={nav(adminTab===id)} onClick={()=>setAdminTab(id)}>{label}</button>
+                  ))}
+                  <button style={{...btn('secondary'),marginLeft:'auto'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button>
+                </div>
                 
                 {adminTab==='items' && (
-                  <div style={sec}><div style={{display:'flex',justifyContent:'space-between',...stl}}><span>Items: {items.length}</span><button style={{...btn('danger'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={resetToDefault}>Reset</button></div>{items.map(item=>(
-                    <div key={item.id} style={{...row,alignItems:'flex-start'}}>
-                      {editItem?.id===item.id ? (
-                        <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'8px'}}>
-                          {['icon','name','category','price','engram','desc'].map(f=>(
-                            <div key={f}><label style={lbl}>{f}</label><input style={{...inp,padding:'5px'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/></div>
-                          ))}
-                          <div><button style={btn('primary')} onClick={saveEdit}>Save</button><button style={{...btn('secondary'),marginLeft:'6px'}} onClick={()=>setEditItem(null)}>Cancel</button></div>
-                        </div>
-                      ) : (
-                        <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
-                          <span>{item.icon} <strong>{item.name}</strong> - {item.category}</span>
-                          <span style={{color:C.accent,fontWeight:700}}>{item.price} {currency}</span>
-                          <div style={{display:'flex',gap:'6px'}}><button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>setEditItem({...item})}>Edit</button><button style={{...btn('danger'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>deleteItem(item.id)}>Del</button></div>
-                        </div>
-                      )}
+                  <div style={sec}>
+                    <div style={{display:'flex',justifyContent:'space-between',...stl}}>
+                      <span>Items: {items.length}</span>
+                      <button style={{...btn('danger'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={resetToDefault}>Reset</button>
                     </div>
-                  ))}</div>
+                    {items.map(item=>(
+                      <div key={item.id} style={{...row,alignItems:'flex-start'}}>
+                        {editItem?.id===item.id ? (
+                          <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'8px'}}>
+                            {['icon','name','category','price','engram','desc'].map(f=>(
+                              <div key={f}>
+                                <label style={lbl}>{f}</label>
+                                <input style={{...inp,padding:'5px'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/>
+                              </div>
+                            ))}
+                            <div>
+                              <button style={btn('primary')} onClick={saveEdit}>Save</button>
+                              <button style={{...btn('secondary'),marginLeft:'6px'}} onClick={()=>setEditItem(null)}>Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
+                            <span>{item.icon} <strong>{item.name}</strong> - {item.category}</span>
+                            <span style={{color:C.accent,fontWeight:700}}>{item.price} {currency}</span>
+                            <div style={{display:'flex',gap:'6px'}}>
+                              <button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>setEditItem({...item})}>Edit</button>
+                              <button style={{...btn('danger'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>deleteItem(item.id)}>Del</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {adminTab==='calc' && (
-                  <div style={sec}><div style={stl}>🧮 Calculator</div><div style={{display:'flex',gap:'10px',marginBottom:'18px'}}><button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button><button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button></div>{calcFixed?(<input type="number" style={{...inp,maxWidth:'200px',marginBottom:'18px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/>):(<div style={{marginBottom:'14px'}}>{calcRecipe.map((r,i)=>(<div key={i} style={{display:'flex',gap:'8px',marginBottom:'8px'}}><select style={{...sel,flex:1}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>{ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}</select><input type="number" style={{...inp,width:'90px'}} value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>{calcRecipe.length>1&&<button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button></div>))}<button style={{...btn('ghost')}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button></div>)}<input type="number" style={{...inp,maxWidth:'160px',marginBottom:'18px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/><button style={{...btn('primary'),padding:'9px 24px'}} onClick={runCalc}>Calculate</button>{calcResult&&(<div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'16px'}}><div style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>{calcResult.price.toLocaleString()} {currency}</div></div>)}{calcResult&&(<div style={sec}><input style={{...inp,marginBottom:'10px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/><button style={btn('primary')} onClick={addCalcItem}>Add to Shop</button></div>)}</div>
+                  <div style={sec}>
+                    <div style={stl}>🧮 Calculator</div>
+                    
+                    <div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
+                      <button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button>
+                      <button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button>
+                    </div>
+                    
+                    {calcFixed ? (
+                      <div style={{marginBottom:'18px'}}>
+                        <label style={lbl}>Fixed Price</label>
+                        <input type="number" style={{...inp,maxWidth:'200px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/>
+                      </div>
+                    ) : (
+                      <div style={{marginBottom:'14px'}}>
+                        <label style={lbl}>Materials</label>
+                        {calcRecipe.map((r,i)=>(
+                          <div key={i} style={{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'center'}}>
+                            <select style={{...sel,flex:1}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>
+                              {ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}
+                            </select>
+                            <input type="number" style={{...inp,width:'90px'}} placeholder="Qty" value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>
+                            {calcRecipe.length>1 && <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button>
+                          </div>
+                        ))}
+                        <button style={{...btn('ghost')}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button>
+                      </div>
+                    )}
+                    
+                    <input type="number" style={{...inp,maxWidth:'160px',marginBottom:'18px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/>
+                    
+                    <button style={{...btn('primary'),padding:'9px 24px'}} onClick={runCalc}>Calculate</button>
+                    
+                    {calcResult && (
+                      <div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'16px'}}>
+                        <div style={{fontFamily:"'Cinzel',serif",fontSize:'2rem',color:C.accent,fontWeight:900}}>
+                          {calcResult.price.toLocaleString()} {currency}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {calcResult && (
+                      <div style={sec}>
+                        <input style={{...inp,marginBottom:'10px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/>
+                        <button style={btn('primary')} onClick={addCalcItem}>Add to Shop</button>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {adminTab==='settings' && (
-                  <div style={sec}><div style={stl}>Settings</div><label style={lbl}>Currency</label><input style={{...inp,maxWidth:'280px',marginBottom:'16px'}} value={editCurrency} onChange={e=>setEditCurrency(e.target.value)}/><button style={btn('primary')} onClick={saveSettings}>Save</button><div style={{marginTop:'20px',paddingTop:'20px',borderTop:`1px solid ${C.border}`}}><button style={{...btn('primary'),padding:'8px 20px'}} onClick={exportItems}>⬇ Export Items</button></div></div>
+                  <div style={sec}>
+                    <div style={stl}>Settings</div>
+                    <label style={lbl}>Currency</label>
+                    <input style={{...inp,maxWidth:'280px',marginBottom:'16px'}} value={editCurrency} onChange={e=>setEditCurrency(e.target.value)}/>
+                    <button style={btn('primary')} onClick={saveSettings}>Save</button>
+                    <div style={{marginTop:'20px',paddingTop:'20px',borderTop:`1px solid ${C.border}`}}>
+                      <button style={{...btn('primary'),padding:'8px 20px'}} onClick={exportItems}>⬇ Export Items</button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
