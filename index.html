@@ -21,8 +21,8 @@
   input, select { transition: border-color 0.2s; }
 
   .qty-input {
-    width: 46px; text-align: center; padding: 4px 4px;
-    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem;
+    width: 42px; text-align: center; padding: 4px 4px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem;
     border: 1px solid #88a8b4; background: #f4f8f8; color: #1a2a30;
     -moz-appearance: textfield;
   }
@@ -41,36 +41,47 @@
   }
   .shop-card.in-cart { border-color: #2a5a6a; }
 
-  .card-icon  { height: 52px; display:flex; align-items:center; justify-content:center; font-size:2.4rem; flex-shrink:0; }
-  .card-name  { min-height: 44px; max-height: 44px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.82rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; word-wrap: break-word; overflow-wrap: break-word; }
-  .card-cat   { height: 18px; font-size:0.68rem; color:#7a9aa4; text-transform:uppercase; letter-spacing:0.07em; overflow:hidden; flex-shrink:0; }
-  .card-desc  { height: 36px; font-size:0.76rem; color:#4a6a74; line-height:1.35; overflow:hidden; margin-top:6px; flex-shrink:0; }
-  .card-price { height: 32px; display:flex; align-items:center; font-size:1.1rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
-  .card-price span { font-size:0.7rem; color:#4a6a74; font-weight:400; margin-left:3px; }
-  .card-action { margin-top:auto; padding-top:10px; flex-shrink:0; }
+  .card-icon  { height: 48px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; flex-shrink:0; }
+  .card-name  { min-height: 42px; max-height: 42px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; word-wrap: break-word; overflow-wrap: break-word; }
+  .card-cat   { height: 16px; font-size:0.66rem; color:#7a9aa4; text-transform:uppercase; letter-spacing:0.07em; overflow:hidden; flex-shrink:0; }
+  .card-desc  { height: 32px; font-size:0.74rem; color:#4a6a74; line-height:1.35; overflow:hidden; margin-top:6px; flex-shrink:0; }
+  .card-price { height: 28px; display:flex; align-items:center; font-size:1.05rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
+  .card-price span { font-size:0.68rem; color:#4a6a74; font-weight:400; margin-left:3px; }
+  .card-action { margin-top:auto; padding-top:10px; flex-shrink:0; min-height: 40px; }
 
   .shop-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 10px;
   }
 
   @media (max-width: 600px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .card-icon  { height: 42px; font-size: 1.9rem; }
-    .card-name  { min-height: 38px; max-height: 38px; font-size: 0.76rem; }
-    .card-desc  { height: 30px; font-size: 0.72rem; }
+    .card-icon  { height: 40px; font-size: 1.8rem; }
+    .card-name  { min-height: 38px; max-height: 38px; font-size: 0.74rem; }
+    .card-desc  { height: 28px; font-size: 0.7rem; }
     .card-price { font-size: 0.95rem; }
     
     .list-row {
       grid-template-columns: auto 1fr !important;
-      gap: 8px !important;
-      padding: 8px 10px !important;
+      gap: 6px !important;
+      padding: 6px 8px !important;
+      min-height: 48px !important;
     }
     .list-row > *:nth-child(3),
     .list-row > *:nth-child(4) {
       grid-column: 1 / -1;
       justify-self: flex-end;
+      margin-top: 4px;
+    }
+    
+    header {
+      padding: 8px 10px !important;
+    }
+    
+    .nav-wrap button {
+      padding: 4px 7px !important;
+      font-size: 0.73rem !important;
     }
   }
 </style>
@@ -304,7 +315,7 @@ function App() {
   const bdg = color=>({background:`${color}22`,border:`1px solid ${color}66`,color,padding:'3px 10px',fontSize:'0.73rem',letterSpacing:'0.1em',fontWeight:700,borderRadius:'2px'});
   const nav = active=>({...btn(active?'primary':'ghost'),padding:'6px 14px',fontSize:'0.85rem',letterSpacing:'0.06em'});
 
-  /* Qty controls — horizontal always, commits on blur/Enter, small ✕ remove */
+  /* Qty controls — compact, commits on blur/Enter */
   const QtyControls = ({ id }) => {
     const qty = cart[id] || 0;
     const [draft, setDraft] = useState(String(qty));
@@ -317,14 +328,15 @@ function App() {
     if (qty === 0) return null;
     return (
       <div style={{display:'flex',flexDirection:'row',flexWrap:'nowrap',gap:'3px',alignItems:'center'}}>
-        <button style={{...btn('secondary'),padding:'3px 8px',fontSize:'0.9rem',lineHeight:1}} onClick={()=>decCart(id)}>−</button>
+        <button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.85rem',lineHeight:1, minWidth:'32px'}} onClick={()=>decCart(id)}>−</button>
         <input
           className="qty-input" type="number" min="1" value={draft}
           onChange={e=>setDraft(e.target.value)}
           onBlur={e=>commit(e.target.value)}
           onKeyDown={e=>{ if(e.key==='Enter'){commit(e.target.value);e.target.blur();} }}
+          style={{width:'42px'}}
         />
-        <button style={{...btn('primary'),padding:'3px 8px',fontSize:'0.9rem',lineHeight:1}} onClick={()=>addToCart(id)}>+</button>
+        <button style={{...btn('primary'),padding:'4px 10px',fontSize:'0.85rem',lineHeight:1, minWidth:'32px'}} onClick={()=>addToCart(id)}>+</button>
         <button
           title="Remove item"
           onClick={()=>removeFromCart(id)}
@@ -333,12 +345,12 @@ function App() {
             color:C.red,
             border:`1px solid #d0a0a0`,
             borderRadius:'2px',
-            padding:'3px 6px',
-            fontSize:'0.75rem',
+            padding:'4px 9px',
+            fontSize:'0.85rem',
             fontWeight:700,
             lineHeight:1,
             whiteSpace:'nowrap',
-            minWidth:'28px'
+            minWidth:'32px'
           }}
         >✕</button>
       </div>
@@ -410,14 +422,14 @@ function App() {
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
 
       {/* HEADER */}
-      <div style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',gap:'8px'}}>
+      <header style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',gap:'8px'}}>
         {/* Logo */}
         <div style={{cursor:'pointer',flexShrink:0}} onClick={()=>setView('shop')}>
-          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.2rem',color:C.bg2,letterSpacing:'0.06em',lineHeight:1.15}}>247 Always Online</div>
-          <div style={{fontSize:'0.63rem',color:C.mute,letterSpacing:'0.13em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.15rem',color:C.bg2,letterSpacing:'0.06em',lineHeight:1.15'}}>247 Always Online</div>
+          <div style={{fontSize:'0.6rem',color:C.mute,letterSpacing:'0.13em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
         </div>
         {/* Main nav */}
-        <div style={{display:'flex',gap:'5px',flexShrink:0}}>
+        <div className="nav-wrap" style={{display:'flex',gap:'5px',flexShrink:0}}>
           {[
             {id:'shop',     label:'🏪 Shop'},
             {id:'cart',     label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},
@@ -428,7 +440,7 @@ function App() {
               background:view===id?C.bg2:'transparent',
               color:view===id?C.accentD:C.bg2,
               border:`1px solid ${view===id?C.bg2:C.bg4}`,
-              padding:'5px 10px',fontSize:'0.82rem',
+              padding:'5px 9px',fontSize:'0.8rem',
             }} onClick={()=>setView(id)}>{lbl2}</button>
           ))}
         </div>
@@ -440,17 +452,17 @@ function App() {
             background: view==='admin' ? '#ffffff22' : 'transparent',
             color: view==='admin' ? C.white : C.mute,
             border:`1px solid ${view==='admin'?C.bg4:'#ffffff25'}`,
-            padding:'5px 10px',
-            fontSize:'0.75rem',
+            padding:'5px 9px',
+            fontSize:'0.73rem',
             fontWeight:600,
             letterSpacing:'0.04em',
             borderRadius:'2px',
             whiteSpace:'nowrap',
           }}
         >🔧 Admin</button>
-      </div>
+      </header>
 
-      <div style={{padding:'20px',maxWidth:'1200px',margin:'0 auto'}}>
+      <div style={{padding:'16px',maxWidth:'1200px',margin:'0 auto'}}>
 
         {/* SHOP */}
         {view==='shop'&&<>
@@ -467,7 +479,7 @@ function App() {
                 background:catFilter===cat?C.accent:'transparent',
                 color:catFilter===cat?C.white:C.dim,
                 border:`1px solid ${catFilter===cat?C.accent:C.border}`,
-                padding:'4px 11px',fontWeight:600,fontSize:'0.82rem',letterSpacing:'0.04em',transition:'all 0.2s'
+                padding:'4px 11px',fontWeight:600,fontSize:'0.8rem',letterSpacing:'0.04em',transition:'all 0.2s'
               }}>{cat}</button>
             ))}
           </div>
@@ -488,7 +500,7 @@ function App() {
                   <div className="card-action">
                     {cart[item.id]
                       ? <QtyControls id={item.id}/>
-                      : <button style={{...btn('primary'),width:'100%',padding:'8px',fontSize:'0.88rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
+                      : <button style={{...btn('primary'),width:'100%',padding:'7px',fontSize:'0.85rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
                     }
                   </div>
                 </div>
@@ -496,38 +508,38 @@ function App() {
             </div>
 
           ) : (
-            /* LIST VIEW — Fixed layout */
+            /* LIST VIEW — Compact layout */
             <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
-              <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'10px',padding:'6px 12px',background:C.bg3,borderRadius:'2px',fontSize:'0.7rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',fontWeight:700}}>
-                <span style={{width:'30px'}}>Icon</span>
+              <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'10px',padding:'6px 10px',background:C.bg3,borderRadius:'2px',fontSize:'0.68rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',fontWeight:700}}>
+                <span style={{width:'28px'}}>Icon</span>
                 <span>Item</span>
-                <span style={{textAlign:'right',minWidth:'80px'}}>Price</span>
-                <span style={{width:'150px',textAlign:'center'}}>Qty</span>
+                <span style={{textAlign:'right',minWidth:'70px'}}>Price</span>
+                <span style={{width:'140px',textAlign:'center'}}>Qty</span>
               </div>
               {filtered.map(item=>(
                 <div key={item.id} className="list-row" style={{
                   display:'grid',
                   gridTemplateColumns:'auto 1fr auto auto',
-                  gap:'10px',
+                  gap:'8px',
                   alignItems:'center',
-                  padding:'10px 12px',
+                  padding:'8px 10px',
                   background:cart[item.id]?`${C.accent}18`:C.bg2,
                   border:`1px solid ${cart[item.id]?C.accent:C.border}`,
                   borderRadius:'2px',
-                  minHeight:'60px'
+                  minHeight:'52px'
                 }}>
-                  <span style={{fontSize:'1.3rem',width:'30px',display:'flex',alignItems:'center',justifyContent:'center'}}>{item.icon}</span>
+                  <span style={{fontSize:'1.2rem',width:'28px',display:'flex',alignItems:'center',justifyContent:'center'}}>{item.icon}</span>
                   <div style={{minWidth:0}}>
-                    <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.82rem',color:C.accentD,lineHeight:1.25,wordWrap:'break-word',overflowWrap:'break-word'}}>{item.name}</div>
-                    <div style={{fontSize:'0.7rem',color:C.mute,marginTop:'2px'}}>{item.category}</div>
+                    <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.78rem',color:C.accentD,lineHeight:1.25,wordWrap:'break-word',overflowWrap:'break-word'}}>{item.name}</div>
+                    <div style={{fontSize:'0.68rem',color:C.mute,marginTop:'2px'}}>{item.category}</div>
                   </div>
-                  <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.88rem',whiteSpace:'nowrap',minWidth:'80px'}}>
-                    {item.price.toLocaleString()} <span style={{fontSize:'0.65rem',color:C.dim}}>{currency}</span>
+                  <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.85rem',whiteSpace:'nowrap',minWidth:'70px'}}>
+                    {item.price.toLocaleString()} <span style={{fontSize:'0.63rem',color:C.dim}}>{currency}</span>
                   </div>
-                  <div style={{width:'150px',display:'flex',justifyContent:'center'}}>
+                  <div style={{width:'140px',display:'flex',justifyContent:'center'}}>
                     {cart[item.id]
                       ? <QtyControls id={item.id}/>
-                      : <button style={{...btn('primary'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={()=>addToCart(item.id)}>Add</button>
+                      : <button style={{...btn('primary'),padding:'4px 11px',fontSize:'0.78rem'}} onClick={()=>addToCart(item.id)}>Add</button>
                     }
                   </div>
                 </div>
@@ -549,8 +561,8 @@ function App() {
             ):<>
               {cartEntries.map(item=>(
                 <div key={item.id} style={{...row,alignItems:'center'}}>
-                  <span style={{flex:'1 1 140px',fontSize:'1.02rem'}}>{item.icon} <strong>{item.name}</strong></span>
-                  <span style={{color:C.mute,fontSize:'0.82rem'}}>{item.category}</span>
+                  <span style={{flex:'1 1 140px',fontSize:'1rem'}}>{item.icon} <strong>{item.name}</strong></span>
+                  <span style={{color:C.mute,fontSize:'0.8rem'}}>{item.category}</span>
                   <QtyControls id={item.id}/>
                   <span style={{color:C.accent,fontWeight:700,minWidth:'130px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
                 </div>
