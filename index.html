@@ -11,57 +11,23 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #e9ebe9; font-family: 'Rajdhani', sans-serif; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #e9ebe9; }
-  ::-webkit-scrollbar-thumb { background: #a0bcc2; border-radius: 3px; }
-  button { cursor: pointer; transition: opacity 0.15s, transform 0.1s; font-family: 'Rajdhani', sans-serif; }
-  button:hover { opacity: 0.85; }
-  button:active { transform: scale(0.97); }
-  input:focus, select:focus { outline: none; border-color: #2a6a7a !important; }
-  input, select { transition: border-color 0.2s; }
-
-  .qty-input {
-    width: 42px; text-align: center; padding: 4px;
-    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem;
-    border: 1px solid #88a8b4; background: #f4f8f8; color: #1a2a30;
-    -moz-appearance: textfield;
-  }
-  .qty-input::-webkit-outer-spin-button,
-  .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-  .shop-card {
-    background: #d0e1e4;
-    border: 2px solid #a8c0c8;
-    border-radius: 4px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.2s;
-  }
+  button { cursor: pointer; font-family: 'Rajdhani', sans-serif; }
+  .qty-input { width: 42px; text-align: center; padding: 4px; font-weight: 700; border: 1px solid #88a8b4; background: #f4f8f8; }
+  .shop-card { background: #d0e1e4; border: 2px solid #a8c0c8; border-radius: 4px; padding: 14px; display: flex; flex-direction: column; }
   .shop-card.in-cart { border-color: #2a5a6a; }
-
-  .card-icon  { height: 48px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; flex-shrink:0; }
-  .card-name  { min-height: 42px; max-height: 42px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; word-wrap: break-word; overflow-wrap: break-word; }
-  .card-cat   { height: 16px; font-size:0.66rem; color:#7a9aa4; text-transform:uppercase; letter-spacing:0.07em; overflow:hidden; flex-shrink:0; }
-  .card-desc  { height: 32px; font-size:0.74rem; color:#4a6a74; line-height:1.35; overflow:hidden; margin-top:6px; flex-shrink:0; }
-  .card-price { height: 28px; display:flex; align-items:center; font-size:1.05rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
-  .card-price span { font-size:0.68rem; color:#4a6a74; font-weight:400; margin-left:3px; }
-  .card-action { margin-top:auto; padding-top:10px; flex-shrink:0; min-height: 40px; }
-
-  .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-    gap: 10px;
-  }
-
+  .card-icon { height: 48px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; }
+  .card-name { min-height: 42px; max-height: 42px; font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700; color:#1a3a46; margin-top:8px; word-wrap: break-word; }
+  .card-cat { height: 16px; font-size:0.66rem; color:#7a9aa4; text-transform:uppercase; }
+  .card-desc { height: 32px; font-size:0.74rem; color:#4a6a74; margin-top:6px; overflow:hidden; }
+  .card-price { height: 28px; display:flex; align-items:center; font-size:1.05rem; color:#2a5a6a; font-weight:700; margin-top:8px; }
+  .card-price span { font-size:0.68rem; color:#4a6a74; margin-left:3px; }
+  .card-action { margin-top:auto; padding-top:10px; min-height: 40px; }
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
   @media (max-width: 600px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .card-icon  { height: 40px; font-size: 1.8rem; }
-    .card-name  { min-height: 38px; max-height: 38px; font-size: 0.74rem; }
-    .card-desc  { height: 28px; font-size: 0.7rem; }
-    .card-price { font-size: 0.95rem; }
+    .card-icon { height: 40px; font-size: 1.8rem; }
+    .card-name { min-height: 38px; font-size: 0.74rem; }
     header { padding: 8px 10px !important; }
-    .nav-wrap button { padding: 4px 7px !important; font-size: 0.73rem !important; }
   }
 </style>
 </head>
@@ -270,7 +236,6 @@ function App() {
     );
   };
 
-  // ORDER VIEW
   if (view==='order') {
     if (!orderView) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>⏳</div><div>Loading...</div></div></div>;
     if (orderView.error) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}><div style={{fontSize:'2rem',marginBottom:'12px'}}>❌</div><div>Order not found.</div><button style={{...btn('ghost'),marginTop:'16px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button></div></div>;
@@ -294,7 +259,6 @@ function App() {
     );
   }
 
-  // MAIN APP
   return (
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
       <header style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100}}>
@@ -366,7 +330,24 @@ function App() {
                 <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>{[['items','📦 Items'],['calc','🧮 Calc'],['settings','⚙️ Settings']].map(([id,label])=>(<button key={id} style={nav(adminTab===id)} onClick={()=>setAdminTab(id)}>{label}</button>))}<button style={{...btn('secondary'),marginLeft:'auto'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button></div>
                 
                 {adminTab==='items' && (
-                  <div style={sec}><div style={{display:'flex',justifyContent:'space-between',...stl}}><span>Items: {items.length}</span><button style={{...btn('danger'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={resetToDefault}>Reset</button></div>{items.map(item=>(<div key={item.id} style={{...row,alignItems:'flex-start'}}>{editItem?.id===item.id?(<div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'8px'}}>{['icon','name','category','price','engram','desc'].map(f=>(<div key={f}><label style={lbl}>{f}</label><input style={{...inp,padding:'5px'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/></div>))}<div><button style={btn('primary')} onClick={saveEdit}>Save</button><button style={{...btn('secondary'),marginLeft:'6px'}} onClick={()=>setEditItem(null)}>Cancel</button></div></div>):(<><div style={{flex:1}}>{item.icon} <strong>{item.name}</strong> - {item.category}</div><span style={{color:C.accent,fontWeight:700}}>{item.price} {currency}</span><div style={{display:'flex',gap:'6px'}}><button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>setEditItem({...item})}>Edit</button><button style={{...btn('danger'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>deleteItem(item.id)}>Del</button></div></>)}</div>))}</div>
+                  <div style={sec}><div style={{display:'flex',justifyContent:'space-between',...stl}}><span>Items: {items.length}</span><button style={{...btn('danger'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={resetToDefault}>Reset</button></div>{items.map(item=>(
+                    <div key={item.id} style={{...row,alignItems:'flex-start'}}>
+                      {editItem?.id===item.id ? (
+                        <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:'8px'}}>
+                          {['icon','name','category','price','engram','desc'].map(f=>(
+                            <div key={f}><label style={lbl}>{f}</label><input style={{...inp,padding:'5px'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/></div>
+                          ))}
+                          <div><button style={btn('primary')} onClick={saveEdit}>Save</button><button style={{...btn('secondary'),marginLeft:'6px'}} onClick={()=>setEditItem(null)}>Cancel</button></div>
+                        </div>
+                      ) : (
+                        <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
+                          <span>{item.icon} <strong>{item.name}</strong> - {item.category}</span>
+                          <span style={{color:C.accent,fontWeight:700}}>{item.price} {currency}</span>
+                          <div style={{display:'flex',gap:'6px'}}><button style={{...btn('secondary'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>setEditItem({...item})}>Edit</button><button style={{...btn('danger'),padding:'4px 10px',fontSize:'0.8rem'}} onClick={()=>deleteItem(item.id)}>Del</button></div>
+                        </div>
+                      )}
+                    </div>
+                  ))}</div>
                 )}
 
                 {adminTab==='calc' && (
