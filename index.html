@@ -13,21 +13,57 @@
   body { background: #e9ebe9; font-family: 'Rajdhani', sans-serif; }
   button { cursor: pointer; font-family: 'Rajdhani', sans-serif; }
   .qty-input { width: 42px; text-align: center; padding: 4px; font-weight: 700; border: 1px solid #88a8b4; background: #f4f8f8; }
-  .shop-card { background: #d0e1e4; border: 2px solid #a8c0c8; border-radius: 4px; padding: 14px; display: flex; flex-direction: column; }
+  
+  /* Grid cards - FIXED HEIGHT */
+  .shop-card { 
+    background: #d0e1e4; 
+    border: 2px solid #a8c0c8; 
+    border-radius: 4px; 
+    padding: 14px; 
+    display: flex; 
+    flex-direction: column;
+    height: 340px; /* FIXED HEIGHT - won't grow */
+  }
   .shop-card.in-cart { border-color: #2a5a6a; }
-  .card-icon { height: 48px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; }
-  .card-name { min-height: 42px; max-height: 42px; font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700; color:#1a3a46; margin-top:8px; word-wrap: break-word; }
-  .card-cat { height: 16px; font-size:0.66rem; color:#7a9aa4; text-transform:uppercase; }
-  .card-desc { height: 32px; font-size:0.74rem; color:#4a6a74; margin-top:6px; overflow:hidden; }
-  .card-price { height: 28px; display:flex; align-items:center; font-size:1.05rem; color:#2a5a6a; font-weight:700; margin-top:8px; }
+  .card-icon { height: 48px; display:flex; align-items:center; justify-content:center; font-size:2.2rem; flex-shrink:0; }
+  .card-name { height: 42px; font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700; color:#1a3a46; margin-top:8px; word-wrap: break-word; flex-shrink:0; }
+  .card-cat { height: 16px; font-size:0.66rem; color:#7a9aa4; text-transform:uppercase; flex-shrink:0; }
+  .card-desc { height: 32px; font-size:0.74rem; color:#4a6a74; margin-top:6px; overflow:hidden; flex-shrink:0; }
+  .card-price { height: 28px; display:flex; align-items:center; font-size:1.05rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
   .card-price span { font-size:0.68rem; color:#4a6a74; margin-left:3px; }
-  .card-action { margin-top:auto; padding-top:10px; min-height: 40px; }
-  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
+  .card-action { margin-top:auto; padding-top:10px; flex-shrink:0; min-height: 40px; }
+  
+  .shop-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); 
+    gap: 10px;
+  }
+  
+  /* List view - FIXED HEIGHT ROWS */
+  .list-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    background: #d0e1e4;
+    border: 1px solid #a8c0c8;
+    border-radius: 2px;
+    min-height: 64px; /* FIXED MIN HEIGHT */
+  }
+  .list-row.in-cart { background: #c0d4d8; border-color: #2a5a6a; }
+  
   @media (max-width: 600px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .shop-card { height: 320px; }
     .card-icon { height: 40px; font-size: 1.8rem; }
     .card-name { min-height: 38px; font-size: 0.74rem; }
     header { padding: 8px 10px !important; }
+    .list-row { 
+      grid-template-columns: auto 1fr !important;
+      min-height: 56px;
+    }
+    .list-price, .list-qty { grid-column: 1 / -1; justify-self: end; }
   }
 </style>
 </head>
@@ -329,16 +365,18 @@ function App() {
                 ))}
               </div>
             ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                 {filtered.map(item=>(
-                  <div key={item.id} style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'8px',alignItems:'center',padding:'8px 10px',background:cart[item.id]?`${C.accent}18`:C.bg2,border:`1px solid ${cart[item.id]?C.accent:C.border}`,borderRadius:'2px',minHeight:'52px'}}>
+                  <div key={item.id} className={`list-row${cart[item.id]?' in-cart':''}`}>
                     <span style={{fontSize:'1.2rem',width:'28px'}}>{item.icon}</span>
-                    <div>
-                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.78rem',color:C.accentD}}>{item.name}</div>
-                      <div style={{fontSize:'0.68rem',color:C.mute}}>{item.category}</div>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.78rem',color:C.accentD,fontWeight:700}}>{item.name}</div>
+                      <div style={{fontSize:'0.68rem',color:C.mute,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.category}</div>
                     </div>
-                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.85rem'}}>{item.price.toLocaleString()} <span style={{fontSize:'0.63rem',color:C.dim}}>{currency}</span></div>
-                    <div style={{width:'140px',display:'flex',justifyContent:'center'}}>
+                    <div className="list-price" style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.85rem',whiteSpace:'nowrap'}}>
+                      {item.price.toLocaleString()} <span style={{fontSize:'0.63rem',color:C.dim}}>{currency}</span>
+                    </div>
+                    <div className="list-qty" style={{width:'140px',display:'flex',justifyContent:'center'}}>
                       {cart[item.id] ? (
                         <QtyControls id={item.id}/>
                       ) : (
