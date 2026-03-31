@@ -42,7 +42,7 @@
   .shop-card.in-cart { border-color: #2a5a6a; }
 
   .card-icon  { height: 52px; display:flex; align-items:center; justify-content:center; font-size:2.4rem; flex-shrink:0; }
-  .card-name  { height: 44px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.82rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; }
+  .card-name  { min-height: 44px; max-height: 44px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.82rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; word-wrap: break-word; overflow-wrap: break-word; }
   .card-cat   { height: 18px; font-size:0.68rem; color:#7a9aa4; text-transform:uppercase; letter-spacing:0.07em; overflow:hidden; flex-shrink:0; }
   .card-desc  { height: 36px; font-size:0.76rem; color:#4a6a74; line-height:1.35; overflow:hidden; margin-top:6px; flex-shrink:0; }
   .card-price { height: 32px; display:flex; align-items:center; font-size:1.1rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
@@ -55,25 +55,23 @@
     gap: 12px;
   }
 
-  .list-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    align-items: center;
-    padding: 10px 12px;
-    border-radius: 2px;
-    transition: all 0.15s;
-    min-height: 64px;
-  }
-
   @media (max-width: 600px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
     .card-icon  { height: 42px; font-size: 1.9rem; }
-    .card-name  { height: 38px; font-size: 0.76rem; }
+    .card-name  { min-height: 38px; max-height: 38px; font-size: 0.76rem; }
     .card-desc  { height: 30px; font-size: 0.72rem; }
     .card-price { font-size: 0.95rem; }
-    .list-row   { padding: 8px 10px; min-height: 56px; }
-    .list-right { flex-direction: column !important; align-items: flex-end !important; gap: 5px !important; }
+    
+    .list-row {
+      grid-template-columns: auto 1fr !important;
+      gap: 8px !important;
+      padding: 8px 10px !important;
+    }
+    .list-row > *:nth-child(3),
+    .list-row > *:nth-child(4) {
+      grid-column: 1 / -1;
+      justify-self: flex-end;
+    }
   }
 </style>
 </head>
@@ -330,7 +328,18 @@ function App() {
         <button
           title="Remove item"
           onClick={()=>removeFromCart(id)}
-          style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'3px 7px',fontSize:'0.8rem',fontWeight:700,lineHeight:1,whiteSpace:'nowrap'}}
+          style={{
+            background:'#f0d8d8',
+            color:C.red,
+            border:`1px solid #d0a0a0`,
+            borderRadius:'2px',
+            padding:'3px 6px',
+            fontSize:'0.75rem',
+            fontWeight:700,
+            lineHeight:1,
+            whiteSpace:'nowrap',
+            minWidth:'28px'
+          }}
         >✕</button>
       </div>
     );
@@ -487,27 +496,38 @@ function App() {
             </div>
 
           ) : (
-            /* LIST VIEW */
+            /* LIST VIEW — Fixed layout */
             <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:'12px',padding:'6px 12px',background:C.bg3,borderRadius:'2px',fontSize:'0.7rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',fontWeight:700}}>
-                <span>Item</span><span>Price / Qty</span>
+              <div style={{display:'grid',gridTemplateColumns:'auto 1fr auto auto',gap:'10px',padding:'6px 12px',background:C.bg3,borderRadius:'2px',fontSize:'0.7rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',fontWeight:700}}>
+                <span style={{width:'30px'}}>Icon</span>
+                <span>Item</span>
+                <span style={{textAlign:'right',minWidth:'80px'}}>Price</span>
+                <span style={{width:'150px',textAlign:'center'}}>Qty</span>
               </div>
               {filtered.map(item=>(
-                <div key={item.id} className="list-row" style={{background:cart[item.id]?`${C.accent}18`:C.bg2,border:`1px solid ${cart[item.id]?C.accent:C.border}`}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0,overflow:'hidden'}}>
-                    <span style={{fontSize:'1.3rem',flexShrink:0}}>{item.icon}</span>
-                    <div style={{minWidth:0}}>
-                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.84rem',color:C.accentD,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.name}</div>
-                      <div style={{fontSize:'0.72rem',color:C.mute}}>{item.category}</div>
-                    </div>
+                <div key={item.id} className="list-row" style={{
+                  display:'grid',
+                  gridTemplateColumns:'auto 1fr auto auto',
+                  gap:'10px',
+                  alignItems:'center',
+                  padding:'10px 12px',
+                  background:cart[item.id]?`${C.accent}18`:C.bg2,
+                  border:`1px solid ${cart[item.id]?C.accent:C.border}`,
+                  borderRadius:'2px',
+                  minHeight:'60px'
+                }}>
+                  <span style={{fontSize:'1.3rem',width:'30px',display:'flex',alignItems:'center',justifyContent:'center'}}>{item.icon}</span>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.82rem',color:C.accentD,lineHeight:1.25,wordWrap:'break-word',overflowWrap:'break-word'}}>{item.name}</div>
+                    <div style={{fontSize:'0.7rem',color:C.mute,marginTop:'2px'}}>{item.category}</div>
                   </div>
-                  <div className="list-right" style={{display:'flex',flexDirection:'row',alignItems:'center',gap:'10px',flexShrink:0}}>
-                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.92rem',whiteSpace:'nowrap'}}>
-                      {item.price.toLocaleString()} <span style={{fontSize:'0.68rem',color:C.dim}}>{currency}</span>
-                    </div>
+                  <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.88rem',whiteSpace:'nowrap',minWidth:'80px'}}>
+                    {item.price.toLocaleString()} <span style={{fontSize:'0.65rem',color:C.dim}}>{currency}</span>
+                  </div>
+                  <div style={{width:'150px',display:'flex',justifyContent:'center'}}>
                     {cart[item.id]
                       ? <QtyControls id={item.id}/>
-                      : <button style={{...btn('primary'),padding:'4px 14px',fontSize:'0.82rem',whiteSpace:'nowrap'}} onClick={()=>addToCart(item.id)}>Add</button>
+                      : <button style={{...btn('primary'),padding:'4px 12px',fontSize:'0.8rem'}} onClick={()=>addToCart(item.id)}>Add</button>
                     }
                   </div>
                 </div>
