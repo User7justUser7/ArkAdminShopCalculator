@@ -14,19 +14,66 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #e9ebe9; }
   ::-webkit-scrollbar-thumb { background: #a0bcc2; border-radius: 3px; }
-  button { cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  button { cursor: pointer; transition: opacity 0.15s, transform 0.1s; font-family: 'Rajdhani', sans-serif; }
   button:hover { opacity: 0.85; }
   button:active { transform: scale(0.97); }
   input:focus, select:focus { outline: none; border-color: #2a6a7a !important; }
   input, select { transition: border-color 0.2s; }
-  .qty-input { width: 44px; text-align: center; padding: 3px 4px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem; border: 1px solid #88a8b4; background: #f4f8f8; color: #1a2a30; -moz-appearance: textfield; }
-  .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-  @media (max-width: 640px) {
+
+  .qty-input {
+    width: 46px; text-align: center; padding: 4px 4px;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem;
+    border: 1px solid #88a8b4; background: #f4f8f8; color: #1a2a30;
+    -moz-appearance: textfield;
+  }
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* ── Grid card — fixed zones like a Pokemon card ── */
+  .shop-card {
+    background: #d0e1e4;
+    border: 2px solid #a8c0c8;
+    border-radius: 4px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s;
+  }
+  .shop-card.in-cart { border-color: #2a5a6a; }
+
+  .card-icon  { height: 52px; display:flex; align-items:center; justify-content:center; font-size:2.4rem; flex-shrink:0; }
+  .card-name  { height: 44px; display:flex; align-items:flex-start; font-family:'Cinzel',serif; font-size:0.82rem; font-weight:700; color:#1a3a46; line-height:1.25; overflow:hidden; margin-top:8px; flex-shrink:0; }
+  .card-cat   { height: 18px; font-size:0.68rem; color:#7a9aa4; text-transform:uppercase; letter-spacing:0.07em; overflow:hidden; flex-shrink:0; }
+  .card-desc  { height: 36px; font-size:0.76rem; color:#4a6a74; line-height:1.35; overflow:hidden; margin-top:6px; flex-shrink:0; }
+  .card-price { height: 32px; display:flex; align-items:center; font-size:1.1rem; color:#2a5a6a; font-weight:700; margin-top:8px; flex-shrink:0; }
+  .card-price span { font-size:0.7rem; color:#4a6a74; font-weight:400; margin-left:3px; }
+  .card-action { margin-top:auto; padding-top:10px; flex-shrink:0; }
+
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+  }
+
+  .list-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 2px;
+    transition: all 0.15s;
+    min-height: 64px;
+  }
+
+  @media (max-width: 600px) {
     .shop-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .list-row { grid-template-columns: 1fr auto !important; padding: 10px !important; }
-    .nav-wrap { gap: 4px !important; }
-    .nav-wrap button { padding: 5px 7px !important; font-size: 0.76rem !important; letter-spacing: 0 !important; }
-    .qty-input { width: 38px !important; font-size: 0.85rem !important; }
+    .card-icon  { height: 42px; font-size: 1.9rem; }
+    .card-name  { height: 38px; font-size: 0.76rem; }
+    .card-desc  { height: 30px; font-size: 0.72rem; }
+    .card-price { font-size: 0.95rem; }
+    .list-row   { padding: 8px 10px; min-height: 56px; }
+    .list-right { flex-direction: column !important; align-items: flex-end !important; gap: 5px !important; }
   }
 </style>
 </head>
@@ -150,14 +197,9 @@ function App() {
     }
   }, []);
 
-  const setQty    = (id, val) => {
-    const n = parseInt(val);
-    if (isNaN(n) || n <= 0) { setCart(c => { const x={...c}; delete x[id]; return x; }); return; }
-    setCart(c => ({...c, [id]: n}));
-  };
-  const addToCart      = id => setCart(c => ({...c,[id]:(c[id]||0)+1}));
-  const decCart        = id => setCart(c => { const n={...c}; if(n[id]>1) n[id]--; else delete n[id]; return n; });
-  const removeFromCart = id => setCart(c => { const n={...c}; delete n[id]; return n; });
+  const addToCart      = id  => setCart(c => ({...c,[id]:(c[id]||0)+1}));
+  const decCart        = id  => setCart(c => { const n={...c}; if(n[id]>1) n[id]--; else delete n[id]; return n; });
+  const removeFromCart = id  => setCart(c => { const n={...c}; delete n[id]; return n; });
   const clearCart      = ()  => { if(confirm('Clear your entire cart?')) setCart({}); };
 
   const cartEntries = Object.entries(cart)
@@ -205,7 +247,7 @@ function App() {
       });
       if (res.ok) { sessionStorage.setItem('ark_admin','yes'); setAdminUnlocked(true); setPassInput(''); }
       else setPassError('Incorrect password.');
-    } catch { setPassError('Could not connect. Are you running on Cloudflare?'); }
+    } catch { setPassError('Could not connect.'); }
     setPassLoading(false);
   };
 
@@ -215,13 +257,10 @@ function App() {
   const resetToDefault = () => { if(confirm('Reset ALL items to defaults?')) { setItems(DEFAULT_ITEMS); localStorage.removeItem('ark_items'); } };
 
   const exportItems = () => {
-    const exportData = JSON.stringify(items, null, 2);
-    const blob = new Blob([exportData], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = '247-shop-items.json';
-    a.click();
+    a.href = url; a.download = '247-shop-items.json'; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -254,12 +293,11 @@ function App() {
       secondary:{bg:C.bg3,     color:C.text,  border:C.border2},
       danger:   {bg:'#f0d8d8', color:C.red,   border:'#d0a0a0'},
       ghost:    {bg:'transparent',color:C.accent,border:C.accent},
-      remove:   {bg:'#f0d8d8', color:C.red,   border:'#d0a0a0'},
     };
     const s=map[v]||map.secondary;
-    return {background:s.bg,color:s.color,border:`1px solid ${s.border}`,padding:'7px 16px',fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:'0.9rem',letterSpacing:'0.05em'};
+    return {background:s.bg,color:s.color,border:`1px solid ${s.border}`,padding:'7px 16px',fontWeight:700,fontSize:'0.9rem',letterSpacing:'0.05em'};
   };
-  const inp = {background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:'8px 12px',fontFamily:"'Rajdhani',sans-serif",fontSize:'1rem',width:'100%'};
+  const inp = {background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:'8px 12px',fontSize:'1rem',width:'100%'};
   const sel = {...inp,cursor:'pointer'};
   const lbl = {fontSize:'0.73rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',display:'block',marginBottom:'4px'};
   const sec = {background:C.bg2,border:`1px solid ${C.border}`,padding:'20px 24px',marginBottom:'16px',borderRadius:'2px'};
@@ -268,39 +306,32 @@ function App() {
   const bdg = color=>({background:`${color}22`,border:`1px solid ${color}66`,color,padding:'3px 10px',fontSize:'0.73rem',letterSpacing:'0.1em',fontWeight:700,borderRadius:'2px'});
   const nav = active=>({...btn(active?'primary':'ghost'),padding:'6px 14px',fontSize:'0.85rem',letterSpacing:'0.06em'});
 
-  // QtyControls with "✕ Remove" text button
+  /* Qty controls — horizontal always, commits on blur/Enter, small ✕ remove */
   const QtyControls = ({ id }) => {
     const qty = cart[id] || 0;
     const [draft, setDraft] = useState(String(qty));
     useEffect(() => { setDraft(String(cart[id] || 0)); }, [cart[id]]);
-    const commit = (val) => {
+    const commit = val => {
       const n = parseInt(val);
       if (isNaN(n) || n <= 0) removeFromCart(id);
-      else setCart(c => ({...c, [id]: n}));
+      else setCart(c => ({...c,[id]:n}));
     };
     if (qty === 0) return null;
     return (
-      <div style={{display:'flex',flexDirection:'row',flexWrap:'wrap',gap:'3px',alignItems:'center'}}>
-        <button style={{...btn('secondary'),padding:'3px 8px',fontSize:'0.95rem',lineHeight:1}} onClick={()=>decCart(id)}>−</button>
+      <div style={{display:'flex',flexDirection:'row',flexWrap:'nowrap',gap:'3px',alignItems:'center'}}>
+        <button style={{...btn('secondary'),padding:'3px 8px',fontSize:'0.9rem',lineHeight:1}} onClick={()=>decCart(id)}>−</button>
         <input
-          className="qty-input"
-          type="number" min="1"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onBlur={e => commit(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { commit(e.target.value); e.target.blur(); } }}
+          className="qty-input" type="number" min="1" value={draft}
+          onChange={e=>setDraft(e.target.value)}
+          onBlur={e=>commit(e.target.value)}
+          onKeyDown={e=>{ if(e.key==='Enter'){commit(e.target.value);e.target.blur();} }}
         />
-        <button style={{...btn('primary'),padding:'3px 8px',fontSize:'0.95rem',lineHeight:1}} onClick={()=>addToCart(id)}>+</button>
-        <button 
-          style={{
-            ...btn('remove'),
-            padding:'3px 8px',
-            fontSize:'0.72rem',
-            letterSpacing:'0',
-            whiteSpace:'nowrap'
-          }} 
+        <button style={{...btn('primary'),padding:'3px 8px',fontSize:'0.9rem',lineHeight:1}} onClick={()=>addToCart(id)}>+</button>
+        <button
+          title="Remove item"
           onClick={()=>removeFromCart(id)}
-        >✕ Remove</button>
+          style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'3px 7px',fontSize:'0.8rem',fontWeight:700,lineHeight:1,whiteSpace:'nowrap'}}
+        >✕</button>
       </div>
     );
   };
@@ -369,183 +400,115 @@ function App() {
   return (
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
 
-      {/* HEADER with Admin button in top-right corner */}
-      <div style={{background:C.accentD,padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',flexWrap:'wrap',gap:'8px'}}>
-        <div style={{cursor:'pointer'}} onClick={()=>setView('shop')}>
-          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.4rem',color:C.bg2,letterSpacing:'0.08em',lineHeight:1.2}}>247 Always Online</div>
-          <div style={{fontSize:'0.72rem',color:C.mute,letterSpacing:'0.15em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
+      {/* HEADER */}
+      <div style={{background:C.accentD,padding:'10px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:100,boxShadow:'0 2px 12px #00000030',gap:'8px'}}>
+        {/* Logo */}
+        <div style={{cursor:'pointer',flexShrink:0}} onClick={()=>setView('shop')}>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.2rem',color:C.bg2,letterSpacing:'0.06em',lineHeight:1.15}}>247 Always Online</div>
+          <div style={{fontSize:'0.63rem',color:C.mute,letterSpacing:'0.13em',textTransform:'uppercase'}}>Admin Shop Calculator</div>
         </div>
-        <div style={{display:'flex',gap:'6px',alignItems:'center',flex:1,justifyContent:'center'}}>
-          <div className="nav-wrap" style={{display:'flex',gap:'6px',flexWrap:'nowrap'}}>
-            {[
-              {id:'shop',     label:'🏪 Shop'},
-              {id:'cart',     label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},
-              {id:'checkout', label:'📋 Order'},
-            ].map(({id,label:lbl2})=>(
-              <button key={id} style={{...nav(view===id),background:view===id?C.bg2:'transparent',color:view===id?C.accentD:C.bg2,border:`1px solid ${view===id?C.bg2:C.bg4}`}} onClick={()=>setView(id)}>{lbl2}</button>
-            ))}
-          </div>
+        {/* Main nav */}
+        <div style={{display:'flex',gap:'5px',flexShrink:0}}>
+          {[
+            {id:'shop',     label:'🏪 Shop'},
+            {id:'cart',     label:`🧺 Cart${cartCount>0?` (${cartCount})`:''}`},
+            {id:'checkout', label:'📋 Order'},
+          ].map(({id,label:lbl2})=>(
+            <button key={id} style={{
+              ...nav(view===id),
+              background:view===id?C.bg2:'transparent',
+              color:view===id?C.accentD:C.bg2,
+              border:`1px solid ${view===id?C.bg2:C.bg4}`,
+              padding:'5px 10px',fontSize:'0.82rem',
+            }} onClick={()=>setView(id)}>{lbl2}</button>
+          ))}
         </div>
-        <button 
-          style={{
-            background:'transparent',
-            color:C.mute,
-            border:`1px solid ${C.bg4}`,
-            padding:'6px 12px',
-            fontFamily:"'Rajdhani',sans-serif",
-            fontWeight:600,
-            fontSize:'0.78rem',
-            letterSpacing:'0.05em',
-            cursor:'pointer',
-            transition:'all 0.2s',
-            whiteSpace:'nowrap',
-            marginLeft:'auto'
-          }}
-          onMouseEnter={e=>{e.target.style.color=C.white;e.target.style.borderColor=C.accent;}}
-          onMouseLeave={e=>{e.target.style.color=C.mute;e.target.style.borderColor=C.bg4;}}
+        {/* Admin — separate, muted */}
+        <button
           onClick={()=>setView('admin')}
-        >
-          🔧 Admin
-        </button>
+          style={{
+            flexShrink:0,
+            background: view==='admin' ? '#ffffff22' : 'transparent',
+            color: view==='admin' ? C.white : C.mute,
+            border:`1px solid ${view==='admin'?C.bg4:'#ffffff25'}`,
+            padding:'5px 10px',
+            fontSize:'0.75rem',
+            fontWeight:600,
+            letterSpacing:'0.04em',
+            borderRadius:'2px',
+            whiteSpace:'nowrap',
+          }}
+        >🔧 Admin</button>
       </div>
 
-      <div style={{padding:'24px',maxWidth:'1200px',margin:'0 auto'}}>
+      <div style={{padding:'20px',maxWidth:'1200px',margin:'0 auto'}}>
 
         {/* SHOP */}
         {view==='shop'&&<>
-          <div style={{display:'flex',gap:'10px',marginBottom:'14px',flexWrap:'wrap',alignItems:'center'}}>
-            <input style={{...inp,flex:'1 1 200px'}} placeholder="🔍 Search items..." value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+          <div style={{display:'flex',gap:'10px',marginBottom:'12px',flexWrap:'wrap',alignItems:'center'}}>
+            <input style={{...inp,flex:'1 1 180px'}} placeholder="🔍 Search items..." value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
             <div style={{display:'flex',gap:'4px'}}>
-              <button title="Grid view" onClick={()=>setShopLayout('grid')} style={{...btn(shopLayout==='grid'?'primary':'secondary'),padding:'7px 13px',fontSize:'1.1rem'}}>⊞</button>
-              <button title="List view" onClick={()=>setShopLayout('list')} style={{...btn(shopLayout==='list'?'primary':'secondary'),padding:'7px 13px',fontSize:'1.1rem'}}>☰</button>
+              <button title="Grid view" onClick={()=>setShopLayout('grid')} style={{...btn(shopLayout==='grid'?'primary':'secondary'),padding:'6px 11px',fontSize:'1rem'}}>⊞</button>
+              <button title="List view" onClick={()=>setShopLayout('list')} style={{...btn(shopLayout==='list'?'primary':'secondary'),padding:'6px 11px',fontSize:'1rem'}}>☰</button>
             </div>
           </div>
-          <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'20px'}}>
+          <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'16px'}}>
             {categories.map(cat=>(
               <button key={cat} onClick={()=>setCatFilter(cat)} style={{
-                background:catFilter===cat?C.accent:'transparent',color:catFilter===cat?C.white:C.dim,
-                border:`1px solid ${catFilter===cat?C.accent:C.border}`,padding:'5px 13px',
-                fontFamily:"'Rajdhani',sans-serif",fontWeight:600,fontSize:'0.84rem',letterSpacing:'0.05em',transition:'all 0.2s'
+                background:catFilter===cat?C.accent:'transparent',
+                color:catFilter===cat?C.white:C.dim,
+                border:`1px solid ${catFilter===cat?C.accent:C.border}`,
+                padding:'4px 11px',fontWeight:600,fontSize:'0.82rem',letterSpacing:'0.04em',transition:'all 0.2s'
               }}>{cat}</button>
             ))}
           </div>
 
           {filtered.length===0 ? (
             <div style={{textAlign:'center',color:C.mute,padding:'60px'}}>No items found.</div>
+
           ) : shopLayout==='grid' ? (
-            <div className="shop-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'14px'}}>
+            /* GRID — Pokemon card layout */
+            <div className="shop-grid">
               {filtered.map(item=>(
-                <div key={item.id} style={{
-                  background:C.bg2,
-                  border:`2px solid ${cart[item.id]?C.accent:C.border}`,
-                  padding:'16px',
-                  transition:'border-color 0.2s',
-                  borderRadius:'2px',
-                  display:'flex',
-                  flexDirection:'column',
-                  minHeight:'340px',
-                  position:'relative'
-                }}>
-                  <div style={{fontSize:'2.5rem',marginBottom:'12px',height:'40px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    {item.icon}
-                  </div>
-                  <div style={{
-                    fontFamily:"'Cinzel',serif",
-                    fontSize:'0.9rem',
-                    color:C.accentD,
-                    marginBottom:'4px',
-                    lineHeight:1.3,
-                    minHeight:'26px',
-                    display:'flex',
-                    alignItems:'center',
-                    fontWeight:700
-                  }}>
-                    {item.name.toUpperCase()}
-                  </div>
-                  <div style={{
-                    fontSize:'0.7rem',
-                    color:C.mute,
-                    textTransform:'uppercase',
-                    letterSpacing:'0.08em',
-                    marginBottom:'8px',
-                    minHeight:'14px'
-                  }}>
-                    {item.category}
-                  </div>
-                  <div style={{
-                    fontSize:'0.8rem',
-                    color:C.dim,
-                    marginBottom:'12px',
-                    lineHeight:1.4,
-                    flexGrow:1,
-                    minHeight:'40px'
-                  }}>
-                    {item.desc}
-                  </div>
-                  <div style={{
-                    fontSize:'1.2rem',
-                    color:C.accent,
-                    fontWeight:700,
-                    marginBottom:'16px',
-                    height:'28px',
-                    display:'flex',
-                    alignItems:'center'
-                  }}>
-                    {item.price.toLocaleString()} <span style={{fontSize:'0.75rem',color:C.dim,fontWeight:400,marginLeft:'2px'}}>{currency}</span>
-                  </div>
-                  <div style={{marginTop:'auto'}}>
-                    {cart[item.id] ? <QtyControls id={item.id}/> : (
-                      <button style={{...btn('primary'),width:'100%',padding:'10px',fontSize:'0.9rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
-                    )}
+                <div key={item.id} className={`shop-card${cart[item.id]?' in-cart':''}`}>
+                  <div className="card-icon">{item.icon}</div>
+                  <div className="card-name">{item.name}</div>
+                  <div className="card-cat">{item.category}</div>
+                  <div className="card-desc">{item.desc || '\u00A0'}</div>
+                  <div className="card-price">{item.price.toLocaleString()}<span>{currency}</span></div>
+                  <div className="card-action">
+                    {cart[item.id]
+                      ? <QtyControls id={item.id}/>
+                      : <button style={{...btn('primary'),width:'100%',padding:'8px',fontSize:'0.88rem'}} onClick={()=>addToCart(item.id)}>Add to Cart</button>
+                    }
                   </div>
                 </div>
               ))}
             </div>
+
           ) : (
+            /* LIST VIEW */
             <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
-              <div style={{
-                display:'grid',
-                gridTemplateColumns:'1fr auto',
-                gap:'12px',
-                padding:'8px 12px',
-                background:C.bg3,
-                borderRadius:'2px',
-                fontSize:'0.72rem',
-                color:C.dim,
-                textTransform:'uppercase',
-                letterSpacing:'0.07em',
-                fontWeight:700
-              }}>
-                <span>Item</span>
-                <span style={{textAlign:'right'}}>Price & Qty</span>
+              <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:'12px',padding:'6px 12px',background:C.bg3,borderRadius:'2px',fontSize:'0.7rem',color:C.dim,textTransform:'uppercase',letterSpacing:'0.07em',fontWeight:700}}>
+                <span>Item</span><span>Price / Qty</span>
               </div>
               {filtered.map(item=>(
-                <div key={item.id} className="list-row" style={{
-                  display:'grid',
-                  gridTemplateColumns:'1fr auto',
-                  gap:'12px',
-                  alignItems:'center',
-                  padding:'12px',
-                  background:cart[item.id]?`${C.accent}18`:C.bg2,
-                  border:`1px solid ${cart[item.id]?C.accent:C.border}`,
-                  borderRadius:'2px',
-                  transition:'all 0.15s',
-                  minHeight:'70px'
-                }}>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0}}>
-                    <span style={{fontSize:'1.4rem',flexShrink:0}}>{item.icon}</span>
-                    <div style={{minWidth:0,flex:1}}>
-                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.88rem',color:C.accentD,lineHeight:1.2,marginBottom:'2px'}}>{item.name}</div>
-                      <div style={{fontSize:'0.75rem',color:C.mute}}>{item.category}</div>
+                <div key={item.id} className="list-row" style={{background:cart[item.id]?`${C.accent}18`:C.bg2,border:`1px solid ${cart[item.id]?C.accent:C.border}`}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px',minWidth:0,overflow:'hidden'}}>
+                    <span style={{fontSize:'1.3rem',flexShrink:0}}>{item.icon}</span>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontFamily:"'Cinzel',serif",fontSize:'0.84rem',color:C.accentD,lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{item.name}</div>
+                      <div style={{fontSize:'0.72rem',color:C.mute}}>{item.category}</div>
                     </div>
                   </div>
-                  <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
-                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.95rem',whiteSpace:'nowrap'}}>
-                      {item.price.toLocaleString()} <span style={{fontSize:'0.7rem',color:C.dim}}>{currency}</span>
+                  <div className="list-right" style={{display:'flex',flexDirection:'row',alignItems:'center',gap:'10px',flexShrink:0}}>
+                    <div style={{textAlign:'right',color:C.accent,fontWeight:700,fontSize:'0.92rem',whiteSpace:'nowrap'}}>
+                      {item.price.toLocaleString()} <span style={{fontSize:'0.68rem',color:C.dim}}>{currency}</span>
                     </div>
-                    {cart[item.id] ? <QtyControls id={item.id}/> : (
-                      <button style={{...btn('primary'),padding:'5px 16px',fontSize:'0.84rem',whiteSpace:'nowrap'}} onClick={()=>addToCart(item.id)}>Add</button>
-                    )}
+                    {cart[item.id]
+                      ? <QtyControls id={item.id}/>
+                      : <button style={{...btn('primary'),padding:'4px 14px',fontSize:'0.82rem',whiteSpace:'nowrap'}} onClick={()=>addToCart(item.id)}>Add</button>
+                    }
                   </div>
                 </div>
               ))}
@@ -566,10 +529,10 @@ function App() {
             ):<>
               {cartEntries.map(item=>(
                 <div key={item.id} style={{...row,alignItems:'center'}}>
-                  <span style={{flex:'1 1 150px',fontSize:'1.05rem'}}>{item.icon} <strong>{item.name}</strong></span>
+                  <span style={{flex:'1 1 140px',fontSize:'1.02rem'}}>{item.icon} <strong>{item.name}</strong></span>
                   <span style={{color:C.mute,fontSize:'0.82rem'}}>{item.category}</span>
                   <QtyControls id={item.id}/>
-                  <span style={{color:C.accent,fontWeight:700,minWidth:'150px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
+                  <span style={{color:C.accent,fontWeight:700,minWidth:'130px',textAlign:'right'}}>{(item.price*item.qty).toLocaleString()} {currency}</span>
                 </div>
               ))}
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'14px',marginTop:'8px'}}>
@@ -649,7 +612,7 @@ function App() {
           <div style={{...sec,maxWidth:'380px'}}>
             <div style={stl}>🔒 Admin Login</div>
             <div style={{background:'#e8f4f8',border:`1px solid ${C.border}`,padding:'10px 14px',color:C.dim,fontSize:'0.83rem',lineHeight:1.5,marginBottom:'16px'}}>
-              Password is verified securely via Cloudflare — it is not stored anywhere in this page's code.
+              Password is verified securely — it is not stored anywhere in this page's code.
             </div>
             <label style={lbl}>Admin Password</label>
             <input type="password" style={{...inp,marginBottom:'10px'}} placeholder="Enter admin password"
@@ -700,7 +663,6 @@ function App() {
                             {item.recipe.map(r=>`${r.qty}x ${r.material}`).join(', ')} · Engram {item.engram}
                           </div>
                         )}
-                        {item.fixed&&<span style={{...bdg(C.accentL),marginLeft:'6px'}}>FIXED</span>}
                       </div>
                       <span style={{color:C.accent,fontWeight:700,marginRight:'12px'}}>{item.price.toLocaleString()} {currency}</span>
                       <div style={{display:'flex',gap:'6px'}}>
@@ -744,7 +706,7 @@ function App() {
                           {r2.qty&&MATERIAL_TIERS[r2.material]?`= ${Math.round(r2.qty*MATERIAL_TIERS[r2.material]*100)/100} iron`:''}
                         </span>
                         {calcRecipe.length>1&&(
-                          <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>x</button>
+                          <button style={{...btn('danger'),padding:'4px 10px'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button>
                         )}
                       </div>
                     ))}
@@ -765,7 +727,7 @@ function App() {
                       Material iron value: <strong style={{color:C.text}}>{calcResult.materialIron}</strong><br/>
                       Engram level: <strong style={{color:C.text}}>{calcResult.engram}</strong><br/>
                       {calcResult.usedEngram
-                        ?<span style={{color:C.green}}>Engram included (engram is less than or equal to materials)</span>
+                        ?<span style={{color:C.green}}>Engram included (engram ≤ materials)</span>
                         :<span style={{color:'#c07020'}}>Engram dropped (would inflate price)</span>
                       }
                     </div>}
@@ -824,7 +786,7 @@ function App() {
                 <button style={btn('primary')} onClick={saveSettings}>Save</button>
                 <div style={{marginTop:'20px',paddingTop:'20px',borderTop:`1px solid ${C.border}`}}>
                   <div style={{fontFamily:"'Cinzel',serif",color:C.accentD,fontSize:'0.9rem',marginBottom:'10px'}}>Export Items</div>
-                  <p style={{color:C.dim,fontSize:'0.85rem',marginBottom:'12px',lineHeight:1.5}}>Download your full item list as a file. Bring this file back to update the shop code on GitHub.</p>
+                  <p style={{color:C.dim,fontSize:'0.85rem',marginBottom:'12px',lineHeight:1.5}}>Download your full item list. Bring this file back to update the shop code on GitHub.</p>
                   <button style={{...btn('primary'),padding:'8px 20px'}} onClick={exportItems}>⬇ Download Item List</button>
                 </div>
                 <div style={{marginTop:'20px',background:C.white,border:`1px solid ${C.border}`,padding:'14px',color:C.dim,fontSize:'0.83rem',lineHeight:1.7}}>
