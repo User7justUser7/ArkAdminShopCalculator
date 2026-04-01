@@ -12,10 +12,25 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #e9ebe9; font-family: 'Rajdhani', sans-serif; }
   button { cursor: pointer; font-family: 'Rajdhani', sans-serif; }
-  .qty-input { width: 50px; text-align: center; padding: 4px; font-weight: 700; border: 1px solid #88a8b4; background: #f4f8f8; font-size: 0.9rem; }
+  .qty-input {
+    width: 54px;
+    text-align: center;
+    padding: 4px 2px;
+    font-weight: 700;
+    border: 1px solid #88a8b4;
+    background: #f4f8f8;
+    font-size: 0.95rem;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
   .top-bar { background: #1a3a46; padding: 10px 16px; position: sticky; top: 0; z-index: 100; height: 50px; }
   .top-bar-content { display: flex; flex-direction: column; }
-  .top-bar-title { font-family: 'Cinzel', serif; font-size: 1.3rem; color: #d0e1e4; font-weight: 700; }
+  .top-bar-title { font-family: 'Cinzel', serif; font-size: 1.3rem; color: #d0e1e4; font-weight: 700; cursor: pointer; user-select: none; }
   .top-bar-subtitle { font-size: 0.55rem; color: #7a9aa4; text-transform: uppercase; letter-spacing: 0.15em; }
   .nav-bar { background: #1a3a46; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 50px; z-index: 99; height: 44px; }
   .nav-buttons { display: flex; gap: 4px; }
@@ -56,11 +71,11 @@
     .card-desc { height: 26px; font-size: 0.68rem; }
     .card-price { font-size: 0.9rem; }
     .card-action { height: 34px; }
-    .list-row { 
-      grid-template-columns: 32px 1fr 85px; 
-      height: auto; 
-      padding: 8px; 
-      gap: 6px; 
+    .list-row {
+      grid-template-columns: 32px 1fr 85px;
+      height: auto;
+      padding: 8px;
+      gap: 6px;
       min-height: 70px;
     }
     .list-row > *:nth-child(1) { grid-column: 1; grid-row: 1; }
@@ -71,7 +86,7 @@
     .list-cat { font-size: 0.6rem; text-align: left; }
     .list-price { font-size: 0.8rem; text-align: right; padding-right: 0; }
     .list-qty { justify-content: center; }
-    .qty-input { width: 40px; padding: 3px; font-size: 0.8rem; }
+    .qty-input { width: 54px; padding: 3px 2px; font-size: 0.9rem; }
   }
 </style>
 </head>
@@ -196,6 +211,14 @@ function App() {
     }
   }, []);
 
+  const goToShop = () => {
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    setOrderView(null);
+    setView('shop');
+  };
+
   const addToCart = id => setCart(c => ({...c,[id]:(c[id]||0)+1}));
   const decCart = id => setCart(c => { const n={...c}; if(n[id]>1) n[id]--; else delete n[id]; return n; });
   const removeFromCart = id => setCart(c => { const n={...c}; delete n[id]; return n; });
@@ -255,13 +278,13 @@ function App() {
   };
 
   const C = { bg:'#e9ebe9',bg2:'#d0e1e4',bg3:'#c0d4d8',bg4:'#b0c8cc', border:'#a8c0c8',border2:'#88a8b4', accent:'#2a5a6a',accentL:'#3a7a8e',accentD:'#1a3a46', text:'#1a2a30',dim:'#4a6a74',mute:'#7a9aa4',white:'#f4f8f8', green:'#2a7a4a',red:'#9a3030' };
-  
+
   const btn = (v='secondary') => {
     const map = { primary:{bg:C.accent,color:C.white,border:C.accent}, secondary:{bg:C.bg3,color:C.text,border:C.border2}, danger:{bg:'#f0d8d8',color:C.red,border:'#d0a0a0'}, ghost:{bg:'transparent',color:C.accent,border:C.accent} };
     const s=map[v]||map.secondary;
     return {background:s.bg,color:s.color,border:`1px solid ${s.border}`,padding:'5px 10px',fontWeight:700,fontSize:'0.8rem'};
   };
-  
+
   const inp = {background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:'5px 8px',fontSize:'0.85rem',width:'100%'};
   const sel = {...inp,cursor:'pointer'};
   const lbl = {fontSize:'0.65rem',color:C.dim,textTransform:'uppercase',display:'block',marginBottom:'2px'};
@@ -273,11 +296,11 @@ function App() {
   const QtyControls = ({ id }) => {
     const qty = cart[id] || 0;
     const [draft, setDraft] = useState(String(qty));
-    
+
     useEffect(() => {
       setDraft(String(qty));
     }, [qty]);
-    
+
     const commit = (val) => {
       const n = parseInt(val);
       if (isNaN(n) || n <= 0) {
@@ -286,59 +309,60 @@ function App() {
         setCart(c => ({...c, [id]: n}));
       }
     };
-    
+
     const handleBlur = (e) => {
       commit(e.target.value);
     };
-    
+
     const handleKeyDown = (e) => {
       if (e.key === 'Enter') {
         commit(e.target.value);
         e.target.blur();
       }
     };
-    
+
     if (qty === 0) return null;
-    
+
     return (
       <div style={{display:'flex',gap:'2px',alignItems:'center'}}>
-        <button style={{...btn('secondary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>decCart(id)}>−</button>
-        <input 
-          className="qty-input" 
-          type="number" 
-          min="1" 
-          value={draft} 
+        <button style={{...btn('secondary'),padding:'2px 5px',fontSize:'0.75rem',minWidth:'24px'}} onClick={()=>decCart(id)}>−</button>
+        <input
+          className="qty-input"
+          type="number"
+          min="1"
+          value={draft}
           onChange={e => setDraft(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
         />
-        <button style={{...btn('primary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>addToCart(id)}>+</button>
-        <button title="Remove" onClick={()=>removeFromCart(id)} style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'2px 5px',fontSize:'0.75rem',fontWeight:700,minWidth:'26px'}}>✕</button>
+        <button style={{...btn('primary'),padding:'2px 5px',fontSize:'0.75rem',minWidth:'24px'}} onClick={()=>addToCart(id)}>+</button>
+        <button title="Remove" onClick={()=>removeFromCart(id)} style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'2px 4px',fontSize:'0.75rem',fontWeight:700,minWidth:'24px'}}>✕</button>
       </div>
     );
   };
 
   if (view==='order') {
     if (!orderView) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.dim}}>⏳ Loading...</div></div>;
-    if (orderView.error) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}>❌ Order not found.<button style={{...btn('ghost'),marginTop:'10px'}} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button></div></div>;
+    if (orderView.error) return <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:C.red}}>❌ Order not found.<button style={{...btn('ghost'),marginTop:'10px'}} onClick={goToShop}>← Back</button></div></div>;
     const hydratedItems = (orderView.items||[]).map(entry => { const shopItem = items.find(i=>i.id===entry.id); if (!shopItem) return {id:entry.id,name:'Unknown',icon:'❓',category:'',price:0,qty:entry.qty}; return {...shopItem,qty:entry.qty}; });
     const orderTotal = hydratedItems.reduce((s,i)=>s+i.price*i.qty,0);
     const orderId = getOrderIdFromHash();
     return (
       <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
         <div style={{background:C.accentD,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0}}>
-          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem',color:C.bg2,cursor:'pointer'}} onClick={()=>{window.location.hash='';window.location.reload();}}>{shopName}</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.1rem',color:C.bg2,cursor:'pointer'}} onClick={goToShop}>{shopName.toUpperCase()}</div>
           <div style={bdg(C.green)}>✓ VERIFIED</div>
         </div>
         <div style={{padding:'14px',maxWidth:'700px',margin:'0 auto'}}>
           <div style={sec}>
             <div style={stl}>Order #{orderId}</div>
-            <div style={{marginBottom:'12px',fontSize:'0.9rem'}}><strong>Player:</strong> {orderView.player}</div>
+            <div style={{marginBottom:'6px',fontSize:'0.9rem'}}><strong>Player:</strong> {orderView.player}</div>
+            <div style={{marginBottom:'12px',fontSize:'0.9rem'}}><strong>Discord:</strong> {orderView.discord || 'Not provided'}</div>
             <div style={{...stl,marginBottom:'0'}}>Items</div>
             {hydratedItems.map(item=>(<div key={item.id} style={row}><span>{item.icon} {item.name}</span><span style={{color:C.dim}}>x{item.qty}</span><span style={{color:C.accent,fontWeight:700}}>{(item.price*item.qty).toLocaleString()} {currency}</span></div>))}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'10px'}}><span style={{fontFamily:"'Cinzel',serif"}}>TOTAL</span><span style={{fontFamily:"'Cinzel',serif",fontSize:'1.5rem',color:C.accent,fontWeight:900}}>{orderTotal.toLocaleString()} {currency}</span></div>
           </div>
-          <button style={btn('ghost')} onClick={()=>{window.location.hash='';window.location.reload();}}>← Back</button>
+          <button style={btn('ghost')} onClick={goToShop}>← Back</button>
         </div>
       </div>
     );
@@ -348,11 +372,11 @@ function App() {
     <div style={{fontFamily:"'Rajdhani',sans-serif",background:C.bg,minHeight:'100vh',color:C.text}}>
       <div className="top-bar">
         <div className="top-bar-content">
-          <div className="top-bar-title">247 ALWAYS ONLINE</div>
+          <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
           <div className="top-bar-subtitle">Admin Shop</div>
         </div>
       </div>
-      
+
       <div className="nav-bar">
         <div className="nav-buttons">
           <button className={`nav-btn ${view==='shop'?'active':''}`} onClick={()=>setView('shop')}>🏪 Shop</button>
