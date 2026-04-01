@@ -41,13 +41,13 @@
   .list-price { text-align: right; color: #2a5a6a; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
   .list-qty { display: flex; justify-content: flex-end; }
   @media (max-width: 600px) {
-    .top-bar { padding: 8px 12px; height: auto; }
-    .top-bar-content { flex-direction: column; }
+    .top-bar { padding: 8px 12px; height: auto; min-height: 50px; justify-content: center; text-align: center; }
+    .top-bar-content { flex-direction: column; align-items: center; }
     .top-bar-title { font-size: 1rem; }
     .top-bar-subtitle { font-size: 0.5rem; }
-    .nav-bar { top: auto; position: relative; height: 38px; padding: 6px 12px; }
-    .nav-btn { padding: 4px 8px; font-size: 0.7rem; min-width: 65px; }
-    .nav-btn-cart { min-width: 85px; }
+    .nav-bar { top: auto; position: relative; height: 38px; padding: 6px 8px; }
+    .nav-btn { padding: 4px 6px; font-size: 0.7rem; min-width: 60px; }
+    .nav-btn-cart { min-width: 75px; font-size: 0.65rem; }
     .admin-btn { display: none; }
     .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
     .shop-card { height: 285px; padding: 10px; }
@@ -56,11 +56,15 @@
     .card-desc { height: 26px; font-size: 0.68rem; }
     .card-price { font-size: 0.9rem; }
     .card-action { height: 34px; }
-    .list-row { grid-template-columns: 28px 1fr 75px; height: 42px; padding: 4px 6px; }
-    .list-name { font-size: 0.72rem; }
-    .list-cat { font-size: 0.58rem; }
-    .list-price { grid-column: 1 / -1; justify-self: end; font-size: 0.75rem; }
-    .list-qty { grid-column: 1 / -1; justify-self: end; }
+    .list-row { grid-template-columns: 1fr; height: auto; padding: 8px; gap: 6px; }
+    .list-row > *:nth-child(1) { grid-row: 1; }
+    .list-row > *:nth-child(2) { grid-row: 1; justify-self: end; text-align: right; }
+    .list-row > *:nth-child(3) { grid-row: 2; justify-self: start; }
+    .list-row > *:nth-child(4) { grid-row: 2; justify-self: end; }
+    .list-name { font-size: 0.75rem; }
+    .list-cat { font-size: 0.6rem; }
+    .list-price { font-size: 0.8rem; text-align: left; }
+    .list-qty { justify-content: flex-start; }
     .qty-input { width: 40px; padding: 3px; font-size: 0.8rem; }
   }
 </style>
