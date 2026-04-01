@@ -14,7 +14,7 @@ export async function onRequest({ env, request }) {
     }
 
     // Retrieve from Cloudflare KV
-    const value = await env.ARK_ORDERS.get(`order:${id}`);
+    const value = await env.SHOP_ORDERS.get(`order:${id}`);
 
     if (!value) {
       return new Response(JSON.stringify({ error: 'Order not found' }), {
