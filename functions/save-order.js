@@ -4,7 +4,7 @@ export async function onRequestPost({ env, request }) {
     const id = Math.random().toString(36).slice(2, 8).toUpperCase();
 
     // Save to Cloudflare KV — simple key/value, no external API needed
-    await env.ARK_ORDERS.put(`order:${id}`, JSON.stringify(order));
+    await env.SHOP_ORDERS.put(`order:${id}`, JSON.stringify(order));
 
     return new Response(JSON.stringify({ id }), {
       status: 200,
