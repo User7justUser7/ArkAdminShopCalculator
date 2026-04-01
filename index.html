@@ -408,7 +408,54 @@ function App() {
               <div>
                 <div style={{display:'flex',gap:'4px',marginBottom:'12px',flexWrap:'wrap'}}>{[['items','📦 Items'],['calc','🧮 Calc'],['settings','⚙️ Settings']].map(([id,label])=>(<button key={id} style={{...btn(adminTab===id?'primary':'secondary'),padding:'4px 8px',fontSize:'0.75rem'}} onClick={()=>setAdminTab(id)}>{label}</button>))}<button style={{...btn('secondary'),marginLeft:'auto',padding:'4px 8px',fontSize:'0.75rem'}} onClick={()=>{sessionStorage.removeItem('ark_admin');setAdminUnlocked(false);}}>🔒 Lock</button></div>
                 {adminTab==='items' && (<div style={sec}><div style={{display:'flex',justifyContent:'space-between',...stl}}><span>Items: {items.length}</span><button style={{...btn('danger'),padding:'3px 8px',fontSize:'0.7rem'}} onClick={resetToDefault}>Reset</button></div>{items.map(item=>(<div key={item.id} style={{...row}}>{editItem?.id===item.id ? (<div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'4px'}}>{['icon','name','category','price','engram','desc'].map(f=>(<div key={f}><label style={lbl}>{f}</label><input style={{...inp,padding:'3px',fontSize:'0.8rem'}} value={editItem[f]||''} onChange={e=>setEditItem(ei=>({...ei,[f]:e.target.value}))}/></div>))}<div style={{gridColumn:'1/-1',display:'flex',gap:'3px'}}><button style={btn('primary')} onClick={saveEdit}>Save</button><button style={{...btn('secondary')}} onClick={()=>setEditItem(null)}>Cancel</button></div></div>):(<><span style={{fontSize:'0.9rem'}}>{item.icon} <strong>{item.name}</strong></span><span style={{color:C.mute,fontSize:'0.75rem'}}>- {item.category}</span><span style={{color:C.accent,fontWeight:700,fontSize:'0.85rem'}}>{item.price} {currency}</span><div style={{display:'flex',gap:'3px'}}><button style={{...btn('secondary'),padding:'2px 6px',fontSize:'0.7rem'}} onClick={()=>setEditItem({...item})}>Edit</button><button style={{...btn('danger'),padding:'2px 6px',fontSize:'0.7rem'}} onClick={()=>deleteItem(item.id)}>Del</button></div></>)}</div>))}</div>)}
-                {adminTab==='calc' && (<div style={sec}><div style={stl}>🧮 Calculator</div><div style={{display:'flex',gap:'6px',marginBottom:'12px'}}><button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button><button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button></div>{calcFixed ? (<div style={{marginBottom:'12px'}}><label style={lbl}>Fixed Price</label><input type="number" style={{...inp,maxWidth:'160px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/></div>) : (<div style={{marginBottom:'10px'}}><label style={lbl}>Materials</label>{calcRecipe.map((r,i)=>(<div key={i} style={{display:'flex',gap:'4px',marginBottom:'4px',alignItems:'center'}}><select style={{...sel,flex:1,padding:'3px',fontSize:'0.8rem'}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>{ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}</select><input type="number" style={{...inp,width:'70px',padding:'3px',fontSize:'0.8rem'}} value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>{calcRecipe.length>1 && <button style={{...btn('danger'),padding:'2px 6px',fontSize:'0.68rem'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button></div>))}<button style={{...btn('ghost'),padding:'3px 8px',fontSize:'0.75rem'}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button></div>)}<div style={{marginBottom:'12px'}}><input type="number" style={{...inp,maxWidth:'120px',padding:'4px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/></div><button style={{...btn('primary'),padding:'6px 16px'}} onClick={runCalc}>Calculate</button>{calcResult && (<div style={{marginTop:'14px',background:C.white,border:`1px solid ${C.border}`,padding:'12px'}}><div style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>{calcResult.price.toLocaleString()} {currency}</div></div>)}{calcResult && (<div style={sec}><input style={{...inp,marginBottom:'6px',padding:'4px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/><button style={btn('primary')} onClick={addCalcItem}>Add to Shop</button></div>)}</div>)}
+                {adminTab==='calc' && (
+                  <div style={sec}>
+                    <div>
+                      <div style={stl}>🧮 Calculator</div>
+                      <div style={{display:'flex',gap:'6px',marginBottom:'12px'}}>
+                        <button style={btn(calcFixed?'secondary':'primary')} onClick={()=>setCalcFixed(false)}>Formula</button>
+                        <button style={btn(calcFixed?'primary':'secondary')} onClick={()=>setCalcFixed(true)}>Fixed</button>
+                      </div>
+                      {calcFixed ? (
+                        <div style={{marginBottom:'12px'}}>
+                          <label style={lbl}>Fixed Price</label>
+                          <input type="number" style={{...inp,maxWidth:'160px'}} value={calcFixedP} onChange={e=>setCalcFixedP(e.target.value)}/>
+                        </div>
+                      ) : (
+                        <div style={{marginBottom:'10px'}}>
+                          <label style={lbl}>Materials</label>
+                          {calcRecipe.map((r,i)=>(
+                            <div key={i} style={{display:'flex',gap:'4px',marginBottom:'4px',alignItems:'center'}}>
+                              <select style={{...sel,flex:1,padding:'3px',fontSize:'0.8rem'}} value={r.material} onChange={e=>{const x=[...calcRecipe];x[i].material=e.target.value;setCalcRecipe(x);}}>
+                                {ALL_MATERIALS.map(m=><option key={m}>{m}</option>)}
+                              </select>
+                              <input type="number" style={{...inp,width:'70px',padding:'3px',fontSize:'0.8rem'}} value={r.qty} onChange={e=>{const x=[...calcRecipe];x[i].qty=e.target.value;setCalcRecipe(x);}}/>
+                              {calcRecipe.length>1 && <button style={{...btn('danger'),padding:'2px 6px',fontSize:'0.68rem'}} onClick={()=>setCalcRecipe(calcRecipe.filter((_,j)=>j!==i))}>✕</button>}
+                            </div>
+                          ))}
+                          <button style={{...btn('ghost'),padding:'3px 8px',fontSize:'0.75rem'}} onClick={()=>setCalcRecipe([...calcRecipe,{material:'Metal Ingot',qty:''}])}>+ Add</button>
+                        </div>
+                      )}
+                      <div style={{marginBottom:'12px'}}>
+                        <input type="number" style={{...inp,maxWidth:'120px',padding:'4px'}} placeholder="Engram" value={calcEngram} onChange={e=>setCalcEngram(e.target.value)}/>
+                      </div>
+                      <button style={{...btn('primary'),padding:'6px 16px'}} onClick={runCalc}>Calculate</button>
+                      {calcResult && (
+                        <div style={{marginTop:'14px',background:C.white,border:`1px solid ${C.border}`,padding:'12px'}}>
+                          <div style={{fontFamily:"'Cinzel',serif",fontSize:'1.6rem',color:C.accent,fontWeight:900}}>
+                            {calcResult.price.toLocaleString()} {currency}
+                          </div>
+                        </div>
+                      )}
+                      {calcResult && (
+                        <div style={sec}>
+                          <input style={{...inp,marginBottom:'6px',padding:'4px'}} placeholder="Item Name" value={calcName} onChange={e=>setCalcName(e.target.value)}/>
+                          <button style={btn('primary')} onClick={addCalcItem}>Add to Shop</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {adminTab==='settings' && (<div style={sec}><div style={stl}>Settings</div><label style={lbl}>Currency</label><input style={{...inp,maxWidth:'240px',marginBottom:'12px'}} value={editCurrency} onChange={e=>setEditCurrency(e.target.value)}/><button style={btn('primary')} onClick={saveSettings}>Save</button><div style={{marginTop:'14px',paddingTop:'14px',borderTop:`1px solid ${C.border}`}}><button style={{...btn('primary'),padding:'5px 14px'}} onClick={exportItems}>⬇ Export</button></div></div>)}
               </div>
             )}
