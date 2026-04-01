@@ -262,11 +262,46 @@ function App() {
 
   const QtyControls = ({ id }) => {
     const qty = cart[id] || 0;
+    const [draft, setDraft] = useState(String(qty));
+    
+    useEffect(() => {
+      setDraft(String(qty));
+    }, [qty]);
+    
+    const commit = (val) => {
+      const n = parseInt(val);
+      if (isNaN(n) || n <= 0) {
+        removeFromCart(id);
+      } else {
+        setCart(c => ({...c, [id]: n}));
+      }
+    };
+    
+    const handleBlur = (e) => {
+      commit(e.target.value);
+    };
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        commit(e.target.value);
+        e.target.blur();
+      }
+    };
+    
     if (qty === 0) return null;
+    
     return (
       <div style={{display:'flex',gap:'2px',alignItems:'center'}}>
         <button style={{...btn('secondary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>decCart(id)}>−</button>
-        <input className="qty-input" type="number" min="1" value={qty} onChange={e=>{ const n=parseInt(e.target.value); if(!isNaN(n)&&n>0) setCart(c=>({...c,[id]:n})); }} />
+        <input 
+          className="qty-input" 
+          type="number" 
+          min="1" 
+          value={draft} 
+          onChange={e => setDraft(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+        />
         <button style={{...btn('primary'),padding:'2px 6px',fontSize:'0.75rem',minWidth:'26px'}} onClick={()=>addToCart(id)}>+</button>
         <button title="Remove" onClick={()=>removeFromCart(id)} style={{background:'#f0d8d8',color:C.red,border:`1px solid #d0a0a0`,borderRadius:'2px',padding:'2px 5px',fontSize:'0.75rem',fontWeight:700,minWidth:'26px'}}>✕</button>
       </div>
