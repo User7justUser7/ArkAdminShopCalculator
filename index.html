@@ -811,21 +811,49 @@
       if (draft.fixed) {
         return (
           <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
-            <div>Fixed price item.</div>
-            <div style={{ color: C.accent, fontWeight: 700 }}>
+            <div style={{ fontWeight: 700, color: C.accent }}>Fixed price item.</div>
+            <div style={{ color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
               Final Price: {(Number(draft.price || 0) || 0).toLocaleString()} {currency}
             </div>
           </div>
         );
       }
 
+      const recipe = normalizeRecipeDraft(draft.recipe);
+
       return (
-        <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
-          <div>Materials in ingots: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-          <div>Engram Level: {formula.engramLevel}</div>
-          <div>{formula.ignoredEngram ? "Engram ignored because it is higher than material price." : "Engram included in formula."}</div>
-          <div style={{ color: C.accent, fontWeight: 700 }}>
-            Final Price: {formula.price.toLocaleString()} {currency}
+        <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
+          <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
+          <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
+            {recipe.map((row, i) => {
+              const rate = MATERIAL_TIERS[row.material] || 0;
+              const subtotal = row.qty * rate;
+              return (
+                <div key={i}>
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ingots
+                </div>
+              );
+            })}
+            <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
+              Total Materials: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} ingots
+            </div>
+          </div>
+
+          <div style={{ fontWeight: 700, color: C.accentDark }}>Formula Calculation:</div>
+          <div style={{ paddingLeft: "8px" }}>
+            {formula.ignoredEngram ? (
+              <div>
+                Formula: 2 x ({formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} Materials + <del>{formula.engramLevel} Engram</del>)
+                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram level ignored (higher than material cost)</div>
+              </div>
+            ) : (
+              <div>
+                Formula: 2 x ({formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} Materials + {formula.engramLevel} Engram)
+              </div>
+            )}
+            <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
+              Final Price: {formula.price.toLocaleString()} {currency}
+            </div>
           </div>
         </div>
       );
@@ -1639,7 +1667,7 @@
                       onKeyDown={(e) => e.key === "Enter" && adminLogin()}
                     />
                     {passError && <div style={{ color: C.red, marginBottom: "6px", fontSize: "0.75rem" }}>{passError}</div>}
-                    <button style={btn("primary")} onClick={adminLogin} disabled={passLoading}>{passLoading ? "..." : "Unlock"}</button>
+                    <button style={btn("primary")} onClick={adminLogin} disabled={passLoading}>{passLoading ? "..." : "🔓 Unlock"}</button>
                   </div>
                 ) : (
                   <div>
@@ -1654,7 +1682,7 @@
                         </button>
                       ))}
                       <button style={{ ...btn("secondary"), marginLeft: "auto", padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => { sessionStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
-                        Lock
+                        🔒 Lock
                       </button>
                     </div>
 
