@@ -485,6 +485,74 @@
 
     const ALL_MATERIALS = Object.keys(MATERIAL_TIERS).sort();
 
+    const C = {
+      bg: "#e9ebe9",
+      bg2: "#d0e1e4",
+      bg3: "#c0d4d8",
+      border: "#a8c0c8",
+      border2: "#88a8b4",
+      accent: "#2a5a6a",
+      accentDark: "#1a3a46",
+      text: "#1a2a30",
+      dim: "#4a6a74",
+      mute: "#7a9aa4",
+      white: "#f4f8f8",
+      green: "#2a7a4a",
+      red: "#9a3030"
+    };
+
+    const btn = (variant = "secondary") => {
+      const map = {
+        primary: { bg: C.accent, color: C.white, border: C.accent },
+        secondary: { bg: C.bg3, color: C.text, border: C.border2 },
+        danger: { bg: "#f0d8d8", color: C.red, border: "#d0a0a0" },
+        ghost: { bg: "transparent", color: C.accent, border: C.accent }
+      };
+      const style = map[variant] || map.secondary;
+      return {
+        background: style.bg,
+        color: style.color,
+        border: `1px solid ${style.border}`,
+        padding: "5px 10px",
+        fontWeight: 700,
+        fontSize: "0.8rem"
+      };
+    };
+
+    const inputStyle = {
+      background: C.white,
+      border: `1px solid ${C.border}`,
+      color: C.text,
+      padding: "5px 8px",
+      fontSize: "0.85rem",
+      width: "100%"
+    };
+
+    const labelStyle = {
+      fontSize: "0.65rem",
+      color: C.dim,
+      textTransform: "uppercase",
+      display: "block",
+      marginBottom: "2px"
+    };
+
+    const sectionStyle = {
+      background: C.bg2,
+      border: `1px solid ${C.border}`,
+      padding: "14px 16px",
+      marginBottom: "12px",
+      borderRadius: "4px"
+    };
+
+    const sectionTitleStyle = {
+      fontFamily: "'Cinzel', serif",
+      color: C.accentDark,
+      fontSize: "0.85rem",
+      marginBottom: "12px",
+      paddingBottom: "6px",
+      borderBottom: `1px solid ${C.border}`
+    };
+
     function blankRecipeRow() {
       return { material: "Metal Ingot", qty: "" };
     }
@@ -601,6 +669,14 @@
       };
     }
 
+    function updateDraft(setter, field, value) {
+      setter((current) => ({ ...current, [field]: value }));
+    }
+
+    function updateDraftRecipe(setter, value) {
+      setter((current) => ({ ...current, recipe: value }));
+    }
+
     function ItemIcon({ icon, size = 34, fallback = "\u{1F4E6}" }) {
       const [failed, setFailed] = useState(false);
       const imageValue = !failed && looksLikeImageValue(icon);
@@ -710,6 +786,201 @@
               + Add Material
             </button>
           </div>
+        </div>
+      );
+    }
+
+    function TotalAmount({ amount, isMobile, currency }) {
+      return (
+        <span
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontSize: isMobile ? "1.15rem" : "1.4rem",
+            color: C.accent,
+            fontWeight: 800,
+            whiteSpace: "nowrap",
+            lineHeight: 1
+          }}
+        >
+          {amount.toLocaleString()} {currency}
+        </span>
+      );
+    }
+
+    function DraftPricing({ draft, formula, currency }) {
+      if (draft.fixed) {
+        return (
+          <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
+            <div>Fixed price item.</div>
+            <div style={{ color: C.accent, fontWeight: 700 }}>
+              Final Price: {(Number(draft.price || 0) || 0).toLocaleString()} {currency}
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
+          <div>Materials in ingots: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+          <div>Engram Level: {formula.engramLevel}</div>
+          <div>{formula.ignoredEngram ? "Engram ignored because it is higher than material price." : "Engram included in formula."}</div>
+          <div style={{ color: C.accent, fontWeight: 700 }}>
+            Final Price: {formula.price.toLocaleString()} {currency}
+          </div>
+        </div>
+      );
+    }
+
+    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency }) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gap: "10px",
+            padding: "12px",
+            background: C.white,
+            border: `1px solid ${C.border}`
+          }}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "90px 1fr 1fr 120px", gap: "8px" }}>
+            <div>
+              <label style={labelStyle}>Preview</label>
+              <div style={{ minHeight: "42px", display: "flex", alignItems: "center" }}>
+                <ItemIcon icon={draft.icon} size={38} />
+              </div>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Image Icon URL</label>
+              <input
+                style={inputStyle}
+                value={draft.icon}
+                onChange={(e) => updateDraft(setDraft, "icon", e.target.value)}
+                placeholder="Paste wiki image URL or emoji"
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Name</label>
+              <input
+                style={inputStyle}
+                value={draft.name}
+                onChange={(e) => updateDraft(setDraft, "name", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Category</label>
+              <input
+                style={inputStyle}
+                value={draft.category}
+                onChange={(e) => updateDraft(setDraft, "category", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Description</label>
+            <input
+              style={inputStyle}
+              value={draft.desc}
+              onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              style={btn(draft.fixed ? "primary" : "secondary")}
+              onClick={() => updateDraft(setDraft, "fixed", true)}
+            >
+              Fixed Price
+            </button>
+            <button
+              type="button"
+              style={btn(!draft.fixed ? "primary" : "secondary")}
+              onClick={() => updateDraft(setDraft, "fixed", false)}
+            >
+              Formula Price
+            </button>
+          </div>
+
+          {draft.fixed ? (
+            <div style={{ maxWidth: "200px" }}>
+              <label style={labelStyle}>Price</label>
+              <input
+                type="number"
+                min="0"
+                style={inputStyle}
+                value={draft.price}
+                onChange={(e) => updateDraft(setDraft, "price", e.target.value)}
+              />
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: "8px" }}>
+              <div style={{ maxWidth: "200px" }}>
+                <label style={labelStyle}>Engram Level</label>
+                <input
+                  type="number"
+                  min="0"
+                  style={inputStyle}
+                  value={draft.engram}
+                  onChange={(e) => updateDraft(setDraft, "engram", e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Recipe</label>
+                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} />
+              </div>
+            </div>
+          )}
+
+          <DraftPricing draft={draft} formula={formula} currency={currency} />
+
+          {isEditing ? null : (
+            <div style={{ color: C.dim, fontSize: "0.74rem" }}>
+              Formula uses: 2 x (materials + Engram Level), unless Engram Level is higher than material price, then Engram Level is ignored.
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function QtyControls({ id, cart, setCart, addToCart, decCart, removeFromCart }) {
+      const qty = cart[id] || 0;
+      const [draft, setDraft] = useState(String(qty));
+
+      useEffect(() => {
+        setDraft(String(qty));
+      }, [qty]);
+
+      function commit(value) {
+        const parsed = parseInt(value, 10);
+        if (Number.isNaN(parsed) || parsed <= 0) removeFromCart(id);
+        else setCart((current) => ({ ...current, [id]: parsed }));
+      }
+
+      if (!qty) return null;
+
+      return (
+        <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
+          <button style={{ ...btn("secondary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => decCart(id)}>-</button>
+          <input
+            className="qty-input"
+            type="number"
+            min="1"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={(e) => commit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                commit(e.target.value);
+                e.target.blur();
+              }
+            }}
+          />
+          <button style={{ ...btn("primary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => addToCart(id)}>+</button>
+          <button style={{ ...btn("danger"), padding: "2px 4px", minWidth: "22px" }} onClick={() => removeFromCart(id)}>X</button>
         </div>
       );
     }
@@ -947,14 +1218,6 @@
         }
       }
 
-      function updateDraft(setter, field, value) {
-        setter((current) => ({ ...current, [field]: value }));
-      }
-
-      function updateDraftRecipe(setter, value) {
-        setter((current) => ({ ...current, recipe: value }));
-      }
-
       async function addItem() {
         const problem = validateDraft(newItem);
         if (problem) {
@@ -992,269 +1255,6 @@
       function saveSettings() {
         setCurrency(editCurrency);
         setSaveStatus({ type: "saved", message: "Currency updated." });
-      }
-
-      const C = {
-        bg: "#e9ebe9",
-        bg2: "#d0e1e4",
-        bg3: "#c0d4d8",
-        border: "#a8c0c8",
-        border2: "#88a8b4",
-        accent: "#2a5a6a",
-        accentDark: "#1a3a46",
-        text: "#1a2a30",
-        dim: "#4a6a74",
-        mute: "#7a9aa4",
-        white: "#f4f8f8",
-        green: "#2a7a4a",
-        red: "#9a3030"
-      };
-
-      const btn = (variant = "secondary") => {
-        const map = {
-          primary: { bg: C.accent, color: C.white, border: C.accent },
-          secondary: { bg: C.bg3, color: C.text, border: C.border2 },
-          danger: { bg: "#f0d8d8", color: C.red, border: "#d0a0a0" },
-          ghost: { bg: "transparent", color: C.accent, border: C.accent }
-        };
-        const style = map[variant] || map.secondary;
-        return {
-          background: style.bg,
-          color: style.color,
-          border: `1px solid ${style.border}`,
-          padding: "5px 10px",
-          fontWeight: 700,
-          fontSize: "0.8rem"
-        };
-      };
-
-      const inputStyle = {
-        background: C.white,
-        border: `1px solid ${C.border}`,
-        color: C.text,
-        padding: "5px 8px",
-        fontSize: "0.85rem",
-        width: "100%"
-      };
-
-      const labelStyle = {
-        fontSize: "0.65rem",
-        color: C.dim,
-        textTransform: "uppercase",
-        display: "block",
-        marginBottom: "2px"
-      };
-
-      const sectionStyle = {
-        background: C.bg2,
-        border: `1px solid ${C.border}`,
-        padding: "14px 16px",
-        marginBottom: "12px",
-        borderRadius: "4px"
-      };
-
-      const sectionTitleStyle = {
-        fontFamily: "'Cinzel', serif",
-        color: C.accentDark,
-        fontSize: "0.85rem",
-        marginBottom: "12px",
-        paddingBottom: "6px",
-        borderBottom: `1px solid ${C.border}`
-      };
-
-      function TotalAmount({ amount }) {
-        return (
-          <span
-            style={{
-              fontFamily: "'Rajdhani', sans-serif",
-              fontSize: isMobile ? "1.15rem" : "1.4rem",
-              color: C.accent,
-              fontWeight: 800,
-              whiteSpace: "nowrap",
-              lineHeight: 1
-            }}
-          >
-            {amount.toLocaleString()} {currency}
-          </span>
-        );
-      }
-
-      function DraftPricing({ draft, formula }) {
-        if (draft.fixed) {
-          return (
-            <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
-              <div>Fixed price item.</div>
-              <div style={{ color: C.accent, fontWeight: 700 }}>
-                Final Price: {(Number(draft.price || 0) || 0).toLocaleString()} {currency}
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
-            <div>Materials in ingots: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-            <div>Engram Level: {formula.engramLevel}</div>
-            <div>{formula.ignoredEngram ? "Engram ignored because it is higher than material price." : "Engram included in formula."}</div>
-            <div style={{ color: C.accent, fontWeight: 700 }}>
-              Final Price: {formula.price.toLocaleString()} {currency}
-            </div>
-          </div>
-        );
-      }
-
-      function DraftEditor({ draft, setDraft, formula, isEditing = false }) {
-        return (
-          <div
-            style={{
-              display: "grid",
-              gap: "10px",
-              padding: "12px",
-              background: C.white,
-              border: `1px solid ${C.border}`
-            }}
-          >
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "90px 1fr 1fr 120px", gap: "8px" }}>
-              <div>
-                <label style={labelStyle}>Preview</label>
-                <div style={{ minHeight: "42px", display: "flex", alignItems: "center" }}>
-                  <ItemIcon icon={draft.icon} size={38} />
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStyle}>Image Icon URL</label>
-                <input
-                  style={inputStyle}
-                  value={draft.icon}
-                  onChange={(e) => updateDraft(setDraft, "icon", e.target.value)}
-                  placeholder="Paste wiki image URL or emoji"
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Name</label>
-                <input
-                  style={inputStyle}
-                  value={draft.name}
-                  onChange={(e) => updateDraft(setDraft, "name", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Category</label>
-                <input
-                  style={inputStyle}
-                  value={draft.category}
-                  onChange={(e) => updateDraft(setDraft, "category", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Description</label>
-              <input
-                style={inputStyle}
-                value={draft.desc}
-                onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
-              />
-            </div>
-
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                style={btn(draft.fixed ? "primary" : "secondary")}
-                onClick={() => updateDraft(setDraft, "fixed", true)}
-              >
-                Fixed Price
-              </button>
-              <button
-                type="button"
-                style={btn(!draft.fixed ? "primary" : "secondary")}
-                onClick={() => updateDraft(setDraft, "fixed", false)}
-              >
-                Formula Price
-              </button>
-            </div>
-
-            {draft.fixed ? (
-              <div style={{ maxWidth: "200px" }}>
-                <label style={labelStyle}>Price</label>
-                <input
-                  type="number"
-                  min="0"
-                  style={inputStyle}
-                  value={draft.price}
-                  onChange={(e) => updateDraft(setDraft, "price", e.target.value)}
-                />
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: "8px" }}>
-                <div style={{ maxWidth: "200px" }}>
-                  <label style={labelStyle}>Engram Level</label>
-                  <input
-                    type="number"
-                    min="0"
-                    style={inputStyle}
-                    value={draft.engram}
-                    onChange={(e) => updateDraft(setDraft, "engram", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={labelStyle}>Recipe</label>
-                  <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} />
-                </div>
-              </div>
-            )}
-
-            <DraftPricing draft={draft} formula={formula} />
-
-            {isEditing ? null : (
-              <div style={{ color: C.dim, fontSize: "0.74rem" }}>
-                Formula uses: 2 x (materials + Engram Level), unless Engram Level is higher than material price, then Engram Level is ignored.
-              </div>
-            )}
-          </div>
-        );
-      }
-
-      function QtyControls({ id }) {
-        const qty = cart[id] || 0;
-        const [draft, setDraft] = useState(String(qty));
-
-        useEffect(() => {
-          setDraft(String(qty));
-        }, [qty]);
-
-        function commit(value) {
-          const parsed = parseInt(value, 10);
-          if (Number.isNaN(parsed) || parsed <= 0) removeFromCart(id);
-          else setCart((current) => ({ ...current, [id]: parsed }));
-        }
-
-        if (!qty) return null;
-
-        return (
-          <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
-            <button style={{ ...btn("secondary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => decCart(id)}>-</button>
-            <input
-              className="qty-input"
-              type="number"
-              min="1"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={(e) => commit(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  commit(e.target.value);
-                  e.target.blur();
-                }
-              }}
-            />
-            <button style={{ ...btn("primary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => addToCart(id)}>+</button>
-            <button style={{ ...btn("danger"), padding: "2px 4px", minWidth: "22px" }} onClick={() => removeFromCart(id)}>X</button>
-          </div>
-        );
       }
 
       const shopName = "247 Always Online";
@@ -1358,7 +1358,7 @@
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "10px", gap: "8px", flexWrap: "wrap" }}>
                   <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
-                  <TotalAmount amount={orderTotal} />
+                  <TotalAmount amount={orderTotal} isMobile={isMobile} currency={currency} />
                 </div>
               </div>
 
@@ -1462,7 +1462,7 @@
                         <div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div>
                         <div className="card-action">
                           {cart[item.id] ? (
-                            <QtyControls id={item.id} />
+                            <QtyControls id={item.id} cart={cart} setCart={setCart} addToCart={addToCart} decCart={decCart} removeFromCart={removeFromCart} />
                           ) : (
                             <button style={{ ...btn("primary"), width: "100%", padding: "5px", fontSize: "0.75rem" }} onClick={() => addToCart(item.id)}>
                               Add to Cart
@@ -1484,7 +1484,7 @@
                         <div className="list-price">{item.price.toLocaleString()} <span style={{ fontSize: "0.55rem" }}>{currency}</span></div>
                         <div className="list-qty">
                           {cart[item.id] ? (
-                            <QtyControls id={item.id} />
+                            <QtyControls id={item.id} cart={cart} setCart={setCart} addToCart={addToCart} decCart={decCart} removeFromCart={removeFromCart} />
                           ) : (
                             <button style={{ ...btn("primary"), padding: "2px 7px", fontSize: "0.7rem" }} onClick={() => addToCart(item.id)}>Add</button>
                           )}
@@ -1528,14 +1528,14 @@
                           <span style={{ color: C.accent, fontWeight: 700, fontSize: "0.9rem", whiteSpace: "nowrap" }}>
                             {(item.price * item.qty).toLocaleString()} {currency}
                           </span>
-                          <QtyControls id={item.id} />
+                          <QtyControls id={item.id} cart={cart} setCart={setCart} addToCart={addToCart} decCart={decCart} removeFromCart={removeFromCart} />
                         </div>
                       </div>
                     ))}
 
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "10px", gap: "8px", flexWrap: "wrap" }}>
                       <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
-                      <TotalAmount amount={cartTotal} />
+                      <TotalAmount amount={cartTotal} isMobile={isMobile} currency={currency} />
                     </div>
 
                     <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
@@ -1588,7 +1588,7 @@
                       ))}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "8px", gap: "8px", flexWrap: "wrap" }}>
                         <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
-                        <TotalAmount amount={cartTotal} />
+                        <TotalAmount amount={cartTotal} isMobile={isMobile} currency={currency} />
                       </div>
                     </div>
 
@@ -1667,7 +1667,7 @@
                           </span>
                         </div>
 
-                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} />
+                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} />
 
                         <div style={{ display: "flex", gap: "6px", marginTop: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
                           <button style={btn("primary")} onClick={addItem} disabled={itemsSaving}>Add Item</button>
@@ -1693,7 +1693,7 @@
                           <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                             {editItem?.id === item.id ? (
                               <div style={{ display: "grid", gap: "10px" }}>
-                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing />
+                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} />
                                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                                   <button style={btn("primary")} onClick={saveEdit} disabled={itemsSaving}>Save</button>
                                   <button style={btn("secondary")} onClick={() => setEditItem(null)} disabled={itemsSaving}>Cancel</button>
@@ -1743,7 +1743,7 @@
                             </div>
                           </div>
                         )}
-                        <DraftPricing draft={calcDraft} formula={calcFormula} />
+                        <DraftPricing draft={calcDraft} formula={calcFormula} currency={currency} />
                       </div>
                     )}
 
