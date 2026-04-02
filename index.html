@@ -727,10 +727,15 @@
                   value={row.material}
                   disabled={disabled}
                   onChange={(e) => updateRow(index, "material", e.target.value)}
+                  onClick={(e) => {
+                    try {
+                      if (e.target.showPicker) e.target.showPicker();
+                    } catch (err) {}
+                  }}
                   onFocus={(e) => {
-                    const val = e.target.getAttribute("list");
-                    e.target.setAttribute("list", "");
-                    setTimeout(() => e.target.setAttribute("list", val), 10);
+                    try {
+                      if (e.target.showPicker) e.target.showPicker();
+                    } catch (err) {}
                   }}
                   placeholder="Select or type material..."
                   style={{
@@ -740,7 +745,8 @@
                     padding: "5px 24px 5px 8px",
                     fontSize: "0.82rem",
                     width: "100%",
-                    borderRadius: "0"
+                    borderRadius: "0",
+                    outline: "none"
                   }}
                 />
                 <div style={{ 
