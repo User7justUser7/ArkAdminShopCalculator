@@ -701,7 +701,6 @@
 
     function RecipeEditor({ recipe, onChange, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
-      const [searches, setSearches] = React.useState({});
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -717,89 +716,79 @@
 
       return (
         <div style={{ display: "grid", gap: "6px" }}>
-          {rows.map((row, index) => {
-            const searchTerm = (searches[index] || "").toLowerCase();
-            const filteredMaterials = searchTerm 
-              ? ALL_MATERIALS.filter(m => m.toLowerCase().includes(searchTerm))
-              : ALL_MATERIALS;
-
-            return (
-              <div
-                key={index}
-                style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
-              >
-                <div style={{ display: "grid", gap: "2px" }}>
-                  <input
-                    type="text"
-                    placeholder="Search material..."
-                    disabled={disabled}
-                    value={searches[index] || ""}
-                    onChange={(e) => setSearches(prev => ({ ...prev, [index]: e.target.value }))}
-                    style={{
-                      background: "#f4f8f8",
-                      border: "1px solid #a8c0c8",
-                      color: "#1a2a30",
-                      padding: "3px 8px",
-                      fontSize: "0.75rem",
-                      width: "100%"
-                    }}
-                  />
-                  <select
-                    value={row.material}
-                    disabled={disabled}
-                    onChange={(e) => updateRow(index, "material", e.target.value)}
-                    style={{
-                      background: "#f4f8f8",
-                      border: "1px solid #a8c0c8",
-                      color: "#1a2a30",
-                      padding: "5px 8px",
-                      fontSize: "0.82rem",
-                      width: "100%"
-                    }}
-                  >
-                    {!ALL_MATERIALS.includes(row.material) && <option value={row.material}>{row.material}</option>}
-                    {filteredMaterials.map((material) => (
-                      <option key={material} value={material}>{material}</option>
-                    ))}
-                  </select>
-                </div>
-
+          {rows.map((row, index) => (
+            <div
+              key={index}
+              style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
+            >
+              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                 <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={row.qty}
+                  list={`materials-${index}`}
+                  value={row.material}
                   disabled={disabled}
-                  onChange={(e) => updateRow(index, "qty", e.target.value)}
+                  onChange={(e) => updateRow(index, "material", e.target.value)}
+                  placeholder="Select or type material..."
                   style={{
                     background: "#f4f8f8",
                     border: "1px solid #a8c0c8",
                     color: "#1a2a30",
-                    padding: "5px 8px",
+                    padding: "5px 24px 5px 8px",
                     fontSize: "0.82rem",
                     width: "100%",
-                    alignSelf: "end"
+                    borderRadius: "0"
                   }}
                 />
-
-                <button
-                  type="button"
-                  onClick={() => removeRow(index)}
-                  disabled={disabled}
-                  style={{
-                    background: "#f0d8d8",
-                    color: "#9a3030",
-                    border: "1px solid #d0a0a0",
-                    padding: "5px 0",
-                    fontWeight: 700,
-                    alignSelf: "end"
-                  }}
-                >
-                  X
-                </button>
+                <div style={{ 
+                  position: "absolute", 
+                  right: "8px", 
+                  pointerEvents: "none", 
+                  fontSize: "0.5rem", 
+                  color: C.mute,
+                  display: "flex",
+                  flexDirection: "column"
+                }}>
+                  ▼
+                </div>
+                <datalist id={`materials-${index}`}>
+                  {ALL_MATERIALS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
               </div>
-            );
-          })}
+
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={row.qty}
+                disabled={disabled}
+                onChange={(e) => updateRow(index, "qty", e.target.value)}
+                style={{
+                  background: "#f4f8f8",
+                  border: "1px solid #a8c0c8",
+                  color: "#1a2a30",
+                  padding: "5px 8px",
+                  fontSize: "0.82rem",
+                  width: "100%"
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() => removeRow(index)}
+                disabled={disabled}
+                style={{
+                  background: "#f0d8d8",
+                  color: "#9a3030",
+                  border: "1px solid #d0a0a0",
+                  padding: "5px 0",
+                  fontWeight: 700
+                }}
+              >
+                X
+              </button>
+            </div>
+          ))}
 
           <div>
             <button
