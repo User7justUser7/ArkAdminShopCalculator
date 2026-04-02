@@ -1405,8 +1405,8 @@
                     value={searchQ}
                     onChange={(e) => setSearchQ(e.target.value)}
                   />
-                  <button style={{ ...btn(shopLayout === "grid" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "1.15rem", lineHeight: 1 }} onClick={() => setShopLayout("grid")}>⊞</button>
-                  <button style={{ ...btn(shopLayout === "list" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.85rem" }} onClick={() => setShopLayout("list")}>☰</button>
+                  <button style={{ ...btn(shopLayout === "grid" ? "primary" : "secondary"), padding: "0", width: "34px", height: "30px", fontSize: "1.15rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShopLayout("grid")}>⊞</button>
+                  <button style={{ ...btn(shopLayout === "list" ? "primary" : "secondary"), padding: "0", width: "34px", height: "30px", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShopLayout("list")}>☰</button>
                 </div>
 
                 <div style={{ display: "flex", gap: "3px", flexWrap: "wrap", marginBottom: "10px" }}>
