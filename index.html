@@ -628,9 +628,25 @@
 
     function RecipeEditor({ recipe, onChange, disabled = false, allowCustomMaterials = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
+      const [draftValues, setDraftValues] = useState({});
 
       function updateRow(index, key, value) {
-        onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
+        // Store draft value temporarily
+        setDraftValues(prev => ({ ...prev, [`${index}-${key}`]: value }));
+      }
+
+      function commitRow(index, key) {
+        const draftKey = `${index}-${key}`;
+        const value = draftValues[draftKey];
+        if (value !== undefined) {
+          onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
+          // Clear draft value
+          setDraftValues(prev => {
+            const next = { ...prev };
+            delete next[draftKey];
+            return next;
+          });
+        }
       }
 
       function removeRow(index) {
@@ -651,9 +667,16 @@
               {allowCustomMaterials ? (
                 <input
                   type="text"
-                  value={row.material}
+                  value={draftValues[`${index}-material`] ?? row.material}
                   disabled={disabled}
                   onChange={(e) => updateRow(index, "material", e.target.value)}
+                  onBlur={() => commitRow(index, "material")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      commitRow(index, "material");
+                      e.target.blur();
+                    }
+                  }}
                   placeholder="Material name"
                   style={{
                     background: "#f4f8f8",
@@ -686,9 +709,16 @@
                 type="number"
                 min="0"
                 step="1"
-                value={row.qty}
+                value={draftValues[`${index}-qty`] ?? String(row.qty)}
                 disabled={disabled}
                 onChange={(e) => updateRow(index, "qty", e.target.value)}
+                onBlur={() => commitRow(index, "qty")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    commitRow(index, "qty");
+                    e.target.blur();
+                  }
+                }}
                 style={{
                   background: "#f4f8f8",
                   border: "1px solid #a8c0c8",
@@ -1158,10 +1188,6 @@
                   onChange={(e) => updateDraft(setDraft, "icon", e.target.value)}
                   placeholder="./images/filename.png or emoji"
                 />
-                <div className="image-upload-hint">
-                  💡 Tip: Download images from ARK Wiki and save to ./images/ folder<br/>
-                  Local files work better than external URLs due to CORS restrictions
-                </div>
               </div>
 
               <div>
@@ -1412,18 +1438,18 @@
           <div className="nav-bar">
             <div className="nav-buttons">
               <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>
-                Shop
+                🛒 Shop
               </button>
               <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
-                {cartButtonLabel}
+                🛒 {cartButtonLabel}
               </button>
               <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
-                Order
+                📦 Order
               </button>
             </div>
             {!isMobile && (
               <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
-                Admin
+                ⚙️ Admin
               </button>
             )}
           </div>
