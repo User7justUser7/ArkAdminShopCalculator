@@ -449,12 +449,12 @@
       "Crystal": 1 / 5,
       "Oil": 1 / 5,
       "Obsidian": 1 / 5,
-      "Raw Metal": 1 / 2,
+      "Metal": 1 / 2,
       "Silica Pearls": 1 / 2,
       "Pelt": 1 / 2,
       "Organic Polymer": 1 / 2,
       "Meat Jerky": 1 / 2,
-      "Metal Ingot": 1,
+      "Metal Ingots": 1,
       "Gunpowder": 1,
       "Berry Seed": 1,
       "Full Water Skin": 2,
@@ -554,7 +554,7 @@
     };
 
     function blankRecipeRow() {
-      return { material: "Metal Ingot", qty: "" };
+      return { material: "Metal Ingots", qty: "" };
     }
 
     function emptyItemDraft() {
@@ -599,7 +599,7 @@
         return sum + row.qty * rate;
       }, 0);
       const ignoredEngram = engramLevel > materialIron;
-      const price = Math.round((ignoredEngram ? materialIron : materialIron + engramLevel) * 2);
+      const price = Math.round((ignoredEngram ? materialIron : (materialIron + engramLevel)) * 2);
 
       return {
         materialIron,
@@ -1020,8 +1020,8 @@
       const [itemsSaving, setItemsSaving] = useState(false);
       const [saveStatus, setSaveStatus] = useState({ type: "idle", message: "" });
 
-      const [currency, setCurrency] = useState(() => localStorage.getItem("ark_currency") || "Iron Ingots");
-      const [editCurrency, setEditCurrency] = useState(() => localStorage.getItem("ark_currency") || "Iron Ingots");
+      const [currency, setCurrency] = useState(() => localStorage.getItem("ark_currency") || "Metal Ingots");
+      const [editCurrency, setEditCurrency] = useState(() => localStorage.getItem("ark_currency") || "Metal Ingots");
       const [view, setView] = useState("shop");
       const [shopLayout, setShopLayout] = useState("grid");
       const [catFilter, setCatFilter] = useState("All");
