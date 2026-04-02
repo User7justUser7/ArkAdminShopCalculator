@@ -135,6 +135,9 @@
       padding: 5px 12px;
       font-size: 0.8rem;
       margin-left: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .admin-btn.active {
@@ -280,8 +283,8 @@
       justify-content: center;
       overflow: hidden;
       border-radius: 6px;
-      background: #f4f8f8;
-      border: 1px solid #a8c0c8;
+      background: transparent;
+      border: none;
       color: #1a3a46;
       font-weight: 700;
     }
@@ -1402,8 +1405,8 @@
                     value={searchQ}
                     onChange={(e) => setSearchQ(e.target.value)}
                   />
-                  <button style={{ ...btn(shopLayout === "grid" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.85rem" }} onClick={() => setShopLayout("grid")}>Grid</button>
-                  <button style={{ ...btn(shopLayout === "list" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.85rem" }} onClick={() => setShopLayout("list")}>List</button>
+                  <button style={{ ...btn(shopLayout === "grid" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.85rem" }} onClick={() => setShopLayout("grid")}>田</button>
+                  <button style={{ ...btn(shopLayout === "list" ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.85rem" }} onClick={() => setShopLayout("list")}>☰</button>
                 </div>
 
                 <div style={{ display: "flex", gap: "3px", flexWrap: "wrap", marginBottom: "10px" }}>
