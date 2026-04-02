@@ -613,17 +613,20 @@
 
     function computeFormulaPrice(recipe, engramInput) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
-      const materialIron = normalizeRecipeDraft(recipe).reduce((sum, row) => {
+      const rawMaterialIron = normalizeRecipeDraft(recipe).reduce((sum, row) => {
         const rate = MATERIAL_TIERS[row.material] || 0;
         return sum + row.qty * rate;
       }, 0);
-      const materialValue = materialIron * 2;
+      const roundedMaterialIron = Math.ceil(rawMaterialIron);
+      const materialValue = roundedMaterialIron * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return {
-        materialIron,
+        rawMaterialIron,
+        roundedMaterialIron,
+        materialValue,
         engramLevel,
         ignoredEngram,
         price
@@ -719,6 +722,7 @@
 
     function RecipeEditor({ recipe, onChange, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
+      const [searches, setSearches] = React.useState({});
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -734,90 +738,95 @@
 
       return (
         <div style={{ display: "grid", gap: "6px" }}>
-          {rows.map((row, index) => (
-            <div
-              key={index}
-              style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
-            >
-              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          {rows.map((row, index) => {
+            const searchTerm = (searches[index] || "").toLowerCase();
+            const filteredMaterials = searchTerm 
+              ? ALL_MATERIALS.filter(m => m.toLowerCase().includes(searchTerm))
+              : ALL_MATERIALS;
+
+            return (
+              <div
+                key={index}
+                style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
+              >
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <input
+                    list={`materials-${index}`}
+                    value={row.material}
+                    disabled={disabled}
+                    onChange={(e) => updateRow(index, "material", e.target.value)}
+                    onClick={(e) => {
+                      if (e.target.showPicker) e.target.showPicker();
+                    }}
+                    onFocus={(e) => {
+                      try {
+                        if (e.target.showPicker) e.target.showPicker();
+                      } catch (err) {}
+                    }}
+                    placeholder="Select or type material..."
+                    style={{
+                      background: "#f4f8f8",
+                      border: "1px solid #a8c0c8",
+                      color: "#1a2a30",
+                      padding: "5px 24px 5px 8px",
+                      fontSize: "0.82rem",
+                      width: "100%",
+                      borderRadius: "0",
+                      outline: "none"
+                    }}
+                  />
+                  <div style={{ 
+                    position: "absolute", 
+                    right: "8px", 
+                    pointerEvents: "none", 
+                    fontSize: "0.5rem", 
+                    color: C.mute,
+                    display: "flex",
+                    flexDirection: "column"
+                  }}>
+                    ▼
+                  </div>
+                  <datalist id={`materials-${index}`}>
+                    {filteredMaterials.map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </div>
+
                 <input
-                  list={`materials-${index}`}
-                  value={row.material}
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={row.qty}
                   disabled={disabled}
-                  onChange={(e) => updateRow(index, "material", e.target.value)}
-                  onClick={(e) => {
-                    try {
-                      if (e.target.showPicker) e.target.showPicker();
-                    } catch (err) {}
-                  }}
-                  onFocus={(e) => {
-                    try {
-                      if (e.target.showPicker) e.target.showPicker();
-                    } catch (err) {}
-                  }}
-                  placeholder="Select or type material..."
+                  onChange={(e) => updateRow(index, "qty", e.target.value)}
                   style={{
                     background: "#f4f8f8",
                     border: "1px solid #a8c0c8",
                     color: "#1a2a30",
-                    padding: "5px 24px 5px 8px",
+                    padding: "5px 8px",
                     fontSize: "0.82rem",
-                    width: "100%",
-                    borderRadius: "0",
-                    outline: "none"
+                    width: "100%"
                   }}
                 />
-                <div style={{ 
-                  position: "absolute", 
-                  right: "8px", 
-                  pointerEvents: "none", 
-                  fontSize: "0.5rem", 
-                  color: C.mute,
-                  display: "flex",
-                  flexDirection: "column"
-                }}>
-                  ▼
-                </div>
-                <datalist id={`materials-${index}`}>
-                  {ALL_MATERIALS.map((m) => (
-                    <option key={m} value={m} />
-                  ))}
-                </datalist>
+
+                <button
+                  type="button"
+                  onClick={() => removeRow(index)}
+                  disabled={disabled}
+                  style={{
+                    background: "#f0d8d8",
+                    color: "#9a3030",
+                    border: "1px solid #d0a0a0",
+                    padding: "5px 0",
+                    fontWeight: 700
+                  }}
+                >
+                  X
+                </button>
               </div>
-
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={row.qty}
-                disabled={disabled}
-                onChange={(e) => updateRow(index, "qty", e.target.value)}
-                style={{
-                  background: "#f4f8f8",
-                  border: "1px solid #a8c0c8",
-                  color: "#1a2a30",
-                  padding: "5px 8px",
-                  fontSize: "0.82rem",
-                  width: "100%"
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() => removeRow(index)}
-                disabled={disabled}
-                style={{
-                  background: "#f0d8d8",
-                  color: "#9a3030",
-                  border: "1px solid #d0a0a0",
-                  padding: "5px 0",
-                  fontWeight: 700
-                }}
-              >
-                X
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
           <div>
             <button
@@ -870,7 +879,15 @@
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
-      const materialValue = formula.materialIron * 2;
+      const rawMaterialIron = recipe.reduce((sum, row) => {
+        const rate = MATERIAL_TIERS[row.material] || 0;
+        return sum + row.qty * rate;
+      }, 0);
+      const roundedMaterialIron = Math.ceil(rawMaterialIron);
+      const materialValue = roundedMaterialIron * 2;
+      const engramValue = formula.engramLevel * 2;
+      const ignoredEngram = engramValue > materialValue;
+      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return (
         <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
@@ -886,7 +903,7 @@
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {rawMaterialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} {roundedMaterialIron !== rawMaterialIron && `(rounded up to ${roundedMaterialIron.toLocaleString()}) `}x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
 
@@ -1763,16 +1780,22 @@
 
                         <div style={{ display: "grid", gap: "10px", marginBottom: "12px" }}>
                           <div>
-                            <label style={labelStyle}>Search Items</label>
-                            <input
-                              style={inputStyle}
-                              placeholder="Search name, category, or description..."
-                              value={itemSearch}
-                              onChange={(e) => setItemSearch(e.target.value)}
-                            />
+                            <label style={{ ...labelStyle, color: submittedOnce && !characterName.trim() ? C.red : C.dim }}>
+                              {submittedOnce && !characterName.trim() ? "Please Enter In-game Character's Name *" : "In-game Character's Name *"}
+                            </label>
+                            <input style={{ ...inputStyle, borderColor: submittedOnce && !characterName.trim() ? C.red : C.border }} value={characterName} onChange={(e) => setCharacterName(e.target.value)} />
                           </div>
-                          <div style={{ color: C.dim, fontSize: "0.75rem" }}>
-                            Showing {adminFilteredItems.length} of {items.length}
+                          <div>
+                            <label style={{ ...labelStyle, color: submittedOnce && !psnUsername.trim() ? C.red : C.dim }}>
+                              {submittedOnce && !psnUsername.trim() ? "Please Enter PSN Username *" : "PSN Username *"}
+                            </label>
+                            <input style={{ ...inputStyle, borderColor: submittedOnce && !psnUsername.trim() ? C.red : C.border }} value={psnUsername} onChange={(e) => setPsnUsername(e.target.value)} />
+                          </div>
+                          <div>
+                            <label style={{ ...labelStyle, color: submittedOnce && !discordUsername.trim() ? C.red : C.dim }}>
+                              {submittedOnce && !discordUsername.trim() ? "Please Enter Discord Username *" : "Discord Username *"}
+                            </label>
+                            <input style={{ ...inputStyle, borderColor: submittedOnce && !discordUsername.trim() ? C.red : C.border }} value={discordUsername} onChange={(e) => setDiscordUsername(e.target.value)} />
                           </div>
                         </div>
 
