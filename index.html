@@ -1376,18 +1376,18 @@
           <div className="nav-bar">
             <div className="nav-buttons">
               <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>
-                Shop
+                🏪 Shop
               </button>
               <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
-                {cartButtonLabel}
+                🛒 {cartButtonLabel}
               </button>
               <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
-                Order
+                📋 Order
               </button>
             </div>
             {!isMobile && (
               <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
-                Admin
+                🔧 Admin
               </button>
             )}
           </div>
