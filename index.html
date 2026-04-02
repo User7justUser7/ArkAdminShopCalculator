@@ -607,7 +607,7 @@
       return (
         <span
           className="icon-frame"
-          style={{ width: ${size}px, height: ${size}px, fontSize: ${Math.max(14, size * 0.55)}px }}
+          style={{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.max(14, size * 0.55)}px` }}
         >
           {imageValue ? (
             <img src={icon} alt="" onError={() => setFailed(true)} />
@@ -796,7 +796,7 @@
         const orderId = getOrderIdFromHash();
         if (!orderId) return;
         setView("order");
-        fetch(/get-order?id=${orderId})
+        fetch(`/get-order?id=${orderId}`)
           .then((response) => response.json())
           .then((data) => setOrderView(data))
           .catch(() => setOrderView({ error: true }));
@@ -877,7 +877,7 @@
         return matchesCategory && matchesSearch;
       });
       const adminFilteredItems = items.filter((item) =>
-        ${item.name} ${item.category} ${item.desc || ""}.toLowerCase().includes(itemSearch.toLowerCase())
+        `${item.name} ${item.category} ${item.desc || ""}`.toLowerCase().includes(itemSearch.toLowerCase())
       );
 
       const newItemFormula = computeFormulaPrice(newItem.recipe, newItem.engram);
@@ -907,7 +907,7 @@
           });
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || "Failed to save order.");
-          setOrderLink(${window.location.href.split("#")[0]}#order=${data.id});
+          setOrderLink(`${window.location.href.split("#")[0]}#order=${data.id}`);
         } catch {
           alert("Failed to save order.");
         } finally {
@@ -960,8 +960,8 @@
           return;
         }
 
-        const nextItem = buildItemFromDraft(newItem, i${Date.now().toString(36)});
-        const ok = await persistItems([...items, nextItem], Added ${nextItem.name}.);
+        const nextItem = buildItemFromDraft(newItem, `i${Date.now().toString(36)}`);
+        const ok = await persistItems([...items, nextItem], `Added ${nextItem.name}.`);
         if (ok) setNewItem(emptyItemDraft());
       }
 
@@ -978,7 +978,7 @@
           item.id === editItem.id ? buildItemFromDraft(editItem, item.id) : item
         );
 
-        const ok = await persistItems(nextItems, Updated ${editItem.name}.);
+        const ok = await persistItems(nextItems, `Updated ${editItem.name}.`);
         if (ok) setEditItem(null);
       }
 
@@ -1019,7 +1019,7 @@
         return {
           background: style.bg,
           color: style.color,
-          border: 1px solid ${style.border},
+          border: `1px solid ${style.border}`,
           padding: "5px 10px",
           fontWeight: 700,
           fontSize: "0.8rem"
@@ -1028,7 +1028,7 @@
 
       const inputStyle = {
         background: C.white,
-        border: 1px solid ${C.border},
+        border: `1px solid ${C.border}`,
         color: C.text,
         padding: "5px 8px",
         fontSize: "0.85rem",
@@ -1045,7 +1045,7 @@
 
       const sectionStyle = {
         background: C.bg2,
-        border: 1px solid ${C.border},
+        border: `1px solid ${C.border}`,
         padding: "14px 16px",
         marginBottom: "12px",
         borderRadius: "2px"
@@ -1057,7 +1057,7 @@
         fontSize: "0.85rem",
         marginBottom: "12px",
         paddingBottom: "6px",
-        borderBottom: 1px solid ${C.border} 
+        borderBottom: `1px solid ${C.border}`
       };
 
       function TotalAmount({ amount }) {
@@ -1109,7 +1109,7 @@
               gap: "10px",
               padding: "12px",
               background: C.white,
-              border: 1px solid ${C.border} 
+              border: `1px solid ${C.border}`
             }}
           >
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "90px 1fr 1fr 120px", gap: "8px" }}>
@@ -1256,7 +1256,7 @@
       }
 
       const shopName = "247 Always Online";
-      const cartButtonLabel = Cart (${cartTotal.toLocaleString()});
+      const cartButtonLabel = `Cart (${cartTotal.toLocaleString()})`;
 
       if (view === "order") {
         if (!orderView) {
@@ -1344,7 +1344,7 @@
                       gap: "8px",
                       alignItems: "center",
                       padding: "8px 0",
-                      borderBottom: 1px solid ${C.border} 
+                      borderBottom: `1px solid ${C.border}`
                     }}
                   >
                     <ItemIcon icon={item.icon} size={34} />
@@ -1377,18 +1377,18 @@
 
           <div className="nav-bar">
             <div className="nav-buttons">
-              <button className={nav-btn ${view === "shop" ? "active" : ""}} onClick={() => setView("shop")}>
+              <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>
                 Shop
               </button>
-              <button className={nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}} onClick={() => setView("cart")}>
+              <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
                 {cartButtonLabel}
               </button>
-              <button className={nav-btn ${view === "checkout" ? "active" : ""}} onClick={() => setView("checkout")}>
+              <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
                 Order
               </button>
             </div>
             {!isMobile && (
-              <button className={admin-btn ${view === "admin" ? "active" : ""}} onClick={() => setView("admin")}>
+              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
                 Admin
               </button>
             )}
@@ -1416,7 +1416,7 @@
                       style={{
                         background: catFilter === category ? C.accent : "transparent",
                         color: catFilter === category ? C.white : C.dim,
-                        border: 1px solid ${catFilter === category ? C.accent : C.border},
+                        border: `1px solid ${catFilter === category ? C.accent : C.border}`,
                         padding: "3px 8px",
                         fontWeight: 600,
                         fontSize: "0.7rem"
@@ -1439,7 +1439,7 @@
                 ) : shopLayout === "grid" ? (
                   <div className="shop-grid">
                     {filteredItems.map((item) => (
-                      <div key={item.id} className={shop-card ${cart[item.id] ? "in-cart" : ""}}>
+                      <div key={item.id} className={`shop-card ${cart[item.id] ? "in-cart" : ""}`}>
                         <div className="card-icon"><ItemIcon icon={item.icon} size={42} /></div>
                         <div className="card-name">{item.name}</div>
                         <div className="card-cat">{item.category}</div>
@@ -1460,7 +1460,7 @@
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                     {filteredItems.map((item) => (
-                      <div key={item.id} className={list-row ${cart[item.id] ? "in-cart" : ""}}>
+                      <div key={item.id} className={`list-row ${cart[item.id] ? "in-cart" : ""}`}>
                         <ItemIcon icon={item.icon} size={32} />
                         <div style={{ minWidth: 0 }}>
                           <div className="list-name">{item.name}</div>
@@ -1501,7 +1501,7 @@
                           gap: "8px 14px",
                           alignItems: "start",
                           padding: "10px 0",
-                          borderBottom: 1px solid ${C.border} 
+                          borderBottom: `1px solid ${C.border}`
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
@@ -1565,7 +1565,7 @@
                     <div style={sectionStyle}>
                       <div style={sectionTitleStyle}>Summary</div>
                       {cartEntries.map((item) => (
-                        <div key={item.id} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px auto", gap: "8px", padding: "8px 0", borderBottom: 1px solid ${C.border}, alignItems: "center" }}>
+                        <div key={item.id} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px auto", gap: "8px", padding: "8px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center" }}>
                           <span>{item.name}</span>
                           <span style={{ color: C.dim, textAlign: "right" }}>x{item.qty}</span>
                           <span style={{ color: C.accent, fontWeight: 700 }}>{(item.price * item.qty).toLocaleString()} {currency}</span>
@@ -1584,7 +1584,7 @@
                     ) : (
                       <div style={sectionStyle}>
                         <div style={sectionTitleStyle}>Ready!</div>
-                        <div style={{ background: C.white, border: 1px solid ${C.accent}, padding: "8px", fontSize: "0.75rem", fontFamily: "monospace", wordBreak: "break-all" }}>
+                        <div style={{ background: C.white, border: `1px solid ${C.accent}`, padding: "8px", fontSize: "0.75rem", fontFamily: "monospace", wordBreak: "break-all" }}>
                           {orderLink}
                         </div>
                         <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
@@ -1675,7 +1675,7 @@
                         </div>
 
                         {adminFilteredItems.map((item) => (
-                          <div key={item.id} style={{ padding: "10px 0", borderBottom: 1px solid ${C.border} }}>
+                          <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                             {editItem?.id === item.id ? (
                               <div style={{ display: "grid", gap: "10px" }}>
                                 <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing />
@@ -1689,7 +1689,7 @@
                                 <ItemIcon icon={item.icon} size={34} />
                                 <div style={{ minWidth: 0 }}>
                                   <div style={{ fontSize: "0.9rem" }}><strong>{item.name}</strong></div>
-                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>{item.category} - {item.fixed ? "Fixed" : Formula - Lvl ${item.engram}}</div>
+                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>{item.category} - {item.fixed ? "Fixed" : `Formula - Lvl ${item.engram}`}</div>
                                   {item.desc ? <div style={{ color: C.dim, fontSize: "0.74rem" }}>{item.desc}</div> : null}
                                 </div>
                                 <div style={{ color: C.accent, fontWeight: 700, fontSize: "0.85rem", whiteSpace: "nowrap" }}>{item.price} {currency}</div>
@@ -1753,3 +1753,4 @@
   </script>
 </body>
 </html>
+
