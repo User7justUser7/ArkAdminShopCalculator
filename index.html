@@ -108,23 +108,33 @@
       background: transparent;
       color: #d0e1e4;
       border: 1px solid #7a9aa4;
-      padding: 5px 12px;
-      font-size: 0.8rem;
+      padding: 5px 14px;
+      font-size: 0.82rem;
       font-weight: 600;
-      border-radius: 2px;
+      font-family: "Rajdhani", sans-serif;
+      border-radius: 20px;
       white-space: nowrap;
       min-width: 80px;
       text-align: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
     .nav-btn.active {
-      background: #d0e1e4;
-      color: #1a3a46;
-      border-color: #d0e1e4;
+      background: #2a7a8a;
+      color: #ffffff;
+      border-color: #2a7a8a;
+    }
+
+    .nav-btn:hover:not(.active) {
+      background: #ffffff18;
+      border-color: #a8c8d4;
     }
 
     .nav-btn-cart {
-      min-width: 145px;
+      min-width: 130px;
       max-width: 240px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -134,16 +144,79 @@
       background: transparent;
       color: #7a9aa4;
       border: 1px solid #4a6a74;
-      padding: 5px 12px;
-      font-size: 0.8rem;
-      border-radius: 2px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-family: "Rajdhani", sans-serif;
+      border-radius: 20px;
       margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
     }
 
     .admin-btn.active {
-      background: #ffffff22;
+      background: #2a7a8a;
+      color: #ffffff;
+      border-color: #2a7a8a;
+    }
+
+    .admin-btn:hover:not(.active) {
+      background: #ffffff18;
       color: #d0e1e4;
-      border-color: #d0e1e4;
+      border-color: #7a9aa4;
+    }
+
+    /* Admin sub-tab pills (Items / Calc / Materials / Settings) */
+    .admin-tab-btn {
+      background: #e4ecee;
+      color: #2a5a6a;
+      border: 1px solid #a8c0c8;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: "Rajdhani", sans-serif;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .admin-tab-btn.active {
+      background: #2a7a8a;
+      color: #ffffff;
+      border-color: #2a7a8a;
+    }
+
+    .admin-tab-btn:hover:not(.active) {
+      background: #c8dde2;
+      border-color: #7a9aa4;
+    }
+
+    .admin-lock-btn {
+      background: #e4ecee;
+      color: #7a5a10;
+      border: 1px solid #c8b070;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: "Rajdhani", sans-serif;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    .admin-lock-btn:hover {
+      background: #f5e8c0;
     }
 
     .shop-grid {
@@ -1287,12 +1360,12 @@
           {/* NAV BAR */}
           <div className="nav-bar">
             <div className="nav-buttons">
-              <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>Shop</button>
-              <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>{cartButtonLabel}</button>
-              <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>Order</button>
+              <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>🏪 Shop</button>
+              <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>🛒 {cartButtonLabel}</button>
+              <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>📋 Order</button>
             </div>
             {!isMobile && (
-              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>Admin</button>
+              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>🔧 Admin</button>
             )}
           </div>
 
@@ -1474,19 +1547,19 @@
                   </div>
                 ) : (
                   <div>
-                    <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "6px", marginBottom: "14px", flexWrap: "wrap", alignItems: "center" }}>
                       {[
                         ["items", "📦 Items"],
                         ["calc", "🧮 Calc"],
                         ["materials", "⚗️ Materials"],
                         ["settings", "⚙️ Settings"]
                       ].map(([id, label]) => (
-                        <button key={id} style={{ ...btn(adminTab === id ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => setAdminTab(id)}>
+                        <button key={id} className={`admin-tab-btn ${adminTab === id ? "active" : ""}`} onClick={() => setAdminTab(id)}>
                           {label}
                         </button>
                       ))}
-                      <button style={{ ...btn("secondary"), marginLeft: "auto", padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => { sessionStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
-                        Lock
+                      <button className="admin-lock-btn" onClick={() => { sessionStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
+                        🔒 Lock
                       </button>
                     </div>
 
