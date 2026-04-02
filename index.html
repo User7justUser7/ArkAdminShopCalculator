@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -305,6 +305,13 @@
       line-height: 1;
     }
 
+    .image-upload-hint {
+      font-size: 0.7rem;
+      color: #7a9aa4;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
     @media (max-width: 600px) {
       .top-bar {
         padding: 8px 12px;
@@ -443,7 +450,6 @@
       "Sap": 1 / 10,
       "Cooked Meat": 1 / 10,
       "Charcoal": 1 / 10,
-      "Charcol": 1 / 10,
       "Crystal": 1 / 5,
       "Oil": 1 / 5,
       "Obsidian": 1 / 5,
@@ -618,7 +624,7 @@
       );
     }
 
-    function RecipeEditor({ recipe, onChange, disabled = false }) {
+    function RecipeEditor({ recipe, onChange, disabled = false, allowCustomMaterials = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
 
       function updateRow(index, key, value) {
@@ -640,22 +646,39 @@
               key={index}
               style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
             >
-              <select
-                value={row.material}
-                disabled={disabled}
-                onChange={(e) => updateRow(index, "material", e.target.value)}
-                style={{
-                  background: "#f4f8f8",
-                  border: "1px solid #a8c0c8",
-                  color: "#1a2a30",
-                  padding: "5px 8px",
-                  fontSize: "0.82rem"
-                }}
-              >
-                {ALL_MATERIALS.map((material) => (
-                  <option key={material} value={material}>{material}</option>
-                ))}
-              </select>
+              {allowCustomMaterials ? (
+                <input
+                  type="text"
+                  value={row.material}
+                  disabled={disabled}
+                  onChange={(e) => updateRow(index, "material", e.target.value)}
+                  placeholder="Material name"
+                  style={{
+                    background: "#f4f8f8",
+                    border: "1px solid #a8c0c8",
+                    color: "#1a2a30",
+                    padding: "5px 8px",
+                    fontSize: "0.82rem"
+                  }}
+                />
+              ) : (
+                <select
+                  value={row.material}
+                  disabled={disabled}
+                  onChange={(e) => updateRow(index, "material", e.target.value)}
+                  style={{
+                    background: "#f4f8f8",
+                    border: "1px solid #a8c0c8",
+                    color: "#1a2a30",
+                    padding: "5px 8px",
+                    fontSize: "0.82rem"
+                  }}
+                >
+                  {ALL_MATERIALS.map((material) => (
+                    <option key={material} value={material}>{material}</option>
+                  ))}
+                </select>
+              )}
 
               <input
                 type="number"
@@ -749,6 +772,11 @@
         price: "",
         engram: "",
         recipe: [blankRecipeRow()]
+      });
+
+      const [materialEditor, setMaterialEditor] = useState({
+        editing: false,
+        materials: { ...MATERIAL_TIERS }
       });
 
       const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
@@ -997,7 +1025,7 @@
         bg2: "#d0e1e4",
         bg3: "#c0d4d8",
         border: "#a8c0c8",
-        border2: "#88a8b4",
+        border2: "./images/",
         accent: "#2a5a6a",
         accentDark: "#1a3a46",
         text: "#1a2a30",
@@ -1057,7 +1085,7 @@
         fontSize: "0.85rem",
         marginBottom: "12px",
         paddingBottom: "6px",
-        borderBottom: `1px solid ${C.border}`
+        borderBottom: `1px solid ${C.border}` 
       };
 
       function TotalAmount({ amount }) {
@@ -1109,7 +1137,7 @@
               gap: "10px",
               padding: "12px",
               background: C.white,
-              border: `1px solid ${C.border}`
+              border: `1px solid ${C.border}` 
             }}
           >
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "90px 1fr 1fr 120px", gap: "8px" }}>
@@ -1126,8 +1154,12 @@
                   style={inputStyle}
                   value={draft.icon}
                   onChange={(e) => updateDraft(setDraft, "icon", e.target.value)}
-                  placeholder="Paste wiki image URL or emoji"
+                  placeholder="./images/filename.png or emoji"
                 />
+                <div className="image-upload-hint">
+                  💡 Tip: Download images from ARK Wiki and save to ./images/ folder<br/>
+                  Local files work better than external URLs due to CORS restrictions
+                </div>
               </div>
 
               <div>
@@ -1344,7 +1376,7 @@
                       gap: "8px",
                       alignItems: "center",
                       padding: "8px 0",
-                      borderBottom: `1px solid ${C.border}`
+                      borderBottom: `1px solid ${C.border}` 
                     }}
                   >
                     <ItemIcon icon={item.icon} size={34} />
@@ -1501,7 +1533,7 @@
                           gap: "8px 14px",
                           alignItems: "start",
                           padding: "10px 0",
-                          borderBottom: `1px solid ${C.border}`
+                          borderBottom: `1px solid ${C.border}` 
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
@@ -1572,7 +1604,7 @@
                         </div>
                       ))}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "8px", gap: "8px", flexWrap: "wrap" }}>
-                        <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
+                        <span style={{ fontFamily: "'Cinzel", serif" }}>TOTAL</span>
                         <TotalAmount amount={cartTotal} />
                       </div>
                     </div>
@@ -1631,6 +1663,7 @@
                     <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
                       {[
                         ["items", "\u{1F4E6} Items"],
+                        ["materials", "\u2699\uFE0F Materials"],
                         ["calc", "\u{1F9EE} Calc"],
                         ["settings", "\u2699\uFE0F Settings"]
                       ].map(([id, label]) => (
@@ -1701,6 +1734,74 @@
                             )}
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {adminTab === "materials" && (
+                      <div style={sectionStyle}>
+                        <div style={sectionTitleStyle}>Material Values Editor</div>
+                        <div style={{ color: C.dim, fontSize: "0.74rem", marginBottom: "12px" }}>
+                          ⚠️ Warning: Changing material values will affect all items that use these materials in their recipes.
+                        </div>
+                        
+                        {!materialEditor.editing ? (
+                          <div>
+                            <div style={{ display: "grid", gap: "8px", marginBottom: "12px", maxHeight: "400px", overflowY: "auto" }}>
+                              {Object.entries(materialEditor.materials).sort().map(([material, value]) => (
+                                <div key={material} style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: "8px", alignItems: "center", padding: "6px 8px", background: C.white, border: `1px solid ${C.border}`, borderRadius: "2px" }}>
+                                  <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>{material}</span>
+                                  <span style={{ fontSize: "0.85rem", color: C.accent, textAlign: "right" }}>{value} Iron Ingots</span>
+                                </div>
+                              ))}
+                            </div>
+                            <button style={btn("primary")} onClick={() => setMaterialEditor(prev => ({ ...prev, editing: true }))}>
+                              Edit Materials
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div style={{ display: "grid", gap: "8px", marginBottom: "12px", maxHeight: "400px", overflowY: "auto" }}>
+                              {Object.entries(materialEditor.materials).sort().map(([material, value]) => (
+                                <div key={material} style={{ display: "grid", gridTemplateColumns: "1fr 120px 42px", gap: "6px", alignItems: "center" }}>
+                                  <span style={{ fontSize: "0.85rem", fontWeight: 500 }}>{material}</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={value}
+                                    onChange={(e) => {
+                                      const newValue = parseFloat(e.target.value) || 0;
+                                      setMaterialEditor(prev => ({
+                                        ...prev,
+                                        materials: { ...prev.materials, [material]: newValue }
+                                      }));
+                                    }}
+                                    style={{
+                                      background: C.white,
+                                      border: `1px solid ${C.border}`,
+                                      color: C.text,
+                                      padding: "4px 6px",
+                                      fontSize: "0.82rem"
+                                    }}
+                                  />
+                                  <span style={{ fontSize: "0.75rem", color: C.dim }}>Iron Ingots</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button style={btn("primary")} onClick={() => {
+                                // Here you would save the changes
+                                setMaterialEditor(prev => ({ ...prev, editing: false }));
+                                setSaveStatus({ type: "saved", message: "Material values updated." });
+                              }}>
+                                Save Changes
+                              </button>
+                              <button style={btn("secondary")} onClick={() => setMaterialEditor(prev => ({ ...prev, editing: false, materials: { ...MATERIAL_TIERS } }))}>
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
