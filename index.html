@@ -528,10 +528,11 @@
         .filter((row) => row.material && row.qty > 0);
     }
 
-    function computeFormulaPrice(recipe, engramInput) {
+    function computeFormulaPrice(recipe, engramInput, materialValues = null) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
+      const materials = materialValues || MATERIAL_TIERS;
       const materialIron = normalizeRecipeDraft(recipe).reduce((sum, row) => {
-        const rate = MATERIAL_TIERS[row.material] || 0;
+        const rate = materials[row.material] || 0;
         return sum + row.qty * rate;
       }, 0);
       const ignoredEngram = engramLevel > materialIron;
@@ -575,7 +576,8 @@
       return "";
     }
 
-    function buildItemFromDraft(draft, id) {
+    function buildItemFromDraft(draft, id, materialValues = null) {
+      const materials = materialValues || MATERIAL_TIERS;
       const base = {
         id,
         name: String(draft.name || "").trim(),
@@ -595,7 +597,7 @@
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
-      const details = computeFormulaPrice(recipe, draft.engram);
+      const details = computeFormulaPrice(recipe, draft.engram, materials);
 
       return {
         ...base,
@@ -908,9 +910,9 @@
         `${item.name} ${item.category} ${item.desc || ""}`.toLowerCase().includes(itemSearch.toLowerCase())
       );
 
-      const newItemFormula = computeFormulaPrice(newItem.recipe, newItem.engram);
-      const editItemFormula = editItem ? computeFormulaPrice(editItem.recipe, editItem.engram) : null;
-      const calcFormula = computeFormulaPrice(calcDraft.recipe, calcDraft.engram);
+      const newItemFormula = computeFormulaPrice(newItem.recipe, newItem.engram, materialEditor.materials);
+      const editItemFormula = editItem ? computeFormulaPrice(editItem.recipe, editItem.engram, materialEditor.materials) : null;
+      const calcFormula = computeFormulaPrice(calcDraft.recipe, calcDraft.engram, materialEditor.materials);
 
       async function generateOrder() {
         if (!characterName.trim() || !psnUsername.trim() || !discordUsername.trim()) {
@@ -988,7 +990,7 @@
           return;
         }
 
-        const nextItem = buildItemFromDraft(newItem, `i${Date.now().toString(36)}`);
+        const nextItem = buildItemFromDraft(newItem, `i${Date.now().toString(36)}`, materialEditor.materials);
         const ok = await persistItems([...items, nextItem], `Added ${nextItem.name}.`);
         if (ok) setNewItem(emptyItemDraft());
       }
@@ -1003,7 +1005,7 @@
         }
 
         const nextItems = items.map((item) =>
-          item.id === editItem.id ? buildItemFromDraft(editItem, item.id) : item
+          item.id === editItem.id ? buildItemFromDraft(editItem, item.id, materialEditor.materials) : item
         );
 
         const ok = await persistItems(nextItems, `Updated ${editItem.name}.`);
@@ -1790,9 +1792,10 @@
                             </div>
                             <div style={{ display: "flex", gap: "6px" }}>
                               <button style={btn("primary")} onClick={() => {
-                                // Here you would save the changes
+                                // Apply material changes
+                                Object.assign(MATERIAL_TIERS, materialEditor.materials);
                                 setMaterialEditor(prev => ({ ...prev, editing: false }));
-                                setSaveStatus({ type: "saved", message: "Material values updated." });
+                                setSaveStatus({ type: "saved", message: "Material values updated. All items will use new values." });
                               }}>
                                 Save Changes
                               </button>
