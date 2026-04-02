@@ -598,8 +598,9 @@
         const rate = MATERIAL_TIERS[row.material] || 0;
         return sum + row.qty * rate;
       }, 0);
-      const ignoredEngram = engramLevel > materialIron;
-      const price = Math.round((ignoredEngram ? materialIron : (materialIron + engramLevel)) * 2);
+      const materialValue = materialIron * 2;
+      const ignoredEngram = engramLevel > materialValue;
+      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramLevel * 2));
 
       return {
         materialIron,
@@ -820,6 +821,7 @@
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
+      const materialValue = formula.materialIron * 2;
 
       return (
         <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
@@ -830,12 +832,12 @@
               const subtotal = row.qty * rate;
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ingots
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} Metal Ingots
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} ingots
+              Total Materials: {formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} ingots (Value: {materialValue.toLocaleString()} {currency})
             </div>
           </div>
 
@@ -843,12 +845,12 @@
           <div style={{ paddingLeft: "8px" }}>
             {formula.ignoredEngram ? (
               <div>
-                Formula: 2 x ({formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} Materials + <del>{formula.engramLevel} Engram</del>)
-                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram level ignored (higher than material cost)</div>
+                Formula: {materialValue.toLocaleString()} (Materials) + <del>{(formula.engramLevel * 2).toLocaleString()} (Engram x2)</del>
+                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than 2x materials value of {materialValue.toLocaleString()})</div>
               </div>
             ) : (
               <div>
-                Formula: 2 x ({formula.materialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} Materials + {formula.engramLevel} Engram)
+                Formula: {materialValue.toLocaleString()} (Materials) + {(formula.engramLevel * 2).toLocaleString()} (Engram x2)
               </div>
             )}
             <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
