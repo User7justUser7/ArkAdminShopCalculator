@@ -111,8 +111,9 @@
       font-size: 0.8rem;
       font-weight: 600;
       white-space: nowrap;
-      min-width: 80px;
+      min-width: 60px;
       text-align: center;
+      flex: 0 1 auto;
     }
 
     .nav-btn.active {
@@ -122,8 +123,9 @@
     }
 
     .nav-btn-cart {
+      flex: 1 1 auto;
       min-width: 145px;
-      max-width: 240px;
+      max-width: 340px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -445,7 +447,6 @@
       "Sap": 1 / 10,
       "Cooked Meat": 1 / 10,
       "Charcoal": 1 / 10,
-      "Charcol": 1 / 10,
       "Crystal": 1 / 5,
       "Oil": 1 / 5,
       "Obsidian": 1 / 5,
@@ -720,22 +721,28 @@
               key={index}
               style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
             >
-              <select
-                value={row.material}
-                disabled={disabled}
-                onChange={(e) => updateRow(index, "material", e.target.value)}
-                style={{
-                  background: "#f4f8f8",
-                  border: "1px solid #a8c0c8",
-                  color: "#1a2a30",
-                  padding: "5px 8px",
-                  fontSize: "0.82rem"
-                }}
-              >
-                {ALL_MATERIALS.map((material) => (
-                  <option key={material} value={material}>{material}</option>
-                ))}
-              </select>
+              <div style={{ position: "relative" }}>
+                <input
+                  list={`materials-${index}`}
+                  value={row.material}
+                  disabled={disabled}
+                  onChange={(e) => updateRow(index, "material", e.target.value)}
+                  placeholder="Type material..."
+                  style={{
+                    background: "#f4f8f8",
+                    border: "1px solid #a8c0c8",
+                    color: "#1a2a30",
+                    padding: "5px 8px",
+                    fontSize: "0.82rem",
+                    width: "100%"
+                  }}
+                />
+                <datalist id={`materials-${index}`}>
+                  {ALL_MATERIALS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
+              </div>
 
               <input
                 type="number"
@@ -1038,6 +1045,7 @@
       const [copied, setCopied] = useState(false);
       const [orderView, setOrderView] = useState(null);
       const [orderLoading, setOrderLoading] = useState(false);
+      const [submittedOnce, setSubmittedOnce] = useState(false);
 
       const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem("ark_admin") === "yes");
       const [passInput, setPassInput] = useState("");
@@ -1189,8 +1197,8 @@
       const calcFormula = computeFormulaPrice(calcDraft.recipe, calcDraft.engram);
 
       async function generateOrder() {
+        setSubmittedOnce(true);
         if (!characterName.trim() || !psnUsername.trim() || !discordUsername.trim()) {
-          alert("Enter In-game Character's Name, PSN Username, and Discord Username.");
           return;
         }
 
@@ -1594,16 +1602,22 @@
                       <div style={sectionTitleStyle}>Details</div>
                       <div style={{ display: "grid", gap: "10px" }}>
                         <div>
-                          <label style={labelStyle}>In-game Character's Name *</label>
-                          <input style={inputStyle} value={characterName} onChange={(e) => setCharacterName(e.target.value)} />
+                          <label style={{ ...labelStyle, color: submittedOnce && !characterName.trim() ? C.red : C.dim }}>
+                            {submittedOnce && !characterName.trim() ? "Please Enter In-game Character's Name *" : "In-game Character's Name *"}
+                          </label>
+                          <input style={{ ...inputStyle, borderColor: submittedOnce && !characterName.trim() ? C.red : C.border }} value={characterName} onChange={(e) => setCharacterName(e.target.value)} />
                         </div>
                         <div>
-                          <label style={labelStyle}>PSN Username *</label>
-                          <input style={inputStyle} value={psnUsername} onChange={(e) => setPsnUsername(e.target.value)} />
+                          <label style={{ ...labelStyle, color: submittedOnce && !psnUsername.trim() ? C.red : C.dim }}>
+                            {submittedOnce && !psnUsername.trim() ? "Please Enter PSN Username *" : "PSN Username *"}
+                          </label>
+                          <input style={{ ...inputStyle, borderColor: submittedOnce && !psnUsername.trim() ? C.red : C.border }} value={psnUsername} onChange={(e) => setPsnUsername(e.target.value)} />
                         </div>
                         <div>
-                          <label style={labelStyle}>Discord Username *</label>
-                          <input style={inputStyle} value={discordUsername} onChange={(e) => setDiscordUsername(e.target.value)} />
+                          <label style={{ ...labelStyle, color: submittedOnce && !discordUsername.trim() ? C.red : C.dim }}>
+                            {submittedOnce && !discordUsername.trim() ? "Please Enter Discord Username *" : "Discord Username *"}
+                          </label>
+                          <input style={{ ...inputStyle, borderColor: submittedOnce && !discordUsername.trim() ? C.red : C.border }} value={discordUsername} onChange={(e) => setDiscordUsername(e.target.value)} />
                         </div>
                       </div>
                     </div>
@@ -1642,6 +1656,7 @@
                               setCharacterName("");
                               setPsnUsername("");
                               setDiscordUsername("");
+                              setSubmittedOnce(false);
                               setCart({});
                               setView("shop");
                             }}
