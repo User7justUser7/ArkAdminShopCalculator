@@ -1159,19 +1159,27 @@
       async function fetchItems() {
         setItemsLoading(true);
         setItemsError("");
+        
+        // 1. Fetch Items
         try {
-          const [itemsRes, settingsRes] = await Promise.all([
-            fetch("/get-items"),
-            fetch("/get-settings")
-          ]);
-
-          if (itemsRes.ok) {
-            const data = await itemsRes.json();
-            if (Array.isArray(data.items)) setItems(data.items);
+          const res = await fetch("/get-items");
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.items)) {
+              setItems(data.items);
+            }
+          } else {
+            setItemsError("Failed to load shop items.");
           }
+        } catch (e) {
+          setItemsError("Connection error while loading items.");
+        }
 
-          if (settingsRes.ok) {
-            const data = await settingsRes.json();
+        // 2. Fetch Settings (Optional, don't crash if missing)
+        try {
+          const res = await fetch("/get-settings");
+          if (res.ok) {
+            const data = await res.json();
             if (data.currency) {
               setCurrency(data.currency);
               setEditCurrency(data.currency);
@@ -1181,11 +1189,11 @@
               setEditMaterials(data.materialTiers);
             }
           }
-        } catch (error) {
-          setItemsError("Failed to load data.");
-        } finally {
-          setItemsLoading(false);
+        } catch (e) {
+          console.warn("Settings could not be loaded from backend.");
         }
+
+        setItemsLoading(false);
       }
 
       useEffect(() => {
