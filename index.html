@@ -1160,14 +1160,29 @@
         setItemsLoading(true);
         setItemsError("");
         try {
-          const response = await fetch("/get-items");
-          const data = await response.json();
-          if (!response.ok || !Array.isArray(data.items)) {
-            throw new Error(data.error || "Failed to load items.");
+          const [itemsRes, settingsRes] = await Promise.all([
+            fetch("/get-items"),
+            fetch("/get-settings")
+          ]);
+
+          if (itemsRes.ok) {
+            const data = await itemsRes.json();
+            if (Array.isArray(data.items)) setItems(data.items);
           }
-          setItems(data.items);
+
+          if (settingsRes.ok) {
+            const data = await settingsRes.json();
+            if (data.currency) {
+              setCurrency(data.currency);
+              setEditCurrency(data.currency);
+            }
+            if (data.materialTiers) {
+              setMaterialTiers(data.materialTiers);
+              setEditMaterials(data.materialTiers);
+            }
+          }
         } catch (error) {
-          setItemsError(error.message || "Failed to load items.");
+          setItemsError("Failed to load data.");
         } finally {
           setItemsLoading(false);
         }
@@ -1209,6 +1224,26 @@
           setItems(previousItems);
           setSaveStatus({ type: "error", message: error.message || "Failed to save items." });
           return false;
+        } finally {
+          setItemsSaving(false);
+        }
+      }
+
+      async function persistSettings(nextCurrency, nextMaterials) {
+        setItemsSaving(true);
+        setSaveStatus({ type: "saving", message: "Saving settings..." });
+        try {
+          const response = await fetch("/save-settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currency: nextCurrency, materialTiers: nextMaterials })
+          });
+          if (!response.ok) throw new Error("Failed to save settings.");
+          setCurrency(nextCurrency);
+          setMaterialTiers(nextMaterials);
+          setSaveStatus({ type: "saved", message: "Settings saved to KV." });
+        } catch (error) {
+          setSaveStatus({ type: "error", message: error.message });
         } finally {
           setItemsSaving(false);
         }
@@ -1364,11 +1399,33 @@
         await persistItems(items.filter((item) => item.id !== id), "Item deleted.");
       }
 
-      function saveSettings() {
-        setCurrency(editCurrency);
-        setMaterialTiers(editMaterials);
-        setSaveStatus({ type: "saved", message: "Settings updated." });
+      async function saveSettings() {
+        await persistSettings(editCurrency, editMaterials);
       }
+
+      function exportMaterials() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(editMaterials, null, 2));
+        const downloadAnchorNode = document.createElement("a");
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "materials.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }
+
+      function importMaterials(jsonStr) {
+        try {
+          const parsed = JSON.parse(jsonStr);
+          if (typeof parsed !== "object" || parsed === null) throw new Error();
+          setEditMaterials(parsed);
+          alert("Imported! Don't forget to Save All Settings to persist to KV.");
+        } catch (e) {
+          alert("Invalid JSON format.");
+        }
+      }
+
+      const [importText, setImportText] = useState("");
+      const [showImport, setShowImport] = useState(false);
 
       const shopName = "247 Always Online";
       const cartButtonLabel = `Cart (Total Ingots: ${cartTotal.toLocaleString()})`;
@@ -1861,8 +1918,41 @@
                           <input style={{ ...inputStyle, maxWidth: "240px" }} value={editCurrency} onChange={(e) => setEditCurrency(e.target.value)} />
                         </div>
 
-                        <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginTop: "20px" }}>Materials & Costs (in Iron)</div>
-                        <div style={{ display: "grid", gap: "8px", marginBottom: "16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
+                          <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Iron)</div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
+                          </div>
+                        </div>
+
+                        {showImport && (
+                          <div style={{ marginBottom: "12px", background: "#f0f4f4", padding: "10px", border: `1px solid ${C.border}` }}>
+                            <label style={{ ...labelStyle, marginBottom: "4px" }}>Paste Materials JSON here:</label>
+                            <textarea 
+                              style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem", marginBottom: "8px" }}
+                              value={importText}
+                              onChange={(e) => setImportText(e.target.value)}
+                              placeholder='{ "Wood": 0.05, ... }'
+                            />
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button style={{ ...btn("primary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => { importMaterials(importText); setShowImport(false); setImportText(""); }}>Apply Import</button>
+                              <button style={{ ...btn("secondary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => setShowImport(false)}>Cancel</button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ 
+                          display: "grid", 
+                          gap: "8px", 
+                          maxHeight: "300px", 
+                          overflowY: "auto", 
+                          paddingRight: "8px",
+                          border: `1px solid ${C.border}`,
+                          padding: "8px",
+                          background: "#fdfdfd",
+                          marginBottom: "16px"
+                        }}>
                           {Object.keys(editMaterials).sort().map((mat) => (
                             <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
                               <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>{mat}</div>
