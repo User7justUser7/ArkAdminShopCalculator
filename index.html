@@ -888,7 +888,7 @@
       );
     }
 
-    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency }) {
+    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency, materialTiers }) {
       return (
         <div
           style={{
@@ -992,7 +992,7 @@
             </div>
           )}
 
-          <DraftPricing draft={draft} formula={formula} currency={currency} />
+          <DraftPricing draft={draft} formula={formula} currency={currency} materialTiers={materialTiers} />
 
           {isEditing ? null : (
             <div style={{ color: C.dim, fontSize: "0.74rem" }}>
@@ -1807,7 +1807,7 @@
                           </span>
                         </div>
 
-                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} allMaterials={allMaterials} />
+                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
 
                         <div style={{ display: "flex", gap: "6px", marginTop: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
                           <button style={btn("primary")} onClick={addItem} disabled={itemsSaving}>Add Item</button>
@@ -1818,7 +1818,7 @@
                           <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                             {editItem?.id === item.id ? (
                               <div style={{ display: "grid", gap: "10px" }}>
-                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} allMaterials={allMaterials} />
+                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
                                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                                   <button style={btn("primary")} onClick={saveEdit} disabled={itemsSaving}>Save</button>
                                   <button style={btn("secondary")} onClick={() => setEditItem(null)} disabled={itemsSaving}>Cancel</button>
