@@ -502,6 +502,33 @@
       "Element": 1000
     };
 
+    function normalizeMaterial(name) {
+      if (!name) return "";
+      name = String(name).trim();
+      const lower = name.toLowerCase();
+      if (lower === "metal ingot" || lower === "metal ingot or scrap metal ingot") return "Metal Ingots";
+      if (lower === "raw metal" || lower === "metal or scrap metal" || lower === "scrap metal") return "Metal";
+      if (lower === "wood or fungal wood" || lower === "fungal wood") return "Wood";
+      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer") return "Polymer";
+      if (lower === "organic polymer or corrupted nodule") return "Organic Polymer";
+      if (lower === "cementing Paste or achatina paste") return "Cementing Paste";
+      if (lower === "crystal or primal crystal") return "Crystal";
+      if (lower === "pelt, hair, or wool") return "Pelt";
+      if (lower === "silica pearls or silicate") return "Silica Pearls";
+      if (lower === "black pearl") return "Black Pearls";
+      if (lower.includes("gem")) {
+        if (lower.includes("blue")) return "Blue Gems";
+        if (lower.includes("red")) return "Red Gems";
+        if (lower.includes("green")) return "Green Gems";
+      }
+      return name;
+    }
+
+    function formatMetalIngot(amount) {
+      const rounded = Math.round(amount);
+      return rounded === 1 ? "Metal Ingot" : "Metal Ingots";
+    }
+
     const INITIAL_ALL_MATERIALS = Object.keys(INITIAL_MATERIAL_TIERS).sort();
 
     const C = {
@@ -613,19 +640,20 @@
 
     function computeFormulaPrice(recipe, engramInput, materialTiers) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
-      const rawMaterialIron = normalizeRecipeDraft(recipe).reduce((sum, row) => {
-        const rate = (materialTiers || {})[row.material] || 0;
+      const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
+        const normalized = normalizeMaterial(row.material);
+        const rate = (materialTiers || {})[normalized] || 0;
         return sum + row.qty * rate;
       }, 0);
-      const roundedMaterialIron = Math.ceil(rawMaterialIron);
-      const materialValue = roundedMaterialIron * 2;
+      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
+      const materialValue = roundedMaterialMetal * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return {
-        rawMaterialIron,
-        roundedMaterialIron,
+        rawMaterialMetal,
+        roundedMaterialMetal,
         materialValue,
         engramLevel,
         ignoredEngram,
@@ -879,13 +907,14 @@
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
-      const rawMaterialIron = recipe.reduce((sum, row) => {
-        const rate = (materialTiers || {})[row.material] || 0;
+      const rawMaterialMetal = recipe.reduce((sum, row) => {
+        const normalized = normalizeMaterial(row.material);
+        const rate = (materialTiers || {})[normalized] || 0;
         return sum + row.qty * rate;
       }, 0);
-      const roundedMaterialIron = Math.ceil(rawMaterialIron);
-      const materialValue = roundedMaterialIron * 2;
-      const engramValue = formula.engramLevel * 2;
+      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
+      const materialValue = roundedMaterialMetal * 2;
+      const engramValue = (formula?.engramLevel || 0) * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
@@ -894,33 +923,34 @@
           <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
           <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
             {recipe.map((row, i) => {
-              const rate = (materialTiers || {})[row.material] || 0;
+              const normalized = normalizeMaterial(row.material);
+              const rate = (materialTiers || {})[normalized] || 0;
               const subtotal = row.qty * rate;
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} Metal Ingots
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(subtotal)}
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {rawMaterialIron.toLocaleString(undefined, { maximumFractionDigits: 2 })} {roundedMaterialIron !== rawMaterialIron && `(rounded up to ${roundedMaterialIron.toLocaleString()}) `}x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {rawMaterialMetal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {roundedMaterialMetal !== rawMaterialMetal && `(rounded up to ${roundedMaterialMetal.toLocaleString()}) `}x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
 
           <div style={{ fontWeight: 700, color: C.accentDark }}>Formula Calculation:</div>
           <div style={{ paddingLeft: "8px" }}>
-            {formula.ignoredEngram ? (
+            {formula?.ignoredEngram || ignoredEngram ? (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{(formula.engramLevel * 2).toLocaleString()} (Engram x2)</del>
+                Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del>
                 <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2 of {materialValue.toLocaleString()})</div>
               </div>
             ) : (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + {(formula.engramLevel * 2).toLocaleString()} (Engram x2)
+                Formula: {materialValue.toLocaleString()} (Materials x2) + {(engramValue).toLocaleString()} (Engram x2)
               </div>
             )}
             <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
-              Final Price: {formula.price.toLocaleString()} {currency}
+              Final Price: {(formula?.price || price).toLocaleString()} {currency}
             </div>
           </div>
         </div>
@@ -1093,11 +1123,13 @@
 
       const [materialTiers, setMaterialTiers] = useState(() => {
         const stored = localStorage.getItem("ark_material_tiers");
-        return stored ? JSON.parse(stored) : INITIAL_MATERIAL_TIERS;
+        const parsed = stored ? JSON.parse(stored) : {};
+        return { ...INITIAL_MATERIAL_TIERS, ...parsed };
       });
       const [editMaterials, setEditMaterials] = useState(() => {
         const stored = localStorage.getItem("ark_material_tiers");
-        return stored ? JSON.parse(stored) : INITIAL_MATERIAL_TIERS;
+        const parsed = stored ? JSON.parse(stored) : {};
+        return { ...INITIAL_MATERIAL_TIERS, ...parsed };
       });
       const allMaterials = Object.keys(materialTiers).sort();
 
@@ -1927,7 +1959,7 @@
                         </div>
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
-                          <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Iron)</div>
+                          <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
                           <div style={{ display: "flex", gap: "6px" }}>
                             <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
                             <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
