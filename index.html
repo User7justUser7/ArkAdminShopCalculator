@@ -1118,18 +1118,34 @@
       const [itemsSaving, setItemsSaving] = useState(false);
       const [saveStatus, setSaveStatus] = useState({ type: "idle", message: "" });
 
-      const [currency, setCurrency] = useState(() => localStorage.getItem("ark_currency") || "Metal Ingots");
-      const [editCurrency, setEditCurrency] = useState(() => localStorage.getItem("ark_currency") || "Metal Ingots");
+      const [currency, setCurrency] = useState(() => {
+        const stored = localStorage.getItem("ark_currency");
+        return (stored === "Iron Ingots") ? "Metal Ingots" : (stored || "Metal Ingots");
+      });
+      const [editCurrency, setEditCurrency] = useState(() => {
+        const stored = localStorage.getItem("ark_currency");
+        return (stored === "Iron Ingots") ? "Metal Ingots" : (stored || "Metal Ingots");
+      });
 
       const [materialTiers, setMaterialTiers] = useState(() => {
         const stored = localStorage.getItem("ark_material_tiers");
         const parsed = stored ? JSON.parse(stored) : {};
-        return { ...INITIAL_MATERIAL_TIERS, ...parsed };
+        const migrated = { ...parsed };
+        if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
+          migrated["Metal Ingots"] = migrated["Iron Ingots"];
+          delete migrated["Iron Ingots"];
+        }
+        return { ...INITIAL_MATERIAL_TIERS, ...migrated };
       });
       const [editMaterials, setEditMaterials] = useState(() => {
         const stored = localStorage.getItem("ark_material_tiers");
         const parsed = stored ? JSON.parse(stored) : {};
-        return { ...INITIAL_MATERIAL_TIERS, ...parsed };
+        const migrated = { ...parsed };
+        if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
+          migrated["Metal Ingots"] = migrated["Iron Ingots"];
+          delete migrated["Iron Ingots"];
+        }
+        return { ...INITIAL_MATERIAL_TIERS, ...migrated };
       });
       const allMaterials = Object.keys(materialTiers).sort();
 
@@ -1213,13 +1229,21 @@
           if (res.ok) {
             const data = await res.json();
             if (data.currency) {
-              setCurrency(data.currency);
-              setEditCurrency(data.currency);
+              let cur = data.currency;
+              if (cur === "Iron Ingots") cur = "Metal Ingots";
+              setCurrency(cur);
+              setEditCurrency(cur);
             }
             if (data.materialTiers) {
-              setMaterialTiers(data.materialTiers);
-              setEditMaterials(data.materialTiers);
+              const migrated = { ...data.materialTiers };
+              if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
+                migrated["Metal Ingots"] = migrated["Iron Ingots"];
+                delete migrated["Iron Ingots"];
+              }
+              setMaterialTiers((prev) => ({ ...prev, ...migrated }));
+              setEditMaterials((prev) => ({ ...prev, ...migrated }));
             }
+
           }
         } catch (e) {
           console.warn("Settings could not be loaded from backend.");
@@ -1468,7 +1492,7 @@
       const [showImport, setShowImport] = useState(false);
 
       const shopName = "247 Always Online";
-      const cartButtonLabel = `Cart (Total Ingots: ${cartTotal.toLocaleString()})`;
+      const cartButtonLabel = `Cart (Total Metal Ingots: ${cartTotal.toLocaleString()})`;
 
       if (view === "order") {
         if (!orderView) {
