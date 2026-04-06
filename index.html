@@ -442,7 +442,7 @@
       if (lower === "wood or fungal wood" || lower === "fungal wood") return "Wood";
       if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer") return "Polymer";
       if (lower === "organic polymer or corrupted nodule") return "Organic Polymer";
-      if (lower === "cementing Paste or achatina paste") return "Cementing Paste";
+      if (lower === "cementing paste or achatina paste") return "Cementing Paste";
       if (lower === "crystal or primal crystal") return "Crystal";
       if (lower === "pelt, hair, or wool") return "Pelt";
       if (lower === "silica pearls or silicate") return "Silica Pearls";
@@ -458,6 +458,30 @@
     function formatMetalIngot(amount) {
       const rounded = Math.round(amount);
       return rounded === 1 ? "Metal Ingot" : "Metal Ingots";
+    }
+
+    function computeFormulaPrice(recipe, engramInput, materialTiers) {
+      const engramLevel = Math.max(0, Number(engramInput || 0));
+      const tiers = materialTiers || {};
+      const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
+        const normalized = normalizeMaterial(row.material);
+        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
+        return sum + row.qty * rate;
+      }, 0);
+      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
+      const materialValue = roundedMaterialMetal * 2;
+      const engramValue = engramLevel * 2;
+      const ignoredEngram = engramValue > materialValue;
+      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
+
+      return {
+        rawMaterialMetal,
+        roundedMaterialMetal,
+        materialValue,
+        engramLevel,
+        ignoredEngram,
+        price
+      };
     }
 
     const C = {
@@ -565,29 +589,6 @@
           qty: Number(row?.qty || 0)
         }))
         .filter((row) => row.material && row.qty > 0);
-    }
-
-    function computeFormulaPrice(recipe, engramInput, materialTiers) {
-      const engramLevel = Math.max(0, Number(engramInput || 0));
-      const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
-        const normalized = normalizeMaterial(row.material);
-        const rate = (materialTiers || {})[normalized] || 0;
-        return sum + row.qty * rate;
-      }, 0);
-      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
-      const materialValue = roundedMaterialMetal * 2;
-      const engramValue = engramLevel * 2;
-      const ignoredEngram = engramValue > materialValue;
-      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
-
-      return {
-        rawMaterialMetal,
-        roundedMaterialMetal,
-        materialValue,
-        engramLevel,
-        ignoredEngram,
-        price
-      };
     }
 
     function toEditableItem(item) {
@@ -836,9 +837,10 @@
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
+      const tiers = materialTiers || {};
       const rawMaterialMetal = recipe.reduce((sum, row) => {
         const normalized = normalizeMaterial(row.material);
-        const rate = (materialTiers || {})[normalized] || 0;
+        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
         return sum + row.qty * rate;
       }, 0);
       const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
@@ -853,7 +855,7 @@
           <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
             {recipe.map((row, i) => {
               const normalized = normalizeMaterial(row.material);
-              const rate = (materialTiers || {})[normalized] || 0;
+              const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
               const subtotal = row.qty * rate;
               return (
                 <div key={i}>
@@ -1881,29 +1883,6 @@
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
-                          <div style={{ display: "flex", gap: "6px" }}>
-                            <button 
-                              style={{ ...btn("primary"), padding: "4px 10px", fontSize: "0.75rem" }} 
-                              onClick={() => {
-                                if (confirm("Temporarily fill list with common ARK rates? You must click 'Save All Settings' to keep them.")) {
-                                  const std = {
-                                    "Wood": 0.05, "Thatch": 0.05, "Fiber": 0.05, "Stone": 0.05, "Flint": 0.05, "Raw Meat": 0.05,
-                                    "Hide": 0.1, "Chitin": 0.1, "Keratin": 0.1, "Sap": 0.1, "Cooked Meat": 0.1, "Charcoal": 0.1,
-                                    "Crystal": 0.2, "Oil": 0.2, "Obsidian": 0.2, "Metal": 0.5, "Silica Pearls": 0.5, "Pelt": 0.5,
-                                    "Organic Polymer": 0.5, "Meat Jerky": 0.5, "Metal Ingots": 1, "Gunpowder": 1, "Berry Seed": 1,
-                                    "Sparkpowder": 0.5, "Narcotic": 0.5, "Bio Toxin": 0.5, "AnglerGel": 0.5, "Blood Pack": 0.1,
-                                    "Electronics": 5, "Polymer": 5, "Cementing Paste": 5, "Gasoline": 5, "Element Shard": 10,
-                                    "Black Pearls": 50, "Red Gems": 500, "Blue Gems": 500, "Green Gems": 500, "Element": 1000
-                                  };
-                                  setEditMaterials(prev => ({ ...prev, ...std }));
-                                }
-                              }}
-                            >
-                              Load Common Rates
-                            </button>
-                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
-                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
-                          </div>
                         </div>
 
                         <div style={{ ...sectionStyle, background: C.bg3, border: `2px solid ${C.accent}`, marginBottom: "16px" }}>
