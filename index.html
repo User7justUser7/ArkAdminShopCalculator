@@ -433,75 +433,6 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const INITIAL_MATERIAL_TIERS = {
-      "Wood": 1 / 20,
-      "Thatch": 1 / 20,
-      "Fiber": 1 / 20,
-      "Stone": 1 / 20,
-      "Flint": 1 / 20,
-      "Raw Meat": 1 / 20,
-      "Raw Fish": 1 / 20,
-      "Hide": 1 / 10,
-      "Chitin": 1 / 10,
-      "Keratin": 1 / 10,
-      "Sap": 1 / 10,
-      "Cooked Meat": 1 / 10,
-      "Charcoal": 1 / 10,
-      "Crystal": 1 / 5,
-      "Oil": 1 / 5,
-      "Obsidian": 1 / 5,
-      "Metal": 1 / 2,
-      "Silica Pearls": 1 / 2,
-      "Pelt": 1 / 2,
-      "Organic Polymer": 1 / 2,
-      "Meat Jerky": 1 / 2,
-      "Metal Ingots": 1,
-      "Gunpowder": 1,
-      "Berry Seed": 1,
-      "Sparkpowder": 1 / 2,
-      "Sand": 1 / 20,
-      "Sulfur": 1 / 5,
-      "Clay": 1 / 10,
-      "Silk": 1 / 10,
-      "Narcotic": 1 / 2,
-      "Bio Toxin": 1 / 2,
-      "AnglerGel": 1 / 2,
-      "Propellant": 1,
-      "Blood Pack": 1 / 10,
-      "Feces": 1 / 100,
-      "Raw Salt": 1 / 20,
-      "Cactus Sap": 1 / 20,
-      "Fungal Wood": 1 / 20,
-      "Full Water Skin": 2,
-      "Raw Prime Meat": 2,
-      "Raw Prime Fish": 2,
-      "Electronics": 5,
-      "Polymer": 5,
-      "Cementing Paste": 5,
-      "Gasoline": 5,
-      "Cooked Prime Meat": 5,
-      "Cooked Prime Fish": 5,
-      "Vegetable Seeds": 5,
-      "Raw Mutton": 10,
-      "Rare Flower": 10,
-      "Rare Mushroom": 10,
-      "Element Shard": 10,
-      "Element Dust": 1 / 100,
-      "Absorbent Substrate": 20,
-      "Lamb Chops": 20,
-      "Prime Jerky": 20,
-      "Black Pearls": 50,
-      "Aggeravic Mushroom": 50,
-      "Aquatic Mushroom": 50,
-      "Ascerbic Mushroom": 50,
-      "Auric Mushroom": 50,
-      "Congealed Gas Ball": 200,
-      "Red Gems": 500,
-      "Blue Gems": 500,
-      "Green Gems": 500,
-      "Element": 1000
-    };
-
     function normalizeMaterial(name) {
       if (!name) return "";
       name = String(name).trim();
@@ -528,8 +459,6 @@
       const rounded = Math.round(amount);
       return rounded === 1 ? "Metal Ingot" : "Metal Ingots";
     }
-
-    const INITIAL_ALL_MATERIALS = Object.keys(INITIAL_MATERIAL_TIERS).sort();
 
     const C = {
       bg: "#e9ebe9",
@@ -1118,35 +1047,11 @@
       const [itemsSaving, setItemsSaving] = useState(false);
       const [saveStatus, setSaveStatus] = useState({ type: "idle", message: "" });
 
-      const [currency, setCurrency] = useState(() => {
-        const stored = localStorage.getItem("ark_currency");
-        return (stored === "Iron Ingots") ? "Metal Ingots" : (stored || "Metal Ingots");
-      });
-      const [editCurrency, setEditCurrency] = useState(() => {
-        const stored = localStorage.getItem("ark_currency");
-        return (stored === "Iron Ingots") ? "Metal Ingots" : (stored || "Metal Ingots");
-      });
+      const [currency, setCurrency] = useState("Metal Ingots");
+      const [editCurrency, setEditCurrency] = useState("Metal Ingots");
 
-      const [materialTiers, setMaterialTiers] = useState(() => {
-        const stored = localStorage.getItem("ark_material_tiers");
-        const parsed = stored ? JSON.parse(stored) : {};
-        const migrated = { ...parsed };
-        if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
-          migrated["Metal Ingots"] = migrated["Iron Ingots"];
-          delete migrated["Iron Ingots"];
-        }
-        return { ...INITIAL_MATERIAL_TIERS, ...migrated };
-      });
-      const [editMaterials, setEditMaterials] = useState(() => {
-        const stored = localStorage.getItem("ark_material_tiers");
-        const parsed = stored ? JSON.parse(stored) : {};
-        const migrated = { ...parsed };
-        if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
-          migrated["Metal Ingots"] = migrated["Iron Ingots"];
-          delete migrated["Iron Ingots"];
-        }
-        return { ...INITIAL_MATERIAL_TIERS, ...migrated };
-      });
+      const [materialTiers, setMaterialTiers] = useState({});
+      const [editMaterials, setEditMaterials] = useState({});
       const allMaterials = Object.keys(materialTiers).sort();
 
       const [view, setView] = useState("shop");
@@ -1181,14 +1086,6 @@
       });
 
       const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
-
-      useEffect(() => {
-        localStorage.setItem("ark_currency", currency);
-      }, [currency]);
-
-      useEffect(() => {
-        localStorage.setItem("ark_material_tiers", JSON.stringify(materialTiers));
-      }, [materialTiers]);
 
       useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 600);
@@ -1240,8 +1137,8 @@
                 migrated["Metal Ingots"] = migrated["Iron Ingots"];
                 delete migrated["Iron Ingots"];
               }
-              setMaterialTiers((prev) => ({ ...prev, ...migrated }));
-              setEditMaterials((prev) => ({ ...prev, ...migrated }));
+              setMaterialTiers(migrated);
+              setEditMaterials(migrated);
             }
 
           }
