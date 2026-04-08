@@ -467,19 +467,23 @@
     function computeFormulaPrice(recipe, engramInput, materialTiers) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
       const tiers = materialTiers || {};
-      const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
+      const recipeRows = normalizeRecipeDraft(recipe);
+
+      let totalRounded = 0;
+      recipeRows.forEach((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        return sum + row.qty * rate;
-      }, 0);
-      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
-      const materialValue = roundedMaterialMetal * 2;
+        const subtotal = row.qty * rate;
+        totalRounded += Math.ceil(subtotal);
+      });
+
+      const materialValue = totalRounded * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return {
-        rawMaterialMetal,
-        roundedMaterialMetal,
+        rawMaterialMetal: totalRounded,
+        roundedMaterialMetal: totalRounded,
         materialValue,
         engramLevel,
         ignoredEngram,
@@ -840,12 +844,18 @@
 
       const recipe = normalizeRecipeDraft(draft.recipe);
       const tiers = materialTiers || {};
-      const rawMaterialMetal = recipe.reduce((sum, row) => {
+
+      let totalRounded = 0;
+      const rowDetails = recipe.map((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        return sum + row.qty * rate;
-      }, 0);      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
-      const materialValue = roundedMaterialMetal * 2;
-      const engramValue = (formula?.engramLevel || 0) * 2;
+        const subtotal = row.qty * rate;
+        const rounded = Math.ceil(subtotal);
+        totalRounded += rounded;
+        return { ...row, rate, subtotal, rounded };
+      });
+
+      const materialValue = totalRounded * 2;
+      const engramValue = (formula?.engramLevel || Number(draft.engram || 0)) * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
@@ -853,24 +863,22 @@
         <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
           <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
           <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
-            {recipe.map((row, i) => {
-              const normalized = normalizeMaterial(row.material);
-              const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
-              const subtotal = row.qty * rate;
+            {rowDetails.map((row, i) => {
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(subtotal)}
+                  {row.qty} x {row.material} (@{row.rate}) = {row.subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
+                  {row.rounded !== row.subtotal && ` (rounded up to ${row.rounded})`} {formatMetalIngot(row.rounded)}
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {rawMaterialMetal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {roundedMaterialMetal !== rawMaterialMetal && `(rounded up to ${roundedMaterialMetal.toLocaleString()}) `}x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
 
           <div style={{ fontWeight: 700, color: C.accentDark }}>Formula Calculation:</div>
           <div style={{ paddingLeft: "8px" }}>
-            {formula?.ignoredEngram || ignoredEngram ? (
+            {ignoredEngram ? (
               <div>
                 Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del>
                 <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2 of {materialValue.toLocaleString()})</div>
@@ -881,7 +889,7 @@
               </div>
             )}
             <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
-              Final Price: {(formula?.price || price).toLocaleString()} {currency}
+              Final Price: {price.toLocaleString()} {currency}
             </div>
           </div>
         </div>
