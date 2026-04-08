@@ -464,8 +464,9 @@
       return rounded === 1 ? "Metal Ingot" : "Metal Ingots";
     }
 
-    function computeFormulaPrice(recipe, engramInput, materialTiers) {
+    function computeFormulaPrice(recipe, engramInput, materialTiers, yieldInput) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
+      const yieldVal = Math.max(1, Number(yieldInput || 1));
       const tiers = materialTiers || {};
       const recipeRows = normalizeRecipeDraft(recipe);
 
@@ -479,14 +480,17 @@
       const materialValue = totalRounded * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
-      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
+      const recipePrice = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
+      const price = Math.ceil(recipePrice / yieldVal);
 
       return {
         rawMaterialMetal: totalRounded,
         roundedMaterialMetal: totalRounded,
         materialValue,
-        engramLevel,
+        engramValue,
         ignoredEngram,
+        recipePrice,
+        yieldVal,
         price
       };
     }
@@ -572,6 +576,7 @@
         fixed: true,
         price: "",
         engram: "",
+        yield: "1",
         recipe: [blankRecipeRow()]
       };
     }
@@ -603,6 +608,7 @@
         ...item,
         price: String(item?.price ?? ""),
         engram: String(item?.engram ?? ""),
+        yield: String(item?.yield ?? "1"),
         recipe: Array.isArray(item?.recipe) && item.recipe.length
           ? item.recipe.map((row) => ({ material: row.material, qty: String(row.qty ?? "") }))
           : [blankRecipeRow()]
@@ -625,6 +631,9 @@
       const engramLevel = Number(draft.engram || 0);
       if (Number.isNaN(engramLevel) || engramLevel < 0) return "Engram Level must be 0 or higher.";
 
+      const yieldVal = Number(draft.yield || 1);
+      if (Number.isNaN(yieldVal) || yieldVal < 1) return "Yield (Crafts Per Recipe) must be 1 or higher.";
+
       return "";
     }
 
@@ -643,17 +652,19 @@
           ...base,
           price: Number(draft.price || 0),
           engram: 0,
+          yield: 1,
           recipe: []
         };
       }
 
       const recipe = normalizeRecipeDraft(draft.recipe);
-      const details = computeFormulaPrice(recipe, draft.engram, materialTiers);
+      const details = computeFormulaPrice(recipe, draft.engram, materialTiers, draft.yield);
 
       return {
         ...base,
         price: details.price,
         engram: Number(draft.engram || 0),
+        yield: Number(draft.yield || 1),
         recipe
       };
     }
@@ -846,28 +857,31 @@
       const tiers = materialTiers || {};
 
       let totalRounded = 0;
-      const rowDetails = recipe.map((row) => {
+      recipe.forEach((row) => {
         const rate = getMaterialRate(row.material, tiers);
         const subtotal = row.qty * rate;
-        const rounded = Math.ceil(subtotal);
-        totalRounded += rounded;
-        return { ...row, rate, subtotal, rounded };
+        totalRounded += Math.ceil(subtotal);
       });
 
       const materialValue = totalRounded * 2;
       const engramValue = (formula?.engramLevel || Number(draft.engram || 0)) * 2;
       const ignoredEngram = engramValue > materialValue;
-      const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
+      const recipePrice = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
+      const yieldVal = Number(draft.yield || 1);
+      const finalPrice = Math.ceil(recipePrice / yieldVal);
 
       return (
         <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
           <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
           <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
-            {rowDetails.map((row, i) => {
+            {recipe.map((row, i) => {
+              const rate = getMaterialRate(row.material, tiers);
+              const subtotal = row.qty * rate;
+              const rounded = Math.ceil(subtotal);
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{row.rate}) = {row.subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
-                  {row.rounded !== row.subtotal && ` (rounded up to ${row.rounded})`} {formatMetalIngot(row.rounded)}
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
+                  {rounded !== subtotal && ` (rounded up to ${rounded})`} {formatMetalIngot(rounded)}
                 </div>
               );
             })}
@@ -880,16 +894,23 @@
           <div style={{ paddingLeft: "8px" }}>
             {ignoredEngram ? (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del>
-                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2 of {materialValue.toLocaleString()})</div>
+                Recipe: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del> = {recipePrice.toLocaleString()}
+                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2)</div>
               </div>
             ) : (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + {(engramValue).toLocaleString()} (Engram x2)
+                Recipe: {materialValue.toLocaleString()} (Materials x2) + {(engramValue).toLocaleString()} (Engram x2) = {recipePrice.toLocaleString()}
               </div>
             )}
+            
+            {yieldVal > 1 && (
+              <div style={{ marginTop: "2px" }}>
+                Yield Adjustment: {recipePrice.toLocaleString()} / {yieldVal} (Crafts {yieldVal} items) = {finalPrice.toLocaleString()}
+              </div>
+            )}
+
             <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
-              Final Price: {price.toLocaleString()} {currency}
+              Final Price: {finalPrice.toLocaleString()} {currency}
             </div>
           </div>
         </div>
@@ -983,15 +1004,27 @@
             </div>
           ) : (
             <div style={{ display: "grid", gap: "8px" }}>
-              <div style={{ maxWidth: "200px" }}>
-                <label style={labelStyle}>Engram Level</label>
-                <input
-                  type="number"
-                  min="0"
-                  style={inputStyle}
-                  value={draft.engram}
-                  onChange={(e) => updateDraft(setDraft, "engram", e.target.value)}
-                />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxWidth: "400px" }}>
+                <div>
+                  <label style={labelStyle}>Engram Level</label>
+                  <input
+                    type="number"
+                    min="0"
+                    style={inputStyle}
+                    value={draft.engram}
+                    onChange={(e) => updateDraft(setDraft, "engram", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Yield (Items Per Craft)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    style={inputStyle}
+                    value={draft.yield}
+                    onChange={(e) => updateDraft(setDraft, "yield", e.target.value)}
+                  />
+                </div>
               </div>
               <div>
                 <label style={labelStyle}>Recipe</label>
