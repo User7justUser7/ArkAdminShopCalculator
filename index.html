@@ -680,7 +680,7 @@
 
     function RecipeEditor({ recipe, onChange, allMaterials, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
-      const [searches, setSearches] = React.useState({});
+      const baseId = React.useId();
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -694,14 +694,11 @@
         onChange(rows.filter((_, rowIndex) => rowIndex !== index));
       }
 
+      const sortedMaterials = (allMaterials || []).sort();
+
       return (
         <div style={{ display: "grid", gap: "6px" }}>
           {rows.map((row, index) => {
-            const searchTerm = (searches[index] || "").toLowerCase();
-            const filteredMaterials = searchTerm 
-              ? (allMaterials || []).filter(m => m.toLowerCase().includes(searchTerm))
-              : (allMaterials || []);
-
             return (
               <div
                 key={index}
@@ -709,12 +706,14 @@
               >
                 <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                   <input
-                    list={`materials-${index}`}
-                    value={row.material}
+                    list={`${baseId}-materials-${index}`}
+                    value={row.material || ""}
                     disabled={disabled}
                     onChange={(e) => updateRow(index, "material", e.target.value)}
                     onClick={(e) => {
-                      if (e.target.showPicker) e.target.showPicker();
+                      if (e.target.showPicker) {
+                        try { e.target.showPicker(); } catch (err) {}
+                      }
                     }}
                     onFocus={(e) => {
                       try {
@@ -744,8 +743,8 @@
                   }}>
                     ▼
                   </div>
-                  <datalist id={`materials-${index}`}>
-                    {filteredMaterials.map((m) => (
+                  <datalist id={`${baseId}-materials-${index}`}>
+                    {sortedMaterials.map((m) => (
                       <option key={m} value={m} />
                     ))}
                   </datalist>
@@ -987,7 +986,7 @@
               </div>
               <div>
                 <label style={labelStyle}>Recipe</label>
-                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} />
+                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} allMaterials={Object.keys(materialTiers || {}).sort()} />
               </div>
             </div>
           )}
