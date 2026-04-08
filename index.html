@@ -1216,8 +1216,10 @@
           setCurrency(nextCurrency);
           setMaterialTiers(nextMaterials);
           setSaveStatus({ type: "saved", message: "Settings saved to KV." });
+          return true;
         } catch (error) {
           setSaveStatus({ type: "error", message: error.message });
+          return false;
         } finally {
           setItemsSaving(false);
         }
@@ -1374,11 +1376,7 @@
       }
 
       async function saveSettings() {
-        const ok = await persistSettings(editCurrency, editMaterials);
-        if (ok) {
-          sessionStorage.setItem("ark_settings_saved", "yes");
-          window.location.reload();
-        }
+        await persistSettings(editCurrency, editMaterials);
       }
 
       function commitRename() {
@@ -2011,8 +2009,12 @@
                           </button>
                         </div>
 
-                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px" }}>
-                          <button style={btn("primary")} onClick={saveSettings}>Save All Settings</button>
+                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
+                          {saveStatus.type === "saved" && (
+                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
+                          )}
+                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
                         </div>
                       </div>
                     )}
