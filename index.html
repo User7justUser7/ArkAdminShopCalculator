@@ -456,7 +456,44 @@
 
     function normalizeMaterial(name) {
       if (!name) return "";
-      return String(name).trim();
+      name = String(name).trim();
+      const lower = name.toLowerCase();
+      if (lower === "metal ingot" || lower === "metal ingot or scrap metal ingot") return "Metal Ingots";
+      if (lower === "raw metal" || lower === "metal or scrap metal" || lower === "scrap metal") return "Metal";
+      if (lower === "wood or fungal wood" || lower === "fungal wood") return "Wood";
+      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer") return "Polymer";
+      if (lower === "organic polymer or corrupted nodule") return "Organic Polymer";
+      if (lower === "cementing paste or achatina paste") return "Cementing Paste";
+      if (lower === "crystal or primal crystal") return "Crystal";
+      if (lower === "pelt, hair, or wool") return "Pelt";
+      if (lower === "silica pearls or silicate") return "Silica Pearls";
+      if (lower === "black pearl") return "Black Pearls";
+      if (lower.includes("gem")) {
+        if (lower.includes("blue")) return "Blue Gems";
+        if (lower.includes("red")) return "Red Gems";
+        if (lower.includes("green")) return "Green Gems";
+      }
+      return name;
+    }
+
+    function parseTextRecipe(text) {
+      if (!text) return [];
+      const lines = text.split(/\n/);
+      const rows = [];
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        // Regex to match "QTY x NAME" or "QTY × NAME" or "QTY*NAME"
+        const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.*)$/i);
+        if (match) {
+          const qty = parseFloat(match[1]);
+          const name = normalizeMaterial(match[2]);
+          if (qty > 0 && name) {
+            rows.push({ material: name, qty: String(qty) });
+          }
+        }
+      });
+      return rows;
     }
 
     function formatMetalIngot(amount) {
@@ -470,12 +507,12 @@
       const tiers = materialTiers || {};
       const recipeRows = normalizeRecipeDraft(recipe);
 
-      let totalRounded = 0;
+      let rawTotal = 0;
       recipeRows.forEach((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        const subtotal = row.qty * rate;
-        totalRounded += Math.ceil(subtotal);
+        rawTotal += row.qty * rate;
       });
+      const totalRounded = Math.ceil(rawTotal);
 
       const materialValue = totalRounded * 2;
       const engramValue = engramLevel * 2;
@@ -484,7 +521,7 @@
       const price = Math.ceil(recipePrice / yieldVal);
 
       return {
-        rawMaterialMetal: totalRounded,
+        rawMaterialMetal: rawTotal,
         roundedMaterialMetal: totalRounded,
         materialValue,
         engramValue,
@@ -603,30 +640,6 @@
         .filter((row) => row.material && row.qty > 0);
     }
 
-    // ── NEW: parse pasted ARK wiki-style recipe text ──────────────────────────
-    // Handles lines like:
-    //   "16 × Metal Ingot or Scrap Metal Ingot"
-    //   "20 × Wood or Fungal Wood"
-    //   "35 × Obsidian"
-    // "or" alternatives are joined with "/" so getMaterialRate group-matching works.
-    function parseTextRecipe(text) {
-      return text
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean)
-        .reduce((acc, line) => {
-          // Accept × (U+00D7) or plain x as the separator
-          const match = line.match(/^([\d,]+)\s*[×x]\s*(.+)$/i);
-          if (!match) return acc;
-          const qty = parseInt(match[1].replace(/,/g, ""), 10);
-          // Normalise "Material or Alt" → "Material/Alt" for group-key matching
-          const material = match[2].trim().replace(/\s+or\s+/gi, "/");
-          if (qty > 0 && material) acc.push({ material, qty: String(qty) });
-          return acc;
-        }, []);
-    }
-    // ─────────────────────────────────────────────────────────────────────────
-
     function toEditableItem(item) {
       return {
         ...item,
@@ -723,24 +736,6 @@
     function RecipeEditor({ recipe, onChange, allMaterials, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
       const baseId = React.useId();
-
-      // ── paste-recipe state ────────────────────────────────────────────────
-      const [showPaste, setShowPaste] = useState(false);
-      const [pasteText, setPasteText] = useState("");
-      const [pasteError, setPasteError] = useState("");
-
-      function applyPastedRecipe() {
-        const parsed = parseTextRecipe(pasteText);
-        if (parsed.length === 0) {
-          setPasteError("No valid recipe lines found. Expected format: qty × Material");
-          return;
-        }
-        onChange(parsed);
-        setPasteText("");
-        setPasteError("");
-        setShowPaste(false);
-      }
-      // ─────────────────────────────────────────────────────────────────────
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -845,7 +840,7 @@
             );
           })}
 
-          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
             <button
               type="button"
               disabled={disabled}
@@ -861,82 +856,7 @@
             >
               + Add Material
             </button>
-
-            {/* ── Paste Recipe toggle ── */}
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => { setShowPaste(s => !s); setPasteError(""); }}
-              style={{
-                background: showPaste ? C.bg3 : "transparent",
-                color: C.mute,
-                border: `1px dashed ${C.border2}`,
-                padding: "4px 10px",
-                fontWeight: 600,
-                fontSize: "0.75rem"
-              }}
-            >
-              {showPaste ? "▲ Hide Paste" : "📋 Paste Recipe Text"}
-            </button>
           </div>
-
-          {/* ── Paste Recipe panel ── */}
-          {showPaste && (
-            <div style={{
-              marginTop: "2px",
-              padding: "10px",
-              background: "#eef4f4",
-              border: `1px dashed ${C.border2}`,
-              display: "grid",
-              gap: "8px"
-            }}>
-              <div style={{ fontSize: "0.7rem", color: C.dim, fontWeight: 600 }}>
-                PASTE RECIPE TEXT — replaces current recipe rows
-              </div>
-              <textarea
-                disabled={disabled}
-                value={pasteText}
-                onChange={(e) => { setPasteText(e.target.value); setPasteError(""); }}
-                placeholder={"16 × Metal Ingot or Scrap Metal Ingot\n12 × Hide\n5 × Fiber\n20 × Wood or Fungal Wood"}
-                style={{
-                  background: C.white,
-                  border: `1px solid ${C.border}`,
-                  color: C.text,
-                  padding: "6px 8px",
-                  fontSize: "0.8rem",
-                  width: "100%",
-                  fontFamily: "monospace",
-                  height: "110px",
-                  resize: "vertical",
-                  lineHeight: 1.5
-                }}
-              />
-              {pasteError && (
-                <div style={{ color: C.red, fontSize: "0.72rem" }}>{pasteError}</div>
-              )}
-              <div style={{ display: "flex", gap: "6px" }}>
-                <button
-                  type="button"
-                  disabled={disabled || !pasteText.trim()}
-                  onClick={applyPastedRecipe}
-                  style={{ ...btn("primary"), padding: "4px 14px", fontSize: "0.78rem" }}
-                >
-                  Use Recipe
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setPasteText(""); setPasteError(""); setShowPaste(false); }}
-                  style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.78rem" }}
-                >
-                  Cancel
-                </button>
-              </div>
-              <div style={{ fontSize: "0.67rem", color: C.mute, lineHeight: 1.5 }}>
-                One item per line &nbsp;·&nbsp; Use <strong>×</strong> or <strong>x</strong> as separator
-                &nbsp;·&nbsp; <em>Material or Alt</em> alternatives are supported
-              </div>
-            </div>
-          )}
         </div>
       );
     }
@@ -973,12 +893,12 @@
       const recipe = normalizeRecipeDraft(draft.recipe);
       const tiers = materialTiers || {};
 
-      let totalRounded = 0;
+      let rawTotal = 0;
       recipe.forEach((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        const subtotal = row.qty * rate;
-        totalRounded += Math.ceil(subtotal);
+        rawTotal += row.qty * rate;
       });
+      const totalRounded = Math.ceil(rawTotal);
 
       const materialValue = totalRounded * 2;
       const engramValue = (formula?.engramLevel || Number(draft.engram || 0)) * 2;
@@ -994,15 +914,17 @@
             {recipe.map((row, i) => {
               const rate = getMaterialRate(row.material, tiers);
               const subtotal = row.qty * rate;
-              const rounded = Math.ceil(subtotal);
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
-                  {rounded !== subtotal && ` (rounded up to ${rounded})`} {formatMetalIngot(rounded)}
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(subtotal)}
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
+              Sum Total: {rawTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(rawTotal)}
+              {totalRounded !== rawTotal && ` (rounded up to ${totalRounded.toLocaleString()})`}
+            </div>
+            <div style={{ fontWeight: 700 }}>
               Total Materials: {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
@@ -1035,6 +957,7 @@
     }
 
     function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency, materialTiers }) {
+      const importId = React.useId();
       return (
         <div
           style={{
@@ -1144,6 +1067,31 @@
                 </div>
               </div>
               <div>
+                <label style={labelStyle}>Import Text Recipe</label>
+                <div style={{ display: "grid", gap: "6px", marginBottom: "8px" }}>
+                  <textarea
+                    placeholder={"Paste recipe here, e.g.:\n16 \u00d7 Metal Ingot\n12 \u00d7 Hide"}
+                    style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem" }}
+                    id={importId}
+                  />
+                  <button
+                    type="button"
+                    style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
+                    onClick={() => {
+                      const ta = document.getElementById(importId);
+                      const parsed = parseTextRecipe(ta.value);
+                      if (parsed.length > 0) {
+                        updateDraftRecipe(setDraft, parsed);
+                        ta.value = "";
+                      } else {
+                        alert("No valid recipe lines found. Format: QTY x NAME");
+                      }
+                    }}
+                  >
+                    Apply Text-Based Recipe
+                  </button>
+                </div>
+                
                 <label style={labelStyle}>Recipe</label>
                 <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} allMaterials={Object.keys(materialTiers || {}).sort()} />
               </div>
