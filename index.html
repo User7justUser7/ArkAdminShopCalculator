@@ -603,6 +603,30 @@
         .filter((row) => row.material && row.qty > 0);
     }
 
+    // ── NEW: parse pasted ARK wiki-style recipe text ──────────────────────────
+    // Handles lines like:
+    //   "16 × Metal Ingot or Scrap Metal Ingot"
+    //   "20 × Wood or Fungal Wood"
+    //   "35 × Obsidian"
+    // "or" alternatives are joined with "/" so getMaterialRate group-matching works.
+    function parseTextRecipe(text) {
+      return text
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .reduce((acc, line) => {
+          // Accept × (U+00D7) or plain x as the separator
+          const match = line.match(/^([\d,]+)\s*[×x]\s*(.+)$/i);
+          if (!match) return acc;
+          const qty = parseInt(match[1].replace(/,/g, ""), 10);
+          // Normalise "Material or Alt" → "Material/Alt" for group-key matching
+          const material = match[2].trim().replace(/\s+or\s+/gi, "/");
+          if (qty > 0 && material) acc.push({ material, qty: String(qty) });
+          return acc;
+        }, []);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     function toEditableItem(item) {
       return {
         ...item,
@@ -699,6 +723,24 @@
     function RecipeEditor({ recipe, onChange, allMaterials, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
       const baseId = React.useId();
+
+      // ── paste-recipe state ────────────────────────────────────────────────
+      const [showPaste, setShowPaste] = useState(false);
+      const [pasteText, setPasteText] = useState("");
+      const [pasteError, setPasteError] = useState("");
+
+      function applyPastedRecipe() {
+        const parsed = parseTextRecipe(pasteText);
+        if (parsed.length === 0) {
+          setPasteError("No valid recipe lines found. Expected format: qty × Material");
+          return;
+        }
+        onChange(parsed);
+        setPasteText("");
+        setPasteError("");
+        setShowPaste(false);
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -803,7 +845,7 @@
             );
           })}
 
-          <div>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
             <button
               type="button"
               disabled={disabled}
@@ -819,7 +861,82 @@
             >
               + Add Material
             </button>
+
+            {/* ── Paste Recipe toggle ── */}
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => { setShowPaste(s => !s); setPasteError(""); }}
+              style={{
+                background: showPaste ? C.bg3 : "transparent",
+                color: C.mute,
+                border: `1px dashed ${C.border2}`,
+                padding: "4px 10px",
+                fontWeight: 600,
+                fontSize: "0.75rem"
+              }}
+            >
+              {showPaste ? "▲ Hide Paste" : "📋 Paste Recipe Text"}
+            </button>
           </div>
+
+          {/* ── Paste Recipe panel ── */}
+          {showPaste && (
+            <div style={{
+              marginTop: "2px",
+              padding: "10px",
+              background: "#eef4f4",
+              border: `1px dashed ${C.border2}`,
+              display: "grid",
+              gap: "8px"
+            }}>
+              <div style={{ fontSize: "0.7rem", color: C.dim, fontWeight: 600 }}>
+                PASTE RECIPE TEXT — replaces current recipe rows
+              </div>
+              <textarea
+                disabled={disabled}
+                value={pasteText}
+                onChange={(e) => { setPasteText(e.target.value); setPasteError(""); }}
+                placeholder={"16 × Metal Ingot or Scrap Metal Ingot\n12 × Hide\n5 × Fiber\n20 × Wood or Fungal Wood"}
+                style={{
+                  background: C.white,
+                  border: `1px solid ${C.border}`,
+                  color: C.text,
+                  padding: "6px 8px",
+                  fontSize: "0.8rem",
+                  width: "100%",
+                  fontFamily: "monospace",
+                  height: "110px",
+                  resize: "vertical",
+                  lineHeight: 1.5
+                }}
+              />
+              {pasteError && (
+                <div style={{ color: C.red, fontSize: "0.72rem" }}>{pasteError}</div>
+              )}
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button
+                  type="button"
+                  disabled={disabled || !pasteText.trim()}
+                  onClick={applyPastedRecipe}
+                  style={{ ...btn("primary"), padding: "4px 14px", fontSize: "0.78rem" }}
+                >
+                  Use Recipe
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPasteText(""); setPasteError(""); setShowPaste(false); }}
+                  style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.78rem" }}
+                >
+                  Cancel
+                </button>
+              </div>
+              <div style={{ fontSize: "0.67rem", color: C.mute, lineHeight: 1.5 }}>
+                One item per line &nbsp;·&nbsp; Use <strong>×</strong> or <strong>x</strong> as separator
+                &nbsp;·&nbsp; <em>Material or Alt</em> alternatives are supported
+              </div>
+            </div>
+          )}
         </div>
       );
     }
