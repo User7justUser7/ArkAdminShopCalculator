@@ -469,21 +469,18 @@
       const tiers = materialTiers || {};
       const recipeRows = normalizeRecipeDraft(recipe);
 
-      let totalRounded = 0;
+      let materialValue = 0;
       recipeRows.forEach((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        const subtotal = row.qty * rate;
-        totalRounded += Math.ceil(subtotal);
+        const subtotalX2 = row.qty * rate * 2;
+        materialValue += Math.ceil(subtotalX2);
       });
 
-      const materialValue = totalRounded * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return {
-        rawMaterialMetal: totalRounded,
-        roundedMaterialMetal: totalRounded,
         materialValue,
         engramLevel,
         ignoredEngram,
@@ -845,16 +842,16 @@
       const recipe = normalizeRecipeDraft(draft.recipe);
       const tiers = materialTiers || {};
 
-      let totalRounded = 0;
+      let totalRoundedX2 = 0;
       const rowDetails = recipe.map((row) => {
         const rate = getMaterialRate(row.material, tiers);
-        const subtotal = row.qty * rate;
-        const rounded = Math.ceil(subtotal);
-        totalRounded += rounded;
-        return { ...row, rate, subtotal, rounded };
+        const subtotalX2 = row.qty * rate * 2;
+        const roundedX2 = Math.ceil(subtotalX2);
+        totalRoundedX2 += roundedX2;
+        return { ...row, rate, subtotalX2, roundedX2 };
       });
 
-      const materialValue = totalRounded * 2;
+      const materialValue = totalRoundedX2;
       const engramValue = (formula?.engramLevel || Number(draft.engram || 0)) * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
@@ -866,13 +863,13 @@
             {rowDetails.map((row, i) => {
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{row.rate}) = {row.subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
-                  {row.rounded !== row.subtotal && ` (rounded up to ${row.rounded})`} {formatMetalIngot(row.rounded)}
+                  {row.qty} x {row.material} (@{row.rate}) x 2 = {row.subtotalX2.toLocaleString(undefined, { maximumFractionDigits: 2 })} 
+                  {row.roundedX2 !== row.subtotalX2 && ` (rounded up to ${row.roundedX2})`} {formatMetalIngot(row.roundedX2)}
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {totalRoundedX2.toLocaleString()} {currency}
             </div>
           </div>
 
