@@ -433,26 +433,30 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
+    // Helper to find a price even if the material is part of a group (e.g. "Wood/Fungal Wood")
+    function getMaterialRate(materialName, tiers) {
+      if (!materialName || !tiers) return 0;
+      const searchName = materialName.trim().toLowerCase();
+      
+      // 1. Try exact match (case insensitive)
+      const exactKey = Object.keys(tiers).find(k => k.toLowerCase() === searchName);
+      if (exactKey !== undefined) return tiers[exactKey];
+
+      // 2. Try group match (if a key is "Wood/Fungal Wood/Corrupted Wood")
+      const groupKey = Object.keys(tiers).find(k => {
+        if (!k.includes("/")) return false;
+        return k.toLowerCase().split("/").map(s => s.trim()).includes(searchName);
+      });
+      if (groupKey !== undefined) return tiers[groupKey];
+
+      // 3. Last resort: check if the searchName "contains" or is "contained by" a key (e.g. "Metal" in "Metal Ingots")
+      // But only if it's a very close match to avoid accidents.
+      return 0;
+    }
+
     function normalizeMaterial(name) {
       if (!name) return "";
-      name = String(name).trim();
-      const lower = name.toLowerCase();
-      if (lower === "metal ingot" || lower === "metal ingot or scrap metal ingot") return "Metal Ingots";
-      if (lower === "raw metal" || lower === "metal or scrap metal" || lower === "scrap metal") return "Metal";
-      if (lower === "wood or fungal wood" || lower === "fungal wood") return "Wood";
-      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer") return "Polymer";
-      if (lower === "organic polymer or corrupted nodule") return "Organic Polymer";
-      if (lower === "cementing paste or achatina paste") return "Cementing Paste";
-      if (lower === "crystal or primal crystal") return "Crystal";
-      if (lower === "pelt, hair, or wool") return "Pelt";
-      if (lower === "silica pearls or silicate") return "Silica Pearls";
-      if (lower === "black pearl") return "Black Pearls";
-      if (lower.includes("gem")) {
-        if (lower.includes("blue")) return "Blue Gems";
-        if (lower.includes("red")) return "Red Gems";
-        if (lower.includes("green")) return "Green Gems";
-      }
-      return name;
+      return String(name).trim();
     }
 
     function formatMetalIngot(amount) {
@@ -460,23 +464,21 @@
       return rounded === 1 ? "Metal Ingot" : "Metal Ingots";
     }
 
-    // Each material row's subtotal is individually ceil'd, then summed.
-    // This means rounding happens per-row rather than on the grand total.
     function computeFormulaPrice(recipe, engramInput, materialTiers) {
       const engramLevel = Math.max(0, Number(engramInput || 0));
       const tiers = materialTiers || {};
-      const roundedMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
-        const normalized = normalizeMaterial(row.material);
-        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
-        return sum + Math.ceil(row.qty * rate);
+      const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
+        const rate = getMaterialRate(row.material, tiers);
+        return sum + row.qty * rate;
       }, 0);
+      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
       const materialValue = roundedMaterialMetal * 2;
       const engramValue = engramLevel * 2;
       const ignoredEngram = engramValue > materialValue;
       const price = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
 
       return {
-        rawMaterialMetal: roundedMaterialMetal,
+        rawMaterialMetal,
         roundedMaterialMetal,
         materialValue,
         engramLevel,
@@ -681,7 +683,7 @@
 
     function RecipeEditor({ recipe, onChange, allMaterials, disabled = false }) {
       const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
-      const [searches, setSearches] = React.useState({});
+      const baseId = React.useId();
 
       function updateRow(index, key, value) {
         onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
@@ -695,14 +697,11 @@
         onChange(rows.filter((_, rowIndex) => rowIndex !== index));
       }
 
+      const sortedMaterials = (allMaterials || []).sort();
+
       return (
         <div style={{ display: "grid", gap: "6px" }}>
           {rows.map((row, index) => {
-            const searchTerm = (searches[index] || "").toLowerCase();
-            const filteredMaterials = searchTerm 
-              ? (allMaterials || []).filter(m => m.toLowerCase().includes(searchTerm))
-              : (allMaterials || []);
-
             return (
               <div
                 key={index}
@@ -710,12 +709,14 @@
               >
                 <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
                   <input
-                    list={`materials-${index}`}
-                    value={row.material}
+                    list={`${baseId}-materials-${index}`}
+                    value={row.material || ""}
                     disabled={disabled}
                     onChange={(e) => updateRow(index, "material", e.target.value)}
                     onClick={(e) => {
-                      if (e.target.showPicker) e.target.showPicker();
+                      if (e.target.showPicker) {
+                        try { e.target.showPicker(); } catch (err) {}
+                      }
                     }}
                     onFocus={(e) => {
                       try {
@@ -745,8 +746,8 @@
                   }}>
                     ▼
                   </div>
-                  <datalist id={`materials-${index}`}>
-                    {filteredMaterials.map((m) => (
+                  <datalist id={`${baseId}-materials-${index}`}>
+                    {sortedMaterials.map((m) => (
                       <option key={m} value={m} />
                     ))}
                   </datalist>
@@ -839,18 +840,10 @@
 
       const recipe = normalizeRecipeDraft(draft.recipe);
       const tiers = materialTiers || {};
-
-      // Build per-row breakdown: ceil each row's subtotal individually
-      const rowBreakdown = recipe.map((row) => {
-        const normalized = normalizeMaterial(row.material);
-        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
-        const rawSubtotal = row.qty * rate;
-        const ceilSubtotal = Math.ceil(rawSubtotal);
-        return { ...row, rate, rawSubtotal, ceilSubtotal };
-      });
-
-      // Total is simply the sum of each row's already-ceiled value
-      const roundedMaterialMetal = rowBreakdown.reduce((sum, r) => sum + r.ceilSubtotal, 0);
+      const rawMaterialMetal = recipe.reduce((sum, row) => {
+        const rate = getMaterialRate(row.material, tiers);
+        return sum + row.qty * rate;
+      }, 0);      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
       const materialValue = roundedMaterialMetal * 2;
       const engramValue = (formula?.engramLevel || 0) * 2;
       const ignoredEngram = engramValue > materialValue;
@@ -860,29 +853,31 @@
         <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
           <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
           <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
-            {rowBreakdown.map((row, i) => {
-              const didRound = row.ceilSubtotal !== row.rawSubtotal;
+            {recipe.map((row, i) => {
+              const normalized = normalizeMaterial(row.material);
+              const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
+              const subtotal = row.qty * rate;
               return (
                 <div key={i}>
-                  {row.qty} x {row.material} (@{row.rate}) = {row.rawSubtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}{didRound ? ` (↑ ${row.ceilSubtotal.toLocaleString()})` : ""} {formatMetalIngot(row.ceilSubtotal)}
+                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(subtotal)}
                 </div>
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {roundedMaterialMetal.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {rawMaterialMetal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {roundedMaterialMetal !== rawMaterialMetal && `(rounded up to ${roundedMaterialMetal.toLocaleString()}) `}x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
 
           <div style={{ fontWeight: 700, color: C.accentDark }}>Formula Calculation:</div>
           <div style={{ paddingLeft: "8px" }}>
-            {ignoredEngram ? (
+            {formula?.ignoredEngram || ignoredEngram ? (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{engramValue.toLocaleString()} (Engram x2)</del>
+                Formula: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del>
                 <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2 of {materialValue.toLocaleString()})</div>
               </div>
             ) : (
               <div>
-                Formula: {materialValue.toLocaleString()} (Materials x2) + {engramValue.toLocaleString()} (Engram x2)
+                Formula: {materialValue.toLocaleString()} (Materials x2) + {(engramValue).toLocaleString()} (Engram x2)
               </div>
             )}
             <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
@@ -893,7 +888,7 @@
       );
     }
 
-    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency }) {
+    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency, materialTiers }) {
       return (
         <div
           style={{
@@ -992,12 +987,12 @@
               </div>
               <div>
                 <label style={labelStyle}>Recipe</label>
-                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} />
+                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} allMaterials={Object.keys(materialTiers || {}).sort()} />
               </div>
             </div>
           )}
 
-          <DraftPricing draft={draft} formula={formula} currency={currency} />
+          <DraftPricing draft={draft} formula={formula} currency={currency} materialTiers={materialTiers} />
 
           {isEditing ? null : (
             <div style={{ color: C.dim, fontSize: "0.74rem" }}>
@@ -1084,6 +1079,7 @@
       const [itemSearch, setItemSearch] = useState("");
       const [newItem, setNewItem] = useState(() => emptyItemDraft());
       const [editItem, setEditItem] = useState(null);
+      const [renamingMat, setRenamingMat] = useState(null); // { oldName: string, newName: string }
 
       const [calcDraft, setCalcDraft] = useState({
         fixed: false,
@@ -1093,6 +1089,17 @@
       });
 
       const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+
+      useEffect(() => {
+        const justSaved = sessionStorage.getItem("ark_settings_saved");
+        if (justSaved) {
+          setSaveStatus({ type: "saved", message: "Settings saved." });
+          sessionStorage.removeItem("ark_settings_saved");
+          // Switch to admin view and settings tab so they see it
+          setView("admin");
+          setAdminTab("settings");
+        }
+      }, []);
 
       useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 600);
@@ -1210,8 +1217,10 @@
           setCurrency(nextCurrency);
           setMaterialTiers(nextMaterials);
           setSaveStatus({ type: "saved", message: "Settings saved to KV." });
+          return true;
         } catch (error) {
           setSaveStatus({ type: "error", message: error.message });
+          return false;
         } finally {
           setItemsSaving(false);
         }
@@ -1368,7 +1377,62 @@
       }
 
       async function saveSettings() {
-        await persistSettings(editCurrency, editMaterials);
+        setItemsSaving(true);
+        setSaveStatus({ type: "saving", message: "Updating all item prices..." });
+
+        try {
+          // 1. Recalculate all items that use the Formula
+          const updatedItems = items.map(item => {
+            if (item.fixed) return item;
+            const newPriceData = computeFormulaPrice(item.recipe, item.engram, editMaterials);
+            return { ...item, price: newPriceData.price };
+          });
+
+          // 2. Persist both the new settings AND the updated items
+          const settingsRes = await fetch("/save-settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currency: editCurrency, materialTiers: editMaterials })
+          });
+          if (!settingsRes.ok) throw new Error("Failed to save settings.");
+
+          const itemsRes = await fetch("/save-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: updatedItems })
+          });
+          if (!itemsRes.ok) throw new Error("Failed to update item prices.");
+
+          // 3. Update local state
+          setCurrency(editCurrency);
+          setMaterialTiers(editMaterials);
+          setItems(updatedItems);
+          setSaveStatus({ type: "saved", message: "Settings & Prices Updated" });
+
+        } catch (error) {
+          setSaveStatus({ type: "error", message: error.message });
+        } finally {
+          setItemsSaving(false);
+        }
+      }
+
+      function commitRename() {
+        if (!renamingMat) return;
+        const { oldName, newName } = renamingMat;
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === oldName) {
+          setRenamingMat(null);
+          return;
+        }
+
+        setEditMaterials(prev => {
+          const next = { ...prev };
+          const cost = next[oldName];
+          delete next[oldName];
+          next[trimmed] = cost;
+          return next;
+        });
+        setRenamingMat(null);
       }
 
       function exportMaterials() {
@@ -1812,7 +1876,7 @@
                           </span>
                         </div>
 
-                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} allMaterials={allMaterials} />
+                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
 
                         <div style={{ display: "flex", gap: "6px", marginTop: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
                           <button style={btn("primary")} onClick={addItem} disabled={itemsSaving}>Add Item</button>
@@ -1823,7 +1887,7 @@
                           <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                             {editItem?.id === item.id ? (
                               <div style={{ display: "grid", gap: "10px" }}>
-                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} allMaterials={allMaterials} />
+                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
                                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                                   <button style={btn("primary")} onClick={saveEdit} disabled={itemsSaving}>Save</button>
                                   <button style={btn("secondary")} onClick={() => setEditItem(null)} disabled={itemsSaving}>Cancel</button>
@@ -1888,28 +1952,9 @@
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
-                        </div>
-
-                        <div style={{ ...sectionStyle, background: C.bg3, border: `2px solid ${C.accent}`, marginBottom: "16px" }}>
-                          <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: "8px", color: C.accentDark }}>Add Material</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 100px auto", gap: "8px" }}>
-                            <input id="new-mat-name-box" placeholder="Name (e.g. Gunpowder)" style={inputStyle} />
-                            <input id="new-mat-cost-box" type="number" step="any" placeholder="Cost" style={inputStyle} />
-                            <button 
-                              style={btn("primary")}
-                              onClick={() => {
-                                const nameInput = document.getElementById("new-mat-name-box");
-                                const costInput = document.getElementById("new-mat-cost-box");
-                                const name = nameInput.value.trim();
-                                const cost = parseFloat(costInput.value) || 0;
-                                if (name) {
-                                  setEditMaterials(prev => ({ ...prev, [name]: cost }));
-                                  nameInput.value = ""; costInput.value = "";
-                                }
-                              }}
-                            >
-                              Add
-                            </button>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
                           </div>
                         </div>
 
@@ -1932,7 +1977,7 @@
                         <div style={{ 
                           display: "grid", 
                           gap: "8px", 
-                          maxHeight: "300px", 
+                          maxHeight: "350px", 
                           overflowY: "auto", 
                           paddingRight: "8px",
                           border: `1px solid ${C.border}`,
@@ -1940,37 +1985,77 @@
                           background: "#fdfdfd",
                           marginBottom: "16px"
                         }}>
-                          {Object.keys(editMaterials).sort().map((mat) => (
-                            <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
-                              <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>{mat}</div>
-                              <input 
-                                type="number" 
-                                step="any"
-                                style={inputStyle} 
-                                value={editMaterials[mat]} 
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value) || 0;
-                                  setEditMaterials(prev => ({ ...prev, [mat]: val }));
-                                }} 
-                              />
-                              <button 
-                                style={{ ...btn("danger"), padding: "4px" }} 
-                                onClick={() => {
-                                  if (confirm(`Delete material "${mat}"?`)) {
-                                    const next = { ...editMaterials };
-                                    delete next[mat];
-                                    setEditMaterials(next);
-                                  }
-                                }}
-                              >
-                                X
-                              </button>
-                            </div>
-                          ))}
+                          {Object.keys(editMaterials).sort().map((mat) => {
+                            const isRenaming = renamingMat?.oldName === mat;
+                            return (
+                              <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
+                                {isRenaming ? (
+                                  <div style={{ display: "flex", gap: "4px" }}>
+                                    <input 
+                                      autoFocus
+                                      style={{ ...inputStyle, flex: 1 }} 
+                                      value={renamingMat.newName} 
+                                      onChange={(e) => setRenamingMat({ ...renamingMat, newName: e.target.value })}
+                                      onKeyDown={(e) => e.key === "Enter" && commitRename()}
+                                    />
+                                    <button 
+                                      style={{ ...btn("primary"), padding: "4px 8px", fontSize: "0.7rem" }} 
+                                      onClick={commitRename}
+                                    >
+                                      Enter
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div 
+                                    style={{ fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", color: C.accentDark }}
+                                    onClick={() => setRenamingMat({ oldName: mat, newName: mat })}
+                                  >
+                                    {mat}
+                                  </div>
+                                )}
+                                <input 
+                                  type="number" 
+                                  step="any"
+                                  style={inputStyle} 
+                                  value={editMaterials[mat]} 
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setEditMaterials(prev => ({ ...prev, [mat]: val }));
+                                  }} 
+                                />
+                                <button 
+                                  style={{ ...btn("danger"), padding: "4px" }} 
+                                  onClick={() => {
+                                    if (confirm(`Delete material "${mat}"?`)) {
+                                      const next = { ...editMaterials };
+                                      delete next[mat];
+                                      setEditMaterials(next);
+                                    }
+                                  }}
+                                >
+                                  X
+                                </button>
+                              </div>
+                            );
+                          })}
+                          <button 
+                            style={{ ...btn("secondary"), padding: "6px", fontSize: "0.75rem", borderStyle: "dashed" }}
+                            onClick={() => {
+                              const newName = `New Material ${Object.keys(editMaterials).length + 1}`;
+                              setEditMaterials(prev => ({ ...prev, [newName]: 0 }));
+                              setRenamingMat({ oldName: newName, newName: newName });
+                            }}
+                          >
+                            + Add New Material Row
+                          </button>
                         </div>
 
-                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px" }}>
-                          <button style={btn("primary")} onClick={saveSettings}>Save All Settings</button>
+                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
+                          {saveStatus.type === "saved" && (
+                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
+                          )}
+                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
                         </div>
                       </div>
                     )}
