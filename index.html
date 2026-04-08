@@ -1078,6 +1078,7 @@
       const [itemSearch, setItemSearch] = useState("");
       const [newItem, setNewItem] = useState(() => emptyItemDraft());
       const [editItem, setEditItem] = useState(null);
+      const [renamingMat, setRenamingMat] = useState(null); // { oldName: string, newName: string }
 
       const [calcDraft, setCalcDraft] = useState({
         fixed: false,
@@ -1087,6 +1088,17 @@
       });
 
       const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+
+      useEffect(() => {
+        const justSaved = sessionStorage.getItem("ark_settings_saved");
+        if (justSaved) {
+          setSaveStatus({ type: "saved", message: "Settings saved." });
+          sessionStorage.removeItem("ark_settings_saved");
+          // Switch to admin view and settings tab so they see it
+          setView("admin");
+          setAdminTab("settings");
+        }
+      }, []);
 
       useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 600);
@@ -1362,7 +1374,30 @@
       }
 
       async function saveSettings() {
-        await persistSettings(editCurrency, editMaterials);
+        const ok = await persistSettings(editCurrency, editMaterials);
+        if (ok) {
+          sessionStorage.setItem("ark_settings_saved", "yes");
+          window.location.reload();
+        }
+      }
+
+      function commitRename() {
+        if (!renamingMat) return;
+        const { oldName, newName } = renamingMat;
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === oldName) {
+          setRenamingMat(null);
+          return;
+        }
+
+        setEditMaterials(prev => {
+          const next = { ...prev };
+          const cost = next[oldName];
+          delete next[oldName];
+          next[trimmed] = cost;
+          return next;
+        });
+        setRenamingMat(null);
       }
 
       function exportMaterials() {
@@ -1884,29 +1919,6 @@
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
                         </div>
 
-                        <div style={{ ...sectionStyle, background: C.bg3, border: `2px solid ${C.accent}`, marginBottom: "16px" }}>
-                          <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: "8px", color: C.accentDark }}>Add Material</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 100px auto", gap: "8px" }}>
-                            <input id="new-mat-name-box" placeholder="Name (e.g. Gunpowder)" style={inputStyle} />
-                            <input id="new-mat-cost-box" type="number" step="any" placeholder="Cost" style={inputStyle} />
-                            <button 
-                              style={btn("primary")}
-                              onClick={() => {
-                                const nameInput = document.getElementById("new-mat-name-box");
-                                const costInput = document.getElementById("new-mat-cost-box");
-                                const name = nameInput.value.trim();
-                                const cost = parseFloat(costInput.value) || 0;
-                                if (name) {
-                                  setEditMaterials(prev => ({ ...prev, [name]: cost }));
-                                  nameInput.value = ""; costInput.value = "";
-                                }
-                              }}
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </div>
-
                         {showImport && (
                           <div style={{ marginBottom: "12px", background: "#f0f4f4", padding: "10px", border: `1px solid ${C.border}` }}>
                             <label style={{ ...labelStyle, marginBottom: "4px" }}>Paste Materials JSON here:</label>
@@ -1926,7 +1938,7 @@
                         <div style={{ 
                           display: "grid", 
                           gap: "8px", 
-                          maxHeight: "300px", 
+                          maxHeight: "350px", 
                           overflowY: "auto", 
                           paddingRight: "8px",
                           border: `1px solid ${C.border}`,
@@ -1934,33 +1946,69 @@
                           background: "#fdfdfd",
                           marginBottom: "16px"
                         }}>
-                          {Object.keys(editMaterials).sort().map((mat) => (
-                            <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
-                              <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>{mat}</div>
-                              <input 
-                                type="number" 
-                                step="any"
-                                style={inputStyle} 
-                                value={editMaterials[mat]} 
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value) || 0;
-                                  setEditMaterials(prev => ({ ...prev, [mat]: val }));
-                                }} 
-                              />
-                              <button 
-                                style={{ ...btn("danger"), padding: "4px" }} 
-                                onClick={() => {
-                                  if (confirm(`Delete material "${mat}"?`)) {
-                                    const next = { ...editMaterials };
-                                    delete next[mat];
-                                    setEditMaterials(next);
-                                  }
-                                }}
-                              >
-                                X
-                              </button>
-                            </div>
-                          ))}
+                          {Object.keys(editMaterials).sort().map((mat) => {
+                            const isRenaming = renamingMat?.oldName === mat;
+                            return (
+                              <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
+                                {isRenaming ? (
+                                  <div style={{ display: "flex", gap: "4px" }}>
+                                    <input 
+                                      autoFocus
+                                      style={{ ...inputStyle, flex: 1 }} 
+                                      value={renamingMat.newName} 
+                                      onChange={(e) => setRenamingMat({ ...renamingMat, newName: e.target.value })}
+                                      onKeyDown={(e) => e.key === "Enter" && commitRename()}
+                                    />
+                                    <button 
+                                      style={{ ...btn("primary"), padding: "4px 8px", fontSize: "0.7rem" }} 
+                                      onClick={commitRename}
+                                    >
+                                      Enter
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div 
+                                    style={{ fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", color: C.accentDark }}
+                                    onClick={() => setRenamingMat({ oldName: mat, newName: mat })}
+                                  >
+                                    {mat}
+                                  </div>
+                                )}
+                                <input 
+                                  type="number" 
+                                  step="any"
+                                  style={inputStyle} 
+                                  value={editMaterials[mat]} 
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setEditMaterials(prev => ({ ...prev, [mat]: val }));
+                                  }} 
+                                />
+                                <button 
+                                  style={{ ...btn("danger"), padding: "4px" }} 
+                                  onClick={() => {
+                                    if (confirm(`Delete material "${mat}"?`)) {
+                                      const next = { ...editMaterials };
+                                      delete next[mat];
+                                      setEditMaterials(next);
+                                    }
+                                  }}
+                                >
+                                  X
+                                </button>
+                              </div>
+                            );
+                          })}
+                          <button 
+                            style={{ ...btn("secondary"), padding: "6px", fontSize: "0.75rem", borderStyle: "dashed" }}
+                            onClick={() => {
+                              const newName = `New Material ${Object.keys(editMaterials).length + 1}`;
+                              setEditMaterials(prev => ({ ...prev, [newName]: 0 }));
+                              setRenamingMat({ oldName: newName, newName: newName });
+                            }}
+                          >
+                            + Add New Material Row
+                          </button>
                         </div>
 
                         <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px" }}>
