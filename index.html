@@ -1377,7 +1377,43 @@
       }
 
       async function saveSettings() {
-        await persistSettings(editCurrency, editMaterials);
+        setItemsSaving(true);
+        setSaveStatus({ type: "saving", message: "Updating all item prices..." });
+
+        try {
+          // 1. Recalculate all items that use the Formula
+          const updatedItems = items.map(item => {
+            if (item.fixed) return item;
+            const newPriceData = computeFormulaPrice(item.recipe, item.engram, editMaterials);
+            return { ...item, price: newPriceData.price };
+          });
+
+          // 2. Persist both the new settings AND the updated items
+          const settingsRes = await fetch("/save-settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currency: editCurrency, materialTiers: editMaterials })
+          });
+          if (!settingsRes.ok) throw new Error("Failed to save settings.");
+
+          const itemsRes = await fetch("/save-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: updatedItems })
+          });
+          if (!itemsRes.ok) throw new Error("Failed to update item prices.");
+
+          // 3. Update local state
+          setCurrency(editCurrency);
+          setMaterialTiers(editMaterials);
+          setItems(updatedItems);
+          setSaveStatus({ type: "saved", message: "Settings & Prices Updated" });
+
+        } catch (error) {
+          setSaveStatus({ type: "error", message: error.message });
+        } finally {
+          setItemsSaving(false);
+        }
       }
 
       function commitRename() {
