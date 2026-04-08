@@ -433,26 +433,30 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
+    // Helper to find a price even if the material is part of a group (e.g. "Wood/Fungal Wood")
+    function getMaterialRate(materialName, tiers) {
+      if (!materialName || !tiers) return 0;
+      const searchName = materialName.trim().toLowerCase();
+      
+      // 1. Try exact match (case insensitive)
+      const exactKey = Object.keys(tiers).find(k => k.toLowerCase() === searchName);
+      if (exactKey !== undefined) return tiers[exactKey];
+
+      // 2. Try group match (if a key is "Wood/Fungal Wood/Corrupted Wood")
+      const groupKey = Object.keys(tiers).find(k => {
+        if (!k.includes("/")) return false;
+        return k.toLowerCase().split("/").map(s => s.trim()).includes(searchName);
+      });
+      if (groupKey !== undefined) return tiers[groupKey];
+
+      // 3. Last resort: check if the searchName "contains" or is "contained by" a key (e.g. "Metal" in "Metal Ingots")
+      // But only if it's a very close match to avoid accidents.
+      return 0;
+    }
+
     function normalizeMaterial(name) {
       if (!name) return "";
-      name = String(name).trim();
-      const lower = name.toLowerCase();
-      if (lower === "metal ingot" || lower === "metal ingot or scrap metal ingot") return "Metal Ingots";
-      if (lower === "metal or scrap metal" || lower === "scrap metal" || lower === "metal") return "Metal";
-      if (lower === "wood or fungal wood" || lower === "fungal wood" || lower === "corrupted wood" || lower === "wood") return "Wood";
-      if (lower === "chitin or keratin" || lower === "chitin" || lower === "keratin") return "Chitin";
-      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer" || lower === "organic polymer or corrupted nodule" || lower === "organic polymer" || lower === "corrupted nodule" || lower === "polymer") return "Polymer";
-      if (lower === "cementing paste or achatina paste" || lower === "achatina paste" || lower === "cementing paste") return "Cementing Paste";
-      if (lower === "crystal or primal crystal") return "Crystal";
-      if (lower === "pelt, hair, or wool") return "Pelt";
-      if (lower === "silica pearls or silicate") return "Silica Pearls";
-      if (lower === "black pearl") return "Black Pearls";
-      if (lower.includes("gem")) {
-        if (lower.includes("blue")) return "Blue Gems";
-        if (lower.includes("red")) return "Red Gems";
-        if (lower.includes("green")) return "Green Gems";
-      }
-      return name;
+      return String(name).trim();
     }
 
     function formatMetalIngot(amount) {
@@ -464,8 +468,7 @@
       const engramLevel = Math.max(0, Number(engramInput || 0));
       const tiers = materialTiers || {};
       const rawMaterialMetal = normalizeRecipeDraft(recipe).reduce((sum, row) => {
-        const normalized = normalizeMaterial(row.material);
-        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
+        const rate = getMaterialRate(row.material, tiers);
         return sum + row.qty * rate;
       }, 0);
       const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
@@ -838,11 +841,9 @@
       const recipe = normalizeRecipeDraft(draft.recipe);
       const tiers = materialTiers || {};
       const rawMaterialMetal = recipe.reduce((sum, row) => {
-        const normalized = normalizeMaterial(row.material);
-        const rate = (tiers[normalized] !== undefined) ? tiers[normalized] : (tiers[row.material] || 0);
+        const rate = getMaterialRate(row.material, tiers);
         return sum + row.qty * rate;
-      }, 0);
-      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
+      }, 0);      const roundedMaterialMetal = Math.ceil(rawMaterialMetal);
       const materialValue = roundedMaterialMetal * 2;
       const engramValue = (formula?.engramLevel || 0) * 2;
       const ignoredEngram = engramValue > materialValue;
