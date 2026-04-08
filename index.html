@@ -438,11 +438,11 @@
       name = String(name).trim();
       const lower = name.toLowerCase();
       if (lower === "metal ingot" || lower === "metal ingot or scrap metal ingot") return "Metal Ingots";
-      if (lower === "raw metal" || lower === "metal or scrap metal" || lower === "scrap metal") return "Metal";
-      if (lower === "wood or fungal wood" || lower === "fungal wood") return "Wood";
-      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer") return "Polymer";
-      if (lower === "organic polymer or corrupted nodule") return "Organic Polymer";
-      if (lower === "cementing paste or achatina paste") return "Cementing Paste";
+      if (lower === "metal or scrap metal" || lower === "scrap metal" || lower === "metal") return "Metal";
+      if (lower === "wood or fungal wood" || lower === "fungal wood" || lower === "corrupted wood" || lower === "wood") return "Wood";
+      if (lower === "chitin or keratin" || lower === "chitin" || lower === "keratin") return "Chitin";
+      if (lower === "polymer, organic polymer, or corrupted nodule" || lower === "polymer or organic polymer" || lower === "organic polymer or corrupted nodule" || lower === "organic polymer" || lower === "corrupted nodule" || lower === "polymer") return "Polymer";
+      if (lower === "cementing paste or achatina paste" || lower === "achatina paste" || lower === "cementing paste") return "Cementing Paste";
       if (lower === "crystal or primal crystal") return "Crystal";
       if (lower === "pelt, hair, or wool") return "Pelt";
       if (lower === "silica pearls or silicate") return "Silica Pearls";
