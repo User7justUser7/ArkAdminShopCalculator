@@ -1915,6 +1915,10 @@
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
+                          </div>
                         </div>
 
                         {showImport && (
