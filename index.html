@@ -723,24 +723,28 @@
     function normalizeImportedShopItem(rawItem, index, materialTiers) {
       const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
       const name = String(rawItem?.name || "").trim();
+      const category = String(rawItem?.category || "Imported").trim() || "Imported";
+      const icon = String(rawItem?.icon || rawItem?.image_url || "").trim();
+      const desc = String(rawItem?.desc || rawItem?.description || rawItem?.quote || "").trim();
       const recipeSource = Array.isArray(rawItem?.recipe) ? rawItem?.recipe : rawItem?.ingredients;
       const recipe = normalizeRecipeDraft(recipeSource).map((row) => ({
         material: normalizeMaterial(row.material),
         qty: Number(row.qty || 0)
       }));
       const engram = Math.max(0, Number(rawItem?.engram_level ?? rawItem?.engram ?? 0));
-      const formula = computeFormulaPrice(recipe, engram, materialTiers, 1);
+      const yieldValue = Math.max(1, Number(rawItem?.yield ?? 1));
+      const formula = computeFormulaPrice(recipe, engram, materialTiers, yieldValue);
 
       return {
         id,
         name,
-        category: "Imported",
-        icon: "",
-        desc: "",
+        category,
+        icon,
+        desc,
         fixed: false,
         price: formula.price,
         engram,
-        yield: 1,
+        yield: yieldValue,
         recipe
       };
     }
