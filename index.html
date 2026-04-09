@@ -721,48 +721,26 @@
     }
 
     function normalizeImportedShopItem(rawItem, index, materialTiers) {
-      const fixed = Boolean(rawItem?.fixed);
       const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
       const name = String(rawItem?.name || "").trim();
-      const category = String(rawItem?.category || "Imported").trim() || "Imported";
-      const icon = String(rawItem?.icon ?? "").trim();
-      const desc = String(rawItem?.desc || "").trim();
-
-      const recipe = normalizeRecipeDraft(rawItem?.recipe).map((row) => ({
+      const recipeSource = Array.isArray(rawItem?.recipe) ? rawItem?.recipe : rawItem?.ingredients;
+      const recipe = normalizeRecipeDraft(recipeSource).map((row) => ({
         material: normalizeMaterial(row.material),
         qty: Number(row.qty || 0)
       }));
-
-      if (fixed) {
-        return {
-          id,
-          name,
-          category,
-          icon,
-          desc,
-          fixed: true,
-          price: Math.max(0, Number(rawItem?.price || 0)),
-          engram: 0,
-          yield: 1,
-          recipe: []
-        };
-      }
-
-      const engram = Math.max(0, Number(rawItem?.engram || 0));
-      const yieldVal = Math.max(1, Number(rawItem?.yield || 1));
-      const formula = computeFormulaPrice(recipe, engram, materialTiers, yieldVal);
-      const importedPrice = Math.max(0, Number(rawItem?.price || 0));
+      const engram = Math.max(0, Number(rawItem?.engram_level ?? rawItem?.engram ?? 0));
+      const formula = computeFormulaPrice(recipe, engram, materialTiers, 1);
 
       return {
         id,
         name,
-        category,
-        icon,
-        desc,
+        category: "Imported",
+        icon: "",
+        desc: "",
         fixed: false,
-        price: formula.price > 0 ? formula.price : importedPrice,
+        price: formula.price,
         engram,
-        yield: yieldVal,
+        yield: 1,
         recipe
       };
     }
@@ -1617,7 +1595,18 @@
       }
 
       function exportShopList() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
+        const exportItems = items
+          .filter((item) => !item.fixed)
+          .map((item) => ({
+            name: item.name,
+            engram_level: Math.max(0, Number(item.engram || 0)),
+            recipe: normalizeRecipeDraft(item.recipe).map((row) => ({
+              material: normalizeMaterial(row.material),
+              qty: Number(row.qty || 0)
+            }))
+          }));
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportItems, null, 2));
         const downloadAnchorNode = document.createElement("a");
         downloadAnchorNode.setAttribute("href", dataStr);
         downloadAnchorNode.setAttribute("download", "ark_shoplist_export.json");
@@ -1637,11 +1626,11 @@
           const normalized = normalizeImportedShopList(parsed, materialTiers);
 
           const confirmed = window.confirm(
-            `Replace the current live shop list with ${normalized.length} imported items?`
+            `Replace the current live shop list with ${normalized.length} imported recipe items?`
           );
           if (!confirmed) return;
 
-          const ok = await persistItems(normalized, `Imported ${normalized.length} shop items.`);
+          const ok = await persistItems(normalized, `Imported ${normalized.length} recipe items.`);
           if (ok) {
             setEditItem(null);
             setNewItem(emptyItemDraft());
@@ -2105,13 +2094,13 @@
                             Total Items: {items.length}
                           </span>
                           <button style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }} onClick={exportShopList}>
-                            Export Shop List
+                            Export Recipe List
                           </button>
                           <button
                             style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
                             onClick={() => shopListImportRef.current?.click()}
                           >
-                            Import Shop List
+                            Import Recipe List
                           </button>
                         </div>
 
