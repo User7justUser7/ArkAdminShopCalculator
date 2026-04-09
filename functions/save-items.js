@@ -21,22 +21,24 @@ function jsonResponse(body, status = 200) {
 function normalizeRecipe(recipe) {
   if (!Array.isArray(recipe)) return [];
   return recipe
-    .map(row => ({
+    .map((row) => ({
       material: String(row?.material || '').trim(),
       qty: Number(row?.qty || 0)
     }))
-    .filter(row => row.material && row.qty > 0);
+    .filter((row) => row.material && row.qty > 0);
 }
 
 function normalizeItem(rawItem) {
+  const fixed = Boolean(rawItem?.fixed);
   return {
     id: String(rawItem?.id || '').trim(),
     name: String(rawItem?.name || '').trim(),
     category: String(rawItem?.category || '').trim(),
-    icon: String(rawItem?.icon || '📦').trim(),
+    icon: String(rawItem?.icon ?? '').trim(),
     price: Number(rawItem?.price || 0),
-    fixed: Boolean(rawItem?.fixed),
+    fixed,
     engram: Number(rawItem?.engram || 0),
+    yield: fixed ? 1 : Math.max(1, Number(rawItem?.yield || 1)),
     recipe: normalizeRecipe(rawItem?.recipe),
     desc: String(rawItem?.desc || '').trim()
   };
@@ -52,7 +54,7 @@ export async function onRequestPost({ env, request }) {
 
     const items = body.items
       .map(normalizeItem)
-      .filter(item => item.id && item.name && item.category && item.price >= 0);
+      .filter((item) => item.id && item.name && item.category && item.price >= 0);
 
     if (items.length === 0) {
       return jsonResponse({ error: 'No valid items to save' }, 400);
