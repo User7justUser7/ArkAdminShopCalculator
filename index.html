@@ -724,6 +724,7 @@
       const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
       const name = String(rawItem?.name || "").trim();
       const category = String(rawItem?.category || "Imported").trim() || "Imported";
+      const wikiType = String(rawItem?.wiki_type || "").trim();
       const icon = String(rawItem?.icon || rawItem?.image_url || "").trim();
       const desc = String(rawItem?.desc || rawItem?.description || rawItem?.quote || "").trim();
       const recipeSource = Array.isArray(rawItem?.recipe) ? rawItem?.recipe : rawItem?.ingredients;
@@ -739,6 +740,7 @@
         id,
         name,
         category,
+        wiki_type: wikiType,
         icon,
         desc,
         fixed: false,
