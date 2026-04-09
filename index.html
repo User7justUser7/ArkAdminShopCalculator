@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -494,9 +493,7 @@
 
     function parseTextRecipe(text) {
       if (!text) return [];
-      const lines = text.split(/
-?
-/); // Corrected regex for newline splitting
+      const lines = text.split(/\n/);
       const rows = [];
       lines.forEach(line => {
         const trimmed = line.trim();
@@ -721,6 +718,69 @@
         yield: Number(draft.yield || 1),
         recipe
       };
+    }
+
+    function normalizeImportedShopItem(rawItem, index, materialTiers) {
+      const fixed = Boolean(rawItem?.fixed);
+      const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
+      const name = String(rawItem?.name || "").trim();
+      const category = String(rawItem?.category || "Imported").trim() || "Imported";
+      const icon = String(rawItem?.icon ?? "").trim();
+      const desc = String(rawItem?.desc || "").trim();
+
+      const recipe = normalizeRecipeDraft(rawItem?.recipe).map((row) => ({
+        material: normalizeMaterial(row.material),
+        qty: Number(row.qty || 0)
+      }));
+
+      if (fixed) {
+        return {
+          id,
+          name,
+          category,
+          icon,
+          desc,
+          fixed: true,
+          price: Math.max(0, Number(rawItem?.price || 0)),
+          engram: 0,
+          yield: 1,
+          recipe: []
+        };
+      }
+
+      const engram = Math.max(0, Number(rawItem?.engram || 0));
+      const yieldVal = Math.max(1, Number(rawItem?.yield || 1));
+      const formula = computeFormulaPrice(recipe, engram, materialTiers, yieldVal);
+      const importedPrice = Math.max(0, Number(rawItem?.price || 0));
+
+      return {
+        id,
+        name,
+        category,
+        icon,
+        desc,
+        fixed: false,
+        price: formula.price > 0 ? formula.price : importedPrice,
+        engram,
+        yield: yieldVal,
+        recipe
+      };
+    }
+
+    function normalizeImportedShopList(rawItems, materialTiers) {
+      if (!Array.isArray(rawItems)) {
+        throw new Error("Shop list JSON must be an array.");
+      }
+
+      const normalized = rawItems
+        .map((item, index) => normalizeImportedShopItem(item, index, materialTiers))
+        .filter((item) => item.id && item.name && item.category);
+
+      if (normalized.length === 0) {
+        throw new Error("No valid items found in imported shop list.");
+      }
+
+      return normalized;
     }
 
     function updateDraft(setter, field, value) {
@@ -1084,9 +1144,7 @@
                 <label style={labelStyle}>Import Text Recipe</label>
                 <div style={{ display: "grid", gap: "6px", marginBottom: "8px" }}>
                   <textarea
-                    placeholder={"Paste recipe here, e.g.:
-16 \u00d7 Metal Ingot
-12 \u00d7 Hide"}
+                    placeholder={"Paste recipe here, e.g.:\n16 \u00d7 Metal Ingot\n12 \u00d7 Hide"}
                     style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem" }}
                     id={importId}
                   />
@@ -1202,6 +1260,7 @@
       const [newItem, setNewItem] = useState(() => emptyItemDraft());
       const [editItem, setEditItem] = useState(null);
       const [renamingMat, setRenamingMat] = useState(null); // { oldName: string, newName: string }
+      const shopListImportRef = React.useRef(null);
 
       const [calcDraft, setCalcDraft] = useState({
         fixed: false,
@@ -1557,11 +1616,46 @@
         setRenamingMat(null);
       }
 
+      function exportShopList() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
+        const downloadAnchorNode = document.createElement("a");
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "ark_shoplist_export.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }
+
+      async function importShopListFile(event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = "";
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const normalized = normalizeImportedShopList(parsed, materialTiers);
+
+          const confirmed = window.confirm(
+            `Replace the current live shop list with ${normalized.length} imported items?`
+          );
+          if (!confirmed) return;
+
+          const ok = await persistItems(normalized, `Imported ${normalized.length} shop items.`);
+          if (ok) {
+            setEditItem(null);
+            setNewItem(emptyItemDraft());
+          }
+        } catch (error) {
+          setSaveStatus({ type: "error", message: error.message || "Invalid shop list JSON." });
+        }
+      }
+
       function exportMaterials() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(editMaterials, null, 2));
         const downloadAnchorNode = document.createElement("a");
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "ark_shoplist_export.json"); // Changed filename here
+        downloadAnchorNode.setAttribute("download", "materials.json");
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
@@ -1916,7 +2010,7 @@
                           <span style={{ color: C.accent, fontWeight: 700 }}>{(item.price * item.qty).toLocaleString()} {currency}</span>
                         </div>
                       ))}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "10px", gap: "8px", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "8px", gap: "8px", flexWrap: "wrap" }}>
                         <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
                         <TotalAmount amount={cartTotal} isMobile={isMobile} currency={currency} />
                       </div>
@@ -1992,10 +2086,43 @@
                     {adminTab === "items" && (
                       <div style={sectionStyle}>
                         <div style={{ ...sectionTitleStyle, display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <span>Items: {items.length}</span>
+                          <span>Items</span>
                           <span style={{ color: saveStatus.type === "error" ? C.red : saveStatus.type === "saved" ? C.green : C.dim, fontSize: "0.72rem" }}>
                             {itemsSaving ? "Saving to Cloudflare..." : saveStatus.message || "Ready"}
                           </span>
+                        </div>
+
+                        <input
+                          ref={shopListImportRef}
+                          type="file"
+                          accept=".json,application/json"
+                          style={{ display: "none" }}
+                          onChange={importShopListFile}
+                        />
+
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", marginBottom: "12px" }}>
+                          <span style={{ color: C.accentDark, fontWeight: 700, fontSize: "0.85rem" }}>
+                            Total Items: {items.length}
+                          </span>
+                          <button style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }} onClick={exportShopList}>
+                            Export Shop List
+                          </button>
+                          <button
+                            style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
+                            onClick={() => shopListImportRef.current?.click()}
+                          >
+                            Import Shop List
+                          </button>
+                        </div>
+
+                        <div style={{ marginBottom: "12px" }}>
+                          <label style={labelStyle}>Search Items</label>
+                          <input
+                            style={inputStyle}
+                            placeholder="Search name, category, or description..."
+                            value={itemSearch}
+                            onChange={(e) => setItemSearch(e.target.value)}
+                          />
                         </div>
 
                         <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
@@ -2003,202 +2130,181 @@
                         <div style={{ display: "flex", gap: "6px", marginTop: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
                           <button style={btn("primary")} onClick={addItem} disabled={itemsSaving}>Add Item</button>
                           <button style={btn("secondary")} onClick={() => setNewItem(emptyItemDraft())} disabled={itemsSaving}>Clear</button>
-                          
-                          {/* Export Button */}
-                          <button 
-                            style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem", marginLeft: "auto" }}
-                            onClick={() => {
-                              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
-                              const downloadAnchorNode = document.createElement("a");
-                              downloadAnchorNode.setAttribute("href", dataStr);
-                              downloadAnchorNode.setAttribute("download", "ark_shoplist_export.json"); // Changed filename here
-                              document.body.appendChild(downloadAnchorNode);
-                              downloadAnchorNode.click();
-                              downloadAnchorNode.remove();
-                            }}
-                          >
-                            Export Items
-                          </button>
-
-                          {/* Import Button */}
-                          <input
-                            type="file"
-                            id="import-file-input"
-                            style={{ display: 'none' }}
-                            accept=".json"
-                            onChange={async (e) => {
-                              if (e.target.files.length > 0) {
-                                const file = e.target.files[0];
-                                const reader = new FileReader();
-                                reader.onload = async (event) => {
-                                  try {
-                                    const importedItems = JSON.parse(event.target.result);
-                                    if (Array.isArray(importedItems)) {
-                                      const validatedItems = importedItems.filter(item => item.name && item.recipe); // Basic validation
-                                      const ok = await persistItems(validatedItems, `Imported ${validatedItems.length} items.`);
-                                      if (ok) {
-                                        setNewItem(emptyItemDraft()); // Reset form
-                                        setEditItem(null); // Clear any edit
-                                      }
-                                    } else {
-                                      alert("Invalid file format. Please provide a JSON array of items.");
-                                    }
-                                  } catch (err) {
-                                    alert("Error parsing JSON file.");
-                                  }
-                                };
-                                reader.readAsText(file);
-                                e.target.value = ''; // Reset file input
-                              }
-                            }}
-                          />
-                          <button
-                            style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
-                            onClick={() => document.getElementById('import-file-input').click()}
-                          >
-                            Import Items
-                          </button>
                         </div>
 
-                        <input
-                          type="text"
-                          style={{ ...inputStyle, marginTop: "6px" }}
-                          placeholder="Search items to edit/delete..."
-                          value={itemSearch}
-                          onChange={(e) => setItemSearch(e.target.value)}
-                        />
-
-                        <div style={{ maxHeight: "500px", overflowY: "auto", marginTop: "10px" }}>
-                          {adminFilteredItems.length === 0 ? (
-                            <div style={{ textAlign: "center", color: C.mute, padding: "20px" }}>No items found.</div>
-                          ) : (
-                            adminFilteredItems.map((item) => (
-                              <div key={item.id} style={{ display: "grid", gridTemplateColumns: "42px 1fr 100px 60px", gap: "8px", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${C.border}`, background: editItem?.id === item.id ? C.bg3 : "transparent", paddingLeft: "4px", paddingRight: "4px", borderRadius: "3px" }}>
-                                <ItemIcon icon={item.icon} size={32} />
-                                <span style={{ fontSize: "0.8rem", fontFamily: "'Cinzel', serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</span>
-                                <span style={{ fontSize: "0.75rem", color: C.dim }}>{item.category}</span>
-                                <div style={{ display: "flex", gap: "4px", justifyContent: "flex-end" }}>
-                                  <button style={{ ...btn("secondary"), padding: "3px 6px", fontSize: "0.7rem" }} onClick={() => setEditItem(toEditableItem(item))}>Edit</button>
-                                  <button style={{ ...btn("danger"), padding: "3px 6px", fontSize: "0.7rem" }} onClick={() => deleteItem(item.id)}>Delete</button>
+                        {adminFilteredItems.map((item) => (
+                          <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
+                            {editItem?.id === item.id ? (
+                              <div style={{ display: "grid", gap: "10px" }}>
+                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
+                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                  <button style={btn("primary")} onClick={saveEdit} disabled={itemsSaving}>Save</button>
+                                  <button style={btn("secondary")} onClick={() => setEditItem(null)} disabled={itemsSaving}>Cancel</button>
                                 </div>
                               </div>
-                            ))
-                          )}
-                        </div>
+                            ) : (
+                              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "42px minmax(0,1fr) auto auto", gap: "8px", alignItems: "center" }}>
+                                <ItemIcon icon={item.icon} size={34} />
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: "0.9rem" }}><strong>{item.name}</strong></div>
+                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>{item.category} - {item.fixed ? "Fixed" : `Formula - Lvl ${item.engram}`}</div>
+                                  {item.desc ? <div style={{ color: C.dim, fontSize: "0.74rem" }}>{item.desc}</div> : null}
+                                </div>
+                                <div style={{ color: C.accent, fontWeight: 700, fontSize: "0.85rem", whiteSpace: "nowrap" }}>{item.price} {currency}</div>
+                                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                                  <button style={{ ...btn("secondary"), padding: "2px 6px", fontSize: "0.7rem" }} onClick={() => setEditItem(toEditableItem(item))} disabled={itemsSaving}>Edit</button>
+                                  <button style={{ ...btn("danger"), padding: "2px 6px", fontSize: "0.7rem" }} onClick={() => deleteItem(item.id)} disabled={itemsSaving}>Del</button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
 
                     {adminTab === "calc" && (
                       <div style={sectionStyle}>
-                        <div style={sectionTitleStyle}>Formula Calculator</div>
-                        <DraftEditor draft={calcDraft} setDraft={setCalcDraft} formula={calcFormula} currency={currency} materialTiers={materialTiers} />
-                        <div style={{ marginTop: "16px" }}>
-                          <button style={{ ...btn("primary"), padding: "6px 12px" }} onClick={() => setCalcDraft(calcFormula)}>Recalculate</button>
+                        <div style={sectionTitleStyle}>Calculator</div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
+                          <button style={btn(calcDraft.fixed ? "secondary" : "primary")} onClick={() => setCalcDraft((current) => ({ ...current, fixed: false }))}>Formula</button>
+                          <button style={btn(calcDraft.fixed ? "primary" : "secondary")} onClick={() => setCalcDraft((current) => ({ ...current, fixed: true }))}>Fixed</button>
                         </div>
+                        {calcDraft.fixed ? (
+                          <div style={{ maxWidth: "200px", marginBottom: "10px" }}>
+                            <label style={labelStyle}>Price</label>
+                            <input type="number" min="0" style={inputStyle} value={calcDraft.price} onChange={(e) => updateDraft(setCalcDraft, "price", e.target.value)} />
+                          </div>
+                        ) : (
+                          <div style={{ display: "grid", gap: "8px", marginBottom: "10px" }}>
+                            <div style={{ maxWidth: "200px" }}>
+                              <label style={labelStyle}>Engram Level</label>
+                              <input type="number" min="0" style={inputStyle} value={calcDraft.engram} onChange={(e) => updateDraft(setCalcDraft, "engram", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={labelStyle}>Recipe</label>
+                              <RecipeEditor recipe={calcDraft.recipe} onChange={(value) => updateDraftRecipe(setCalcDraft, value)} allMaterials={allMaterials} />
+                            </div>
+                          </div>
+                        )}
+                        <DraftPricing draft={calcDraft} formula={calcFormula} currency={currency} materialTiers={materialTiers} />
                       </div>
                     )}
 
                     {adminTab === "settings" && (
                       <div style={sectionStyle}>
-                        <div style={sectionTitleStyle}>General Settings</div>
+                        <div style={sectionTitleStyle}>Settings</div>
+                        
+                        <div style={{ marginBottom: "20px" }}>
+                          <label style={labelStyle}>Currency Name</label>
+                          <input style={{ ...inputStyle, maxWidth: "240px" }} value={editCurrency} onChange={(e) => setEditCurrency(e.target.value)} />
+                        </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "140px 1fr", gap: "10px", marginBottom: "16px", alignItems: "center" }}>
-                          <div>
-                            <label style={labelStyle}>Shop Currency</label>
-                            <select
-                              style={{ ...inputStyle, height: "34px" }}
-                              value={editCurrency}
-                              onChange={(e) => setEditCurrency(e.target.value)}
-                            >
-                              <option value="Metal Ingots">Metal Ingots</option>
-                              <option value="Ark Crystals">Ark Crystals</option>
-                              <option value="Gacha Crystals">Gacha Crystals</option>
-                            </select>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
+                          <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
                           </div>
                         </div>
 
-                        <div style={{ marginBottom: "16px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                            <label style={labelStyle}>Material Pricing</label>
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              <button style={btn("secondary")} onClick={exportMaterials}>Export</button>
-                              <button style={btn("secondary")} onClick={() => setShowImport(true)}>Import</button>
+                        {showImport && (
+                          <div style={{ marginBottom: "12px", background: "#f0f4f4", padding: "10px", border: `1px solid ${C.border}` }}>
+                            <label style={{ ...labelStyle, marginBottom: "4px" }}>Paste Materials JSON here:</label>
+                            <textarea 
+                              style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem", marginBottom: "8px" }}
+                              value={importText}
+                              onChange={(e) => setImportText(e.target.value)}
+                              placeholder='{ "Wood": 0.05, ... }'
+                            />
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button style={{ ...btn("primary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => { importMaterials(importText); setShowImport(false); setImportText(""); }}>Apply Import</button>
+                              <button style={{ ...btn("secondary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => setShowImport(false)}>Cancel</button>
                             </div>
                           </div>
-                          {showImport && (
-                            <div style={{ marginBottom: "8px", border: `1px solid ${C.border2}`, padding: "8px", background: C.white }}>
-                              <textarea
-                                placeholder="Paste JSON materials here..."
-                                style={{ ...inputStyle, height: "100px", fontFamily: "monospace", fontSize: "0.75rem", marginBottom: "6px" }}
-                                value={importText}
-                                onChange={(e) => setImportText(e.target.value)}
-                              />
-                              <button style={btn("primary")} onClick={() => importMaterials(importText)}>Apply Import</button>
-                              <button style={{ ...btn("ghost"), marginLeft: "4px" }} onClick={() => setShowImport(false)}>Cancel</button>
-                            </div>
-                          )}
-                          <div style={{ maxHeight: "300px", overflowY: "auto", border: `1px solid ${C.border2}`, background: C.white, padding: "8px", fontSize: "0.78rem" }}>
-                            {Object.entries(editMaterials).map(([name, cost]) => (
-                              <div key={name} style={{ display: "grid", gridTemplateColumns: "1fr 70px 40px", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
-                                {renamingMat?.oldName === name ? (
-                                  <input
-                                    style={{ ...inputStyle, fontSize: "0.78rem", padding: "3px 5px" }}
-                                    value={renamingMat.newName}
-                                    onChange={(e) => setRenamingMat({ oldName: name, newName: e.target.value })}
-                                    onBlur={commitRename}
-                                    onKeyDown={(e) => e.key === "Enter" && commitRename()}
-                                    autoFocus
-                                  />
+                        )}
+
+                        <div style={{ 
+                          display: "grid", 
+                          gap: "8px", 
+                          maxHeight: "350px", 
+                          overflowY: "auto", 
+                          paddingRight: "8px",
+                          border: `1px solid ${C.border}`,
+                          padding: "8px",
+                          background: "#fdfdfd",
+                          marginBottom: "16px"
+                        }}>
+                          {Object.keys(editMaterials).sort().map((mat) => {
+                            const isRenaming = renamingMat?.oldName === mat;
+                            return (
+                              <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
+                                {isRenaming ? (
+                                  <div style={{ display: "flex", gap: "4px" }}>
+                                    <input 
+                                      autoFocus
+                                      style={{ ...inputStyle, flex: 1 }} 
+                                      value={renamingMat.newName} 
+                                      onChange={(e) => setRenamingMat({ ...renamingMat, newName: e.target.value })}
+                                      onKeyDown={(e) => e.key === "Enter" && commitRename()}
+                                    />
+                                    <button 
+                                      style={{ ...btn("primary"), padding: "4px 8px", fontSize: "0.7rem" }} 
+                                      onClick={commitRename}
+                                    >
+                                      Enter
+                                    </button>
+                                  </div>
                                 ) : (
-                                  <span style={{ cursor: "pointer", textDecoration: "underline", color: C.accent }} onClick={() => setRenamingMat({ oldName: name, newName: name })}>{name}</span>
+                                  <div 
+                                    style={{ fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", color: C.accentDark }}
+                                    onClick={() => setRenamingMat({ oldName: mat, newName: mat })}
+                                  >
+                                    {mat}
+                                  </div>
                                 )}
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  style={{ ...inputStyle, fontSize: "0.78rem", padding: "3px 5px" }}
-                                  value={cost}
+                                <input 
+                                  type="number" 
+                                  step="any"
+                                  style={inputStyle} 
+                                  value={editMaterials[mat]} 
                                   onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    setEditMaterials(prev => ({ ...prev, [name]: Number.isNaN(val) ? 0 : val }));
-                                  }}
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setEditMaterials(prev => ({ ...prev, [mat]: val }));
+                                  }} 
                                 />
-                                <button
-                                  style={{ ...btn("danger"), padding: "3px 5px", fontSize: "0.7rem" }}
+                                <button 
+                                  style={{ ...btn("danger"), padding: "4px" }} 
                                   onClick={() => {
-                                    setEditMaterials(prev => {
-                                      const next = { ...prev };
-                                      delete next[name];
-                                      return next;
-                                    });
+                                    if (confirm(`Delete material "${mat}"?`)) {
+                                      const next = { ...editMaterials };
+                                      delete next[mat];
+                                      setEditMaterials(next);
+                                    }
                                   }}
                                 >
-                                  Remove
+                                  X
                                 </button>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div style={{ marginTop: "16px" }}>
-                          <input
-                            type="text"
-                            placeholder="Add New Material (e.g., 'Stone')"
-                            style={inputStyle}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && e.target.value.trim()) {
-                                const name = e.target.value.trim();
-                                setEditMaterials(prev => ({ ...prev, [name]: 1.0 }));
-                                e.target.value = "";
-                              }
+                            );
+                          })}
+                          <button 
+                            style={{ ...btn("secondary"), padding: "6px", fontSize: "0.75rem", borderStyle: "dashed" }}
+                            onClick={() => {
+                              const newName = `New Material ${Object.keys(editMaterials).length + 1}`;
+                              setEditMaterials(prev => ({ ...prev, [newName]: 0 }));
+                              setRenamingMat({ oldName: newName, newName: newName });
                             }}
-                          />
+                          >
+                            + Add New Material Row
+                          </button>
                         </div>
 
-                        <div style={{ marginTop: "20px" }}>
-                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>
-                            {itemsSaving ? "Saving..." : "Save All Settings"}
-                          </button>
+                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
+                          {saveStatus.type === "saved" && (
+                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
+                          )}
+                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
                         </div>
                       </div>
                     )}
@@ -2211,9 +2317,7 @@
       );
     }
 
-    const rootElement = document.getElementById("root");
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(<App />);
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 </html>
