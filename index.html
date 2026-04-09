@@ -935,11 +935,8 @@
               );
             })}
             <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Sum Total: {rawTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(rawTotal)}
-              {totalRounded !== rawTotal && ` (rounded up to ${totalRounded.toLocaleString()})`}
-            </div>
-            <div style={{ fontWeight: 700 }}>
-              Total Materials: {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
+              Total Materials: {totalRounded !== rawTotal && `(Rounded up from ${rawTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}) `}
+              {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
             </div>
           </div>
 
