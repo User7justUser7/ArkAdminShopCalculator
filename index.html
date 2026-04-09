@@ -495,7 +495,8 @@
     function parseTextRecipe(text) {
       if (!text) return [];
       const lines = text.split(/
-/);
+?
+/); // Corrected regex for newline splitting
       const rows = [];
       lines.forEach(line => {
         const trimmed = line.trim();
