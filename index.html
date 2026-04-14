@@ -736,6 +736,9 @@
       const yieldValue = Math.max(1, Number(rawItem?.yield ?? 1));
       const formula = computeFormulaPrice(recipe, engram, materialTiers, yieldValue);
 
+      const isFixed = Boolean(rawItem?.fixed);
+      const jsonPrice = Number(rawItem?.price || 0);
+
       return {
         id,
         name,
@@ -743,12 +746,13 @@
         wiki_type: wikiType,
         icon,
         desc,
-        fixed: false,
-        price: formula.price,
+        fixed: isFixed,
+        price: isFixed ? jsonPrice : formula.price,
         engram,
         yield: yieldValue,
         recipe
       };
+
     }
 
     function normalizeImportedShopList(rawItems, materialTiers) {
@@ -1245,6 +1249,7 @@
       const [editItem, setEditItem] = useState(null);
       const [renamingMat, setRenamingMat] = useState(null); // { oldName: string, newName: string }
       const shopListImportRef = React.useRef(null);
+      const materialsImportRef = React.useRef(null);
 
       const [calcDraft, setCalcDraft] = useState({
         fixed: false,
@@ -1646,6 +1651,24 @@
         }
       }
 
+      async function importMaterialsFile(event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = "";
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+            throw new Error("Materials JSON must be a key-value object.");
+          }
+          setEditMaterials(parsed);
+          alert("Imported! Don't forget to 'Save All Settings' at the bottom to persist these changes.");
+        } catch (error) {
+          alert("Error: " + (error.message || "Invalid materials JSON file."));
+        }
+      }
+
       function exportMaterials() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(editMaterials, null, 2));
         const downloadAnchorNode = document.createElement("a");
@@ -1655,20 +1678,6 @@
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
       }
-
-      function importMaterials(jsonStr) {
-        try {
-          const parsed = JSON.parse(jsonStr);
-          if (typeof parsed !== "object" || parsed === null) throw new Error();
-          setEditMaterials(parsed);
-          alert("Imported! Don't forget to Save All Settings to persist to KV.");
-        } catch (e) {
-          alert("Invalid JSON format.");
-        }
-      }
-
-      const [importText, setImportText] = useState("");
-      const [showImport, setShowImport] = useState(false);
 
       const shopName = "247 Always Online";
       const cartButtonLabel = `Cart (Total Metal Ingots: ${cartTotal.toLocaleString()})`;
@@ -2198,26 +2207,16 @@
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
                           <div style={{ display: "flex", gap: "6px" }}>
                             <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
-                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setShowImport(!showImport)}>Import JSON</button>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => materialsImportRef.current.click()}>Import JSON</button>
+                            <input
+                              type="file"
+                              ref={materialsImportRef}
+                              style={{ display: "none" }}
+                              accept=".json"
+                              onChange={importMaterialsFile}
+                            />
                           </div>
                         </div>
-
-                        {showImport && (
-                          <div style={{ marginBottom: "12px", background: "#f0f4f4", padding: "10px", border: `1px solid ${C.border}` }}>
-                            <label style={{ ...labelStyle, marginBottom: "4px" }}>Paste Materials JSON here:</label>
-                            <textarea 
-                              style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem", marginBottom: "8px" }}
-                              value={importText}
-                              onChange={(e) => setImportText(e.target.value)}
-                              placeholder='{ "Wood": 0.05, ... }'
-                            />
-                            <div style={{ display: "flex", gap: "6px" }}>
-                              <button style={{ ...btn("primary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => { importMaterials(importText); setShowImport(false); setImportText(""); }}>Apply Import</button>
-                              <button style={{ ...btn("secondary"), padding: "4px 12px", fontSize: "0.75rem" }} onClick={() => setShowImport(false)}>Cancel</button>
-                            </div>
-                          </div>
-                        )}
-
                         <div style={{ 
                           display: "grid", 
                           gap: "8px", 
