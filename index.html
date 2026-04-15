@@ -1872,15 +1872,15 @@
             </div>
 
             <div style={{ textAlign: "left", marginBottom: "25px" }}>
-              <label style={labelStyle}>Login Code / Admin Password</label>
-              <input
-                id="user-login-code"
-                style={inputStyle}
+              <label style={labelStyle}>Login Code / Password</label>
+              <input 
+                id="login-code-input"
+                style={inputStyle} 
                 type="password"
-                value={userCode}
+                value={userCode} 
                 onChange={(e) => setUserCode(e.target.value)}
-                placeholder="Enter Code"
                 onKeyDown={(e) => e.key === "Enter" && attemptLogin(userDiscord, userCode)}
+                placeholder="Enter Code"
               />
             </div>
 
@@ -2432,3 +2432,9 @@
           </div>
         </div>
       );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
