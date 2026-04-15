@@ -1307,6 +1307,12 @@
             setUserDiscord(name);
             setUserCode(code);
             setIsAuthenticated(true);
+
+            // Automatically promote to Admin if this is the master Discord user
+            if (data.isAdmin) {
+              sessionStorage.setItem("ark_admin", "yes");
+              setAdminUnlocked(true);
+            }
           } else {
             setLoginError(data.error || "Invalid login.");
           }
@@ -1320,9 +1326,11 @@
       function logout() {
         localStorage.removeItem("ark_user_discord");
         localStorage.removeItem("ark_user_code");
+        sessionStorage.removeItem("ark_admin");
         setUserDiscord("");
         setUserCode("");
         setIsAuthenticated(false);
+        setAdminUnlocked(false);
         setView("shop");
       }
 
@@ -1770,10 +1778,11 @@
         const orderTotal = hydratedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
         const orderId = getOrderIdFromHash();
 
-        // Security check: Only the person who made the order can see it
+        // Security check: Only the person who made the order (or an Admin) can see it
         const isOwner = isLoggedIn && (orderView.discordUsername === userDiscord);
+        const canView = isOwner || adminUnlocked;
         
-        if (!isOwner) {
+        if (!canView) {
           return (
             <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ textAlign: "center", background: C.bg2, padding: "40px", border: `2px solid ${C.red}`, borderRadius: "8px" }}>
@@ -1885,7 +1894,7 @@
             </button>
 
             <div style={{ marginTop: "20px", fontSize: "0.85rem", color: C.dim }}>
-              Don't have a code? Type <strong>!register</strong> in our Discord server.
+              Don't have a code? Type <strong>/register</strong> in our Discord server.
             </div>
           </div>
         </div>
@@ -2411,20 +2420,4 @@
                           {saveStatus.type === "saved" && (
                             <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
                           )}
-                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
-</html>
+                          {itemsSaving && <span style={
