@@ -19,7 +19,9 @@ export async function onRequestPost({ env, request }) {
       return new Response(JSON.stringify({ error: 'Invalid name or 6-digit code' }), { status: 401, headers: JSON_HEADERS });
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers: JSON_HEADERS });
+    const isAdmin = env.ADMIN_DISCORD && discordName.toLowerCase() === env.ADMIN_DISCORD.toLowerCase();
+
+    return new Response(JSON.stringify({ success: true, isAdmin }), { status: 200, headers: JSON_HEADERS });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: JSON_HEADERS });
   }
