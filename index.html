@@ -1872,14 +1872,15 @@
             </div>
 
             <div style={{ textAlign: "left", marginBottom: "25px" }}>
-              <label style={labelStyle}>6-Digit Login Code</label>
-              <input 
-                style={inputStyle} 
+              <label style={labelStyle}>Login Code / Admin Password</label>
+              <input
+                id="user-login-code"
+                style={inputStyle}
                 type="password"
-                maxLength="6"
-                value={userCode} 
+                value={userCode}
                 onChange={(e) => setUserCode(e.target.value)}
-                placeholder="123456"
+                placeholder="Enter Code"
+                onKeyDown={(e) => e.key === "Enter" && attemptLogin(userDiscord, userCode)}
               />
             </div>
 
@@ -2431,9 +2432,3 @@
           </div>
         </div>
       );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
-</html>
