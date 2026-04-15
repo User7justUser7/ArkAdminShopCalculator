@@ -1,1490 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>247 Always Online - Admin Shop</title>
-
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #e9ebe9;
-      font-family: "Rajdhani", sans-serif;
-    }
-
-    button,
-    input,
-    select {
-      font-family: "Rajdhani", sans-serif;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .qty-input {
-      width: 60px;
-      text-align: center;
-      padding: 4px 2px;
-      font-weight: 700;
-      border: 1px solid #88a8b4;
-      background: #f4f8f8;
-      font-size: 0.95rem;
-      appearance: textfield;
-      -moz-appearance: textfield;
-    }
-
-    .qty-input::-webkit-outer-spin-button,
-    .qty-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    .top-bar {
-      background: #1a3a46;
-      padding: 10px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 50px;
-    }
-
-    .top-bar-content {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .top-bar-title {
-      font-family: "Cinzel", serif;
-      font-size: 1.3rem;
-      color: #d0e1e4;
-      font-weight: 700;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .top-bar-subtitle {
-      font-size: 0.55rem;
-      color: #7a9aa4;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-    }
-
-    .nav-bar {
-      background: #1a3a46;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 50px;
-      z-index: 99;
-      min-height: 44px;
-    }
-
-    .nav-buttons {
-      display: flex;
-      gap: 4px;
-      min-width: 0;
-      width: 100%;
-    }
-
-    .nav-btn {
-      background: transparent;
-      color: #d0e1e4;
-      border: 1px solid #7a9aa4;
-      padding: 5px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      white-space: nowrap;
-      min-width: 60px;
-      text-align: center;
-      flex: 0 1 auto;
-    }
-
-    .nav-btn.active {
-      background: #d0e1e4;
-      color: #1a3a46;
-      border-color: #d0e1e4;
-    }
-
-    .nav-btn-cart {
-      flex: 1 1 auto;
-      min-width: 145px;
-      max-width: 340px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .admin-btn {
-      background: transparent;
-      color: #7a9aa4;
-      border: 1px solid #4a6a74;
-      padding: 5px 12px;
-      font-size: 0.8rem;
-      margin-left: 8px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-
-    .admin-btn.active {
-      background: #ffffff22;
-      color: #d0e1e4;
-      border-color: #d0e1e4;
-    }
-
-    .shop-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 8px;
-    }
-
-    .shop-card {
-      background: #d0e1e4;
-      border: 2px solid #a8c0c8;
-      border-radius: 4px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      height: 320px;
-    }
-
-    .shop-card.in-cart {
-      border-color: #2a5a6a;
-    }
-
-    .card-icon {
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .card-name {
-      height: 38px;
-      font-family: "Cinzel", serif;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #1a3a46;
-      margin-top: 4px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .card-cat {
-      height: 14px;
-      font-size: 0.62rem;
-      color: #7a9aa4;
-      text-transform: uppercase;
-      flex-shrink: 0;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .card-desc {
-      height: 34px;
-      font-size: 0.72rem;
-      color: #4a6a74;
-      margin-top: 3px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .card-price {
-      min-height: 22px;
-      display: flex;
-      align-items: center;
-      font-size: 0.95rem;
-      color: #2a5a6a;
-      font-weight: 700;
-      margin-top: 4px;
-      flex-shrink: 0;
-    }
-
-    .card-price span {
-      font-size: 0.66rem;
-      color: #4a6a74;
-      margin-left: 4px;
-    }
-
-    .card-action {
-      margin-top: auto;
-      padding-top: 8px;
-      flex-shrink: 0;
-      min-height: 44px;
-    }
-
-    .list-row {
-      display: grid;
-      grid-template-columns: 40px 1fr 95px 150px;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 12px;
-      background: #d0e1e4;
-      border: 1px solid #a8c0c8;
-      border-radius: 4px;
-      min-height: 58px;
-    }
-
-    .list-row.in-cart {
-      background: #c0d4d8;
-      border-color: #2a5a6a;
-    }
-
-    .list-name {
-      font-family: "Cinzel", serif;
-      font-size: 0.78rem;
-      color: #1a3a46;
-      font-weight: 700;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    .list-cat {
-      font-size: 0.62rem;
-      color: #7a9aa4;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    .list-price {
-      text-align: right;
-      color: #2a5a6a;
-      font-weight: 700;
-      font-size: 0.82rem;
-      white-space: nowrap;
-      padding-right: 8px;
-    }
-
-    .list-qty {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .icon-frame {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      border-radius: 6px;
-      background: transparent;
-      border: none;
-      color: #1a3a46;
-      font-weight: 700;
-    }
-
-    .icon-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-
-    .icon-fallback {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      font-size: 1.3rem;
-      line-height: 1;
-    }
-
-    @media (max-width: 600px) {
-      .top-bar {
-        padding: 8px 12px;
-        height: auto;
-        min-height: 50px;
-        text-align: center;
-      }
-
-      .top-bar-content {
-        align-items: center;
-      }
-
-      .top-bar-title {
-        font-size: 1rem;
-      }
-
-      .top-bar-subtitle {
-        font-size: 0.5rem;
-      }
-
-      .nav-bar {
-        top: auto;
-        position: relative;
-        height: auto;
-        padding: 6px 8px;
-      }
-
-      .nav-btn {
-        padding: 4px 5px;
-        font-size: 0.66rem;
-        min-width: 0;
-        flex: 1;
-      }
-
-      .nav-btn-cart {
-        min-width: 0;
-        max-width: none;
-        flex: 1.35;
-        font-size: 0.6rem;
-      }
-
-      .admin-btn {
-        display: none;
-      }
-
-      .shop-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-      }
-
-      .shop-card {
-        height: 300px;
-        padding: 10px;
-      }
-
-      .card-icon {
-        height: 46px;
-      }
-
-      .card-name {
-        height: 34px;
-        font-size: 0.72rem;
-      }
-
-      .card-desc {
-        height: 38px;
-        font-size: 0.68rem;
-      }
-
-      .card-price {
-        font-size: 0.9rem;
-      }
-
-      .list-row {
-        grid-template-columns: 40px 1fr 90px;
-        padding: 8px;
-        gap: 6px;
-        min-height: 80px;
-      }
-
-      .list-row > *:nth-child(1) {
-        grid-column: 1;
-        grid-row: 1;
-      }
-
-      .list-row > *:nth-child(2) {
-        grid-column: 2;
-        grid-row: 1;
-      }
-
-      .list-row > *:nth-child(3) {
-        grid-column: 3;
-        grid-row: 1;
-      }
-
-      .list-row > *:nth-child(4) {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        justify-self: stretch;
-      }
-
-      .list-price {
-        padding-right: 0;
-        font-size: 0.8rem;
-      }
-
-      .list-qty {
-        justify-content: center;
-      }
-
-      .qty-input {
-        width: 60px;
-        padding: 3px 2px;
-        font-size: 0.9rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-
-    // Helper to find a price even if the material is part of a group (e.g. "Wood/Fungal Wood")
-    function getMaterialRate(materialName, tiers) {
-      if (!materialName || !tiers) return 0;
-      const searchName = materialName.trim().toLowerCase();
-      const searchParts = searchName.split("/").map(s => s.trim().toLowerCase()).filter(Boolean);
-
-      const keys = Object.keys(tiers);
-
-      // 1. Exact match (case insensitive)
-      const exactKey = keys.find(k => k.toLowerCase() === searchName);
-      if (exactKey !== undefined) return tiers[exactKey];
-
-      // 2. If the searchName or any tier key is a group (contains /), check for overlaps
-      const matchKey = keys.find(k => {
-        const kLower = k.toLowerCase();
-        if (kLower === searchName) return true;
-
-        const kParts = kLower.split("/").map(s => s.trim()).filter(Boolean);
-
-        // If they share any common part, it's a match
-        // e.g. searchName="Metal Ingots/Scrap Metal Ingots" matches tier key="Metal Ingots"
-        return kParts.some(kp => searchParts.includes(kp));
-      });
-
-      if (matchKey !== undefined) return tiers[matchKey];
-
-      return 0;
-    }
-    function normalizeMaterial(name) {
-      if (!name) return "";
-      name = String(name).trim();
-      const lower = name.toLowerCase();
-      
-      // Combined / Long Names requested by user
-      if (lower.includes("metal ingot") || lower.includes("scrap metal ingot")) return "Metal Ingots/Scrap Metal Ingots";
-      if (lower.includes("cementing paste") || lower.includes("achatina paste")) return "Cementing Paste/Achatina Paste";
-      if (lower.includes("polymer") || lower.includes("organic polymer") || lower.includes("corrupted nodule")) {
-        // Distinguish from "Polymer/Organic Polymer" vs other variants if needed, 
-        // but user asked for "Polymer/Organic Polymer"
-        return "Polymer/Organic Polymer";
-      }
-      if (lower.includes("wood") || lower.includes("fungal wood") || lower.includes("corrupted wood")) return "Wood/Fungal Wood/Corrupted Wood";
-      if (lower.includes("chitin") || lower.includes("keratin")) return "Chitin/Keratin";
-
-      // Other standard normalizations
-      if (lower === "raw metal" || lower === "metal or scrap metal" || lower === "scrap metal") return "Metal";
-      if (lower === "crystal or primal crystal") return "Crystal";
-      if (lower === "pelt, hair, or wool") return "Pelt";
-      if (lower === "silica pearls or silicate") return "Silica Pearls";
-      if (lower === "black pearl") return "Black Pearls";
-      if (lower.includes("gem")) {
-        if (lower.includes("blue")) return "Blue Gems";
-        if (lower.includes("red")) return "Red Gems";
-        if (lower.includes("green")) return "Green Gems";
-      }
-      return name;
-    }
-
-    function parseTextRecipe(text) {
-      if (!text) return [];
-      const lines = text.split(/\n/);
-      const rows = [];
-      lines.forEach(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return;
-        // Regex to match "QTY x NAME" or "QTY × NAME" or "QTY*NAME"
-        const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.*)$/i);
-        if (match) {
-          const qty = parseFloat(match[1]);
-          const name = normalizeMaterial(match[2]);
-          if (qty > 0 && name) {
-            rows.push({ material: name, qty: String(qty) });
-          }
-        }
-      });
-      return rows;
-    }
-
-    function formatMetalIngot(amount) {
-      return "Metal Ingots";
-    }
-
-    function computeFormulaPrice(recipe, engramInput, materialTiers, yieldInput) {
-      const engramLevel = Math.max(0, Number(engramInput || 0));
-      const yieldVal = Math.max(1, Number(yieldInput || 1));
-      const tiers = materialTiers || {};
-      const recipeRows = normalizeRecipeDraft(recipe);
-
-      let rawTotal = 0;
-      recipeRows.forEach((row) => {
-        const rate = getMaterialRate(row.material, tiers);
-        rawTotal += row.qty * rate;
-      });
-      const totalRounded = Math.ceil(rawTotal);
-
-      const materialValue = totalRounded * 2;
-      const engramValue = engramLevel * 2;
-      const ignoredEngram = engramValue > materialValue;
-      const recipePrice = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
-      const price = Math.ceil(recipePrice / yieldVal);
-
-      return {
-        rawMaterialMetal: rawTotal,
-        roundedMaterialMetal: totalRounded,
-        materialValue,
-        engramValue,
-        ignoredEngram,
-        recipePrice,
-        yieldVal,
-        price
-      };
-    }
-
-    const C = {
-      bg: "#e9ebe9",
-      bg2: "#d0e1e4",
-      bg3: "#c0d4d8",
-      border: "#a8c0c8",
-      border2: "#88a8b4",
-      accent: "#2a5a6a",
-      accentDark: "#1a3a46",
-      text: "#1a2a30",
-      dim: "#4a6a74",
-      mute: "#7a9aa4",
-      white: "#f4f8f8",
-      green: "#2a7a4a",
-      red: "#9a3030"
-    };
-
-    const btn = (variant = "secondary") => {
-      const map = {
-        primary: { bg: C.accent, color: C.white, border: C.accent },
-        secondary: { bg: C.bg3, color: C.text, border: C.border2 },
-        danger: { bg: "#f0d8d8", color: C.red, border: "#d0a0a0" },
-        ghost: { bg: "transparent", color: C.accent, border: C.accent }
-      };
-      const style = map[variant] || map.secondary;
-      return {
-        background: style.bg,
-        color: style.color,
-        border: `1px solid ${style.border}`,
-        padding: "5px 10px",
-        fontWeight: 700,
-        fontSize: "0.8rem"
-      };
-    };
-
-    const inputStyle = {
-      background: C.white,
-      border: `1px solid ${C.border}`,
-      color: C.text,
-      padding: "5px 8px",
-      fontSize: "0.85rem",
-      width: "100%"
-    };
-
-    const labelStyle = {
-      fontSize: "0.65rem",
-      color: C.dim,
-      textTransform: "uppercase",
-      display: "block",
-      marginBottom: "2px"
-    };
-
-    const sectionStyle = {
-      background: C.bg2,
-      border: `1px solid ${C.border}`,
-      padding: "14px 16px",
-      marginBottom: "12px",
-      borderRadius: "4px"
-    };
-
-    const sectionTitleStyle = {
-      fontFamily: "'Cinzel', serif",
-      color: C.accentDark,
-      fontSize: "0.85rem",
-      marginBottom: "12px",
-      paddingBottom: "6px",
-      borderBottom: `1px solid ${C.border}`
-    };
-
-    function blankRecipeRow() {
-      return { material: "", qty: "" };
-    }
-
-    function emptyItemDraft() {
-      return {
-        icon: "\u{1F4E6}",
-        name: "",
-        category: "",
-        desc: "",
-        fixed: true,
-        price: "",
-        engram: "",
-        yield: "1",
-        recipe: [blankRecipeRow()]
-      };
-    }
-
-    function getOrderIdFromHash() {
-      const hash = window.location.hash;
-      if (!hash.startsWith("#order=")) return null;
-      return hash.slice(7);
-    }
-
-    function looksLikeImageValue(value) {
-      if (!value) return false;
-      const v = String(value).trim().toLowerCase();
-      return v.startsWith("http://") || v.startsWith("https://") || v.startsWith("data:image/");
-    }
-
-    function normalizeRecipeDraft(recipe) {
-      if (!Array.isArray(recipe)) return [];
-      return recipe
-        .map((row) => ({
-          material: String(row?.material || "").trim(),
-          qty: Number(row?.qty || 0)
-        }))
-        .filter((row) => row.material && row.qty > 0);
-    }
-
-    function toEditableItem(item) {
-      return {
-        ...item,
-        price: String(item?.price ?? ""),
-        engram: String(item?.engram ?? ""),
-        yield: String(item?.yield ?? "1"),
-        recipe: Array.isArray(item?.recipe) && item.recipe.length
-          ? item.recipe.map((row) => ({ material: row.material, qty: String(row.qty ?? "") }))
-          : [blankRecipeRow()]
-      };
-    }
-
-    function validateDraft(draft) {
-      if (!String(draft.name || "").trim()) return "Item name is required.";
-      if (!String(draft.category || "").trim()) return "Category is required.";
-
-      if (draft.fixed) {
-        const price = Number(draft.price);
-        if (Number.isNaN(price) || price < 0) return "Fixed price must be 0 or higher.";
-        return "";
-      }
-
-      const recipe = normalizeRecipeDraft(draft.recipe);
-      if (recipe.length === 0) return "Add at least one recipe material with a quantity.";
-
-      const engramLevel = Number(draft.engram || 0);
-      if (Number.isNaN(engramLevel) || engramLevel < 0) return "Engram Level must be 0 or higher.";
-
-      const yieldVal = Number(draft.yield || 1);
-      if (Number.isNaN(yieldVal) || yieldVal < 1) return "Yield (Crafts Per Recipe) must be 1 or higher.";
-
-      return "";
-    }
-
-    function buildItemFromDraft(draft, id, materialTiers) {
-      const base = {
-        id,
-        name: String(draft.name || "").trim(),
-        category: String(draft.category || "").trim(),
-        icon: String(draft.icon || "\u{1F4E6}").trim() || "\u{1F4E6}",
-        desc: String(draft.desc || "").trim(),
-        fixed: Boolean(draft.fixed)
-      };
-
-      if (base.fixed) {
-        return {
-          ...base,
-          price: Number(draft.price || 0),
-          engram: 0,
-          yield: 1,
-          recipe: []
-        };
-      }
-
-      const recipe = normalizeRecipeDraft(draft.recipe);
-      const details = computeFormulaPrice(recipe, draft.engram, materialTiers, draft.yield);
-
-      return {
-        ...base,
-        price: details.price,
-        engram: Number(draft.engram || 0),
-        yield: Number(draft.yield || 1),
-        recipe
-      };
-    }
-
-    function normalizeImportedShopItem(rawItem, index, materialTiers) {
-      const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
-      const name = String(rawItem?.name || "").trim();
-      const category = String(rawItem?.category || "Imported").trim() || "Imported";
-      const wikiType = String(rawItem?.wiki_type || "").trim();
-      const icon = String(rawItem?.icon || rawItem?.image_url || "").trim();
-      const desc = String(rawItem?.desc || rawItem?.description || rawItem?.quote || "").trim();
-      const recipeSource = Array.isArray(rawItem?.recipe) ? rawItem?.recipe : rawItem?.ingredients;
-      const recipe = normalizeRecipeDraft(recipeSource).map((row) => ({
-        material: normalizeMaterial(row.material),
-        qty: Number(row.qty || 0)
-      }));
-      const engram = Math.max(0, Number(rawItem?.engram_level ?? rawItem?.engram ?? 0));
-      const yieldValue = Math.max(1, Number(rawItem?.yield ?? 1));
-      const formula = computeFormulaPrice(recipe, engram, materialTiers, yieldValue);
-
-      const isFixed = Boolean(rawItem?.fixed);
-      const jsonPrice = Number(rawItem?.price || 0);
-
-      return {
-        id,
-        name,
-        category,
-        wiki_type: wikiType,
-        icon,
-        desc,
-        fixed: isFixed,
-        price: isFixed ? jsonPrice : formula.price,
-        engram,
-        yield: yieldValue,
-        recipe
-      };
-
-    }
-
-    function normalizeImportedShopList(rawItems, materialTiers) {
-      if (!Array.isArray(rawItems)) {
-        throw new Error("Shop list JSON must be an array.");
-      }
-
-      const normalized = rawItems
-        .map((item, index) => normalizeImportedShopItem(item, index, materialTiers))
-        .filter((item) => item.id && item.name && item.category);
-
-      if (normalized.length === 0) {
-        throw new Error("No valid items found in imported shop list.");
-      }
-
-      return normalized;
-    }
-
-    function updateDraft(setter, field, value) {
-      setter((current) => ({ ...current, [field]: value }));
-    }
-
-    function updateDraftRecipe(setter, value) {
-      setter((current) => ({ ...current, recipe: value }));
-    }
-
-    function ItemIcon({ icon, size = 34, fallback = "\u{1F4E6}" }) {
-      const [failed, setFailed] = useState(false);
-      const imageValue = !failed && looksLikeImageValue(icon);
-      const label = imageValue ? fallback : String(icon || fallback);
-
-      return (
-        <span
-          className="icon-frame"
-          style={{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.max(14, size * 0.55)}px` }}
-        >
-          {imageValue ? (
-            <img src={icon} alt="" onError={() => setFailed(true)} />
-          ) : (
-            <span className="icon-fallback">{label}</span>
-          )}
-        </span>
-      );
-    }
-
-    function RecipeEditor({ recipe, onChange, allMaterials, disabled = false }) {
-      const rows = Array.isArray(recipe) && recipe.length ? recipe : [blankRecipeRow()];
-      const baseId = React.useId();
-
-      function updateRow(index, key, value) {
-        onChange(rows.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row)));
-      }
-
-      function removeRow(index) {
-        if (rows.length === 1) {
-          onChange([blankRecipeRow()]);
-          return;
-        }
-        onChange(rows.filter((_, rowIndex) => rowIndex !== index));
-      }
-
-      const sortedMaterials = (allMaterials || []).sort();
-
-      return (
-        <div style={{ display: "grid", gap: "6px" }}>
-          {rows.map((row, index) => {
-            return (
-              <div
-                key={index}
-                style={{ display: "grid", gridTemplateColumns: "1fr 90px 42px", gap: "6px", alignItems: "center" }}
-              >
-                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                  <input
-                    list={`${baseId}-materials-${index}`}
-                    value={row.material || ""}
-                    disabled={disabled}
-                    onChange={(e) => updateRow(index, "material", e.target.value)}
-                    onClick={(e) => {
-                      if (e.target.showPicker) {
-                        try { e.target.showPicker(); } catch (err) {}
-                      }
-                    }}
-                    onFocus={(e) => {
-                      try {
-                        if (e.target.showPicker) e.target.showPicker();
-                      } catch (err) {}
-                    }}
-                    placeholder="Select or type material..."
-                    style={{
-                      background: "#f4f8f8",
-                      border: "1px solid #a8c0c8",
-                      color: "#1a2a30",
-                      padding: "5px 24px 5px 8px",
-                      fontSize: "0.82rem",
-                      width: "100%",
-                      borderRadius: "0",
-                      outline: "none"
-                    }}
-                  />
-                  <div style={{ 
-                    position: "absolute", 
-                    right: "8px", 
-                    pointerEvents: "none", 
-                    fontSize: "0.5rem", 
-                    color: C.mute,
-                    display: "flex",
-                    flexDirection: "column"
-                  }}>
-                    ▼
-                  </div>
-                  <datalist id={`${baseId}-materials-${index}`}>
-                    {sortedMaterials.map((m) => (
-                      <option key={m} value={m} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={row.qty}
-                  disabled={disabled}
-                  onChange={(e) => updateRow(index, "qty", e.target.value)}
-                  style={{
-                    background: "#f4f8f8",
-                    border: "1px solid #a8c0c8",
-                    color: "#1a2a30",
-                    padding: "5px 8px",
-                    fontSize: "0.82rem",
-                    width: "100%"
-                  }}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => removeRow(index)}
-                  disabled={disabled}
-                  style={{
-                    background: "#f0d8d8",
-                    color: "#9a3030",
-                    border: "1px solid #d0a0a0",
-                    padding: "5px 0",
-                    fontWeight: 700
-                  }}
-                >
-                  X
-                </button>
-              </div>
-            );
-          })}
-
-          <div>
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => onChange([...rows, blankRecipeRow()])}
-              style={{
-                background: "transparent",
-                color: "#2a5a6a",
-                border: "1px solid #2a5a6a",
-                padding: "4px 10px",
-                fontWeight: 700,
-                fontSize: "0.75rem"
-              }}
-            >
-              + Add Material
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function TotalAmount({ amount, isMobile, currency }) {
-      return (
-        <span
-          style={{
-            fontFamily: "'Rajdhani', sans-serif",
-            fontSize: isMobile ? "1.15rem" : "1.4rem",
-            color: C.accent,
-            fontWeight: 800,
-            whiteSpace: "nowrap",
-            lineHeight: 1
-          }}
-        >
-          {amount.toLocaleString()} {currency}
-        </span>
-      );
-    }
-
-    function DraftPricing({ draft, formula, currency, materialTiers }) {
-      if (draft.fixed) {
-        return (
-          <div style={{ display: "grid", gap: "4px", color: C.dim, fontSize: "0.78rem" }}>
-            <div style={{ fontWeight: 700, color: C.accent }}>Fixed price item.</div>
-            <div style={{ color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
-              Final Price: {(Number(draft.price || 0) || 0).toLocaleString()} {currency}
-            </div>
-          </div>
-        );
-      }
-
-      const recipe = normalizeRecipeDraft(draft.recipe);
-      const tiers = materialTiers || {};
-
-      let rawTotal = 0;
-      recipe.forEach((row) => {
-        const rate = getMaterialRate(row.material, tiers);
-        rawTotal += row.qty * rate;
-      });
-      const totalRounded = Math.ceil(rawTotal);
-
-      const materialValue = totalRounded * 2;
-      const engramValue = (formula?.engramLevel || Number(draft.engram || 0)) * 2;
-      const ignoredEngram = engramValue > materialValue;
-      const recipePrice = Math.round(materialValue + (ignoredEngram ? 0 : engramValue));
-      const yieldVal = Number(draft.yield || 1);
-      const finalPrice = Math.ceil(recipePrice / yieldVal);
-
-      return (
-        <div style={{ display: "grid", gap: "8px", color: C.dim, fontSize: "0.78rem", borderTop: `1px solid ${C.border}`, paddingTop: "8px", marginTop: "4px" }}>
-          <div style={{ fontWeight: 700, color: C.accentDark }}>Material Conversion:</div>
-          <div style={{ display: "grid", gap: "2px", paddingLeft: "8px" }}>
-            {recipe.map((row, i) => {
-              const rate = getMaterialRate(row.material, tiers);
-              const subtotal = row.qty * rate;
-              return (
-                <div key={i}>
-                  {row.qty} x {row.material} (@{rate}) = {subtotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} {formatMetalIngot(subtotal)}
-                </div>
-              );
-            })}
-            <div style={{ borderTop: `1px dotted ${C.border}`, marginTop: "2px", paddingTop: "2px", fontWeight: 700 }}>
-              Total Materials: {totalRounded !== rawTotal && `(Rounded up from ${rawTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}) `}
-              {totalRounded.toLocaleString()} x 2 = {materialValue.toLocaleString()} {currency}
-            </div>
-          </div>
-
-          <div style={{ fontWeight: 700, color: C.accentDark }}>Formula Calculation:</div>
-          <div style={{ paddingLeft: "8px" }}>
-            {ignoredEngram ? (
-              <div>
-                Recipe: {materialValue.toLocaleString()} (Materials x2) + <del>{(engramValue).toLocaleString()} (Engram x2)</del> = {recipePrice.toLocaleString()}
-                <div style={{ fontSize: "0.7rem", fontStyle: "italic" }}>* Engram x2 ignored (higher than Materials x2)</div>
-              </div>
-            ) : (
-              <div>
-                Recipe: {materialValue.toLocaleString()} (Materials x2) + {(engramValue).toLocaleString()} (Engram x2) = {recipePrice.toLocaleString()}
-              </div>
-            )}
-            
-            {yieldVal > 1 && (
-              <div style={{ marginTop: "2px" }}>
-                Yield Adjustment: {recipePrice.toLocaleString()} / {yieldVal} (Crafts {yieldVal} items) = {finalPrice.toLocaleString()}
-              </div>
-            )}
-
-            <div style={{ marginTop: "4px", color: C.accent, fontWeight: 800, fontSize: "0.9rem" }}>
-              Final Price: {finalPrice.toLocaleString()} {currency}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function DraftEditor({ draft, setDraft, formula, isEditing = false, isMobile, currency, materialTiers }) {
-      const importId = React.useId();
-      return (
-        <div
-          style={{
-            display: "grid",
-            gap: "10px",
-            padding: "12px",
-            background: C.white,
-            border: `1px solid ${C.border}`
-          }}
-        >
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "90px 1fr 1fr 120px", gap: "8px" }}>
-            <div>
-              <label style={labelStyle}>Preview</label>
-              <div style={{ minHeight: "42px", display: "flex", alignItems: "center" }}>
-                <ItemIcon icon={draft.icon} size={38} />
-              </div>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Image Icon URL</label>
-              <input
-                style={inputStyle}
-                value={draft.icon}
-                onChange={(e) => updateDraft(setDraft, "icon", e.target.value)}
-                placeholder="Paste wiki image URL or emoji"
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Name</label>
-              <input
-                style={inputStyle}
-                value={draft.name}
-                onChange={(e) => updateDraft(setDraft, "name", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Category</label>
-              <input
-                style={inputStyle}
-                value={draft.category}
-                onChange={(e) => updateDraft(setDraft, "category", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Description</label>
-            <input
-              style={inputStyle}
-              value={draft.desc}
-              onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
-            />
-          </div>
-
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            <button
-              type="button"
-              style={btn(draft.fixed ? "primary" : "secondary")}
-              onClick={() => updateDraft(setDraft, "fixed", true)}
-            >
-              Fixed Price
-            </button>
-            <button
-              type="button"
-              style={btn(!draft.fixed ? "primary" : "secondary")}
-              onClick={() => updateDraft(setDraft, "fixed", false)}
-            >
-              Formula Price
-            </button>
-          </div>
-
-          {draft.fixed ? (
-            <div style={{ maxWidth: "200px" }}>
-              <label style={labelStyle}>Price</label>
-              <input
-                type="number"
-                min="0"
-                style={inputStyle}
-                value={draft.price}
-                onChange={(e) => updateDraft(setDraft, "price", e.target.value)}
-              />
-            </div>
-          ) : (
-            <div style={{ display: "grid", gap: "8px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxWidth: "400px" }}>
-                <div>
-                  <label style={labelStyle}>Engram Level</label>
-                  <input
-                    type="number"
-                    min="0"
-                    style={inputStyle}
-                    value={draft.engram}
-                    onChange={(e) => updateDraft(setDraft, "engram", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label style={labelStyle}>Yield (Items Per Craft)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    style={inputStyle}
-                    value={draft.yield}
-                    onChange={(e) => updateDraft(setDraft, "yield", e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label style={labelStyle}>Import Text Recipe</label>
-                <div style={{ display: "grid", gap: "6px", marginBottom: "8px" }}>
-                  <textarea
-                    placeholder={"Paste recipe here, e.g.:\n16 \u00d7 Metal Ingot\n12 \u00d7 Hide"}
-                    style={{ ...inputStyle, height: "80px", fontFamily: "monospace", fontSize: "0.75rem" }}
-                    id={importId}
-                  />
-                  <button
-                    type="button"
-                    style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
-                    onClick={() => {
-                      const ta = document.getElementById(importId);
-                      const parsed = parseTextRecipe(ta.value);
-                      if (parsed.length > 0) {
-                        updateDraftRecipe(setDraft, parsed);
-                        ta.value = "";
-                      } else {
-                        alert("No valid recipe lines found. Format: QTY x NAME");
-                      }
-                    }}
-                  >
-                    Apply Text-Based Recipe
-                  </button>
-                </div>
-                
-                <label style={labelStyle}>Recipe</label>
-                <RecipeEditor recipe={draft.recipe} onChange={(value) => updateDraftRecipe(setDraft, value)} allMaterials={Object.keys(materialTiers || {}).sort()} />
-              </div>
-            </div>
-          )}
-
-          <DraftPricing draft={draft} formula={formula} currency={currency} materialTiers={materialTiers} />
-
-          {isEditing ? null : (
-            <div style={{ color: C.dim, fontSize: "0.74rem" }}>
-              Calculation: (Materials x 2) + (Engram x 2). If the Engram value (x2) is higher than the Materials value (x2), the Engram cost is ignored.
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function QtyControls({ id, cart, setCart, addToCart, decCart, removeFromCart }) {
-      const qty = cart[id] || 0;
-      const [draft, setDraft] = useState(String(qty));
-
-      useEffect(() => {
-        setDraft(String(qty));
-      }, [qty]);
-
-      function commit(value) {
-        const parsed = parseInt(value, 10);
-        if (Number.isNaN(parsed) || parsed <= 0) removeFromCart(id);
-        else setCart((current) => ({ ...current, [id]: parsed }));
-      }
-
-      if (!qty) return null;
-
-      return (
-        <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
-          <button style={{ ...btn("secondary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => decCart(id)}>-</button>
-          <input
-            className="qty-input"
-            type="number"
-            min="1"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={(e) => commit(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                commit(e.target.value);
-                e.target.blur();
-              }
-            }}
-          />
-          <button style={{ ...btn("primary"), padding: "2px 4px", minWidth: "22px" }} onClick={() => addToCart(id)}>+</button>
-          <button style={{ ...btn("danger"), padding: "2px 4px", minWidth: "22px" }} onClick={() => removeFromCart(id)}>X</button>
-        </div>
-      );
-    }
-
-    function App() {
-      const [items, setItems] = useState([]);
-      const [itemsLoading, setItemsLoading] = useState(true);
-      const [itemsError, setItemsError] = useState("");
-      const [itemsSaving, setItemsSaving] = useState(false);
-      const [saveStatus, setSaveStatus] = useState({ type: "idle", message: "" });
-
-      const [currency, setCurrency] = useState("Metal Ingots");
-      const [editCurrency, setEditCurrency] = useState("Metal Ingots");
-
-      const [materialTiers, setMaterialTiers] = useState({});
-      const [editMaterials, setEditMaterials] = useState({});
-      const allMaterials = Object.keys(materialTiers).sort();
-
-      const [view, setView] = useState("shop");
-      const [shopLayout, setShopLayout] = useState("grid");
-      const [catFilter, setCatFilter] = useState("All");
-      const [searchQ, setSearchQ] = useState("");
-      const [cart, setCart] = useState({});
-
-      const [characterName, setCharacterName] = useState("");
-      const [psnUsername, setPsnUsername] = useState("");
-      const [discordUsername, setDiscordUsername] = useState("");
-      const [orderLink, setOrderLink] = useState("");
-      const [copied, setCopied] = useState(false);
-      const [orderView, setOrderView] = useState(null);
-      const [orderLoading, setOrderLoading] = useState(false);
-      const [submittedOnce, setSubmittedOnce] = useState(false);
-
-      // New User Authentication States
-      const [userDiscord, setUserDiscord] = useState(() => localStorage.getItem("ark_user_discord") || "");
-      const [userCode, setUserCode] = useState(() => localStorage.getItem("ark_user_code") || "");
-      const [isLoggedIn, setIsAuthenticated] = useState(() => !!localStorage.getItem("ark_user_discord"));
-      const [loginError, setLoginError] = useState("");
-      const [loginLoading, setLoginLoading] = useState(false);
-
-      const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem("ark_admin") === "yes");
-      const [passInput, setPassInput] = useState("");
-      const [passError, setPassError] = useState("");
-      const [passLoading, setPassLoading] = useState(false);
-      const [adminTab, setAdminTab] = useState("items");
-      const [itemSearch, setItemSearch] = useState("");
-      const [newItem, setNewItem] = useState(() => emptyItemDraft());
-      const [editItem, setEditItem] = useState(null);
-      const [renamingMat, setRenamingMat] = useState(null); // { oldName: string, newName: string }
-      const shopListImportRef = React.useRef(null);
-      const materialsImportRef = React.useRef(null);
-
-      const [calcDraft, setCalcDraft] = useState({
-        fixed: false,
-        price: "",
-        engram: "",
-        recipe: [blankRecipeRow()]
-      });
-
-      const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
-
-      useEffect(() => {
-        const justSaved = sessionStorage.getItem("ark_settings_saved");
-        if (justSaved) {
-          setSaveStatus({ type: "saved", message: "Settings saved." });
-          sessionStorage.removeItem("ark_settings_saved");
-          // Switch to admin view and settings tab so they see it
-          setView("admin");
-          setAdminTab("settings");
-        }
-      }, []);
-
-      useEffect(() => {
-        const onResize = () => setIsMobile(window.innerWidth <= 600);
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-      }, []);
-
-      useEffect(() => {
-        if (saveStatus.type !== "saved") return undefined;
-        const timeout = setTimeout(() => {
-          setSaveStatus({ type: "idle", message: "" });
-        }, 2500);
-        return () => clearTimeout(timeout);
-      }, [saveStatus]);
-
-      async function attemptLogin(name, code) {
-        setLoginError("");
-        setLoginLoading(true);
-        try {
-          const res = await fetch("/user-login", {
-            method: "POST",
-            body: JSON.stringify({ discordName: name, code: code })
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            localStorage.setItem("ark_user_discord", name);
-            localStorage.setItem("ark_user_code", code);
-            setUserDiscord(name);
-            setUserCode(code);
-            setIsAuthenticated(true);
-
-            // Automatically promote to Admin if this is the master Discord user
-            if (data.isAdmin) {
-              sessionStorage.setItem("ark_admin", "yes");
-              setAdminUnlocked(true);
-            }
-          } else {
-            setLoginError(data.error || "Invalid login.");
-          }
-        } catch (e) {
-          setLoginError("Connection failed.");
-        } finally {
-          setLoginLoading(false);
-        }
-      }
-
-      function logout() {
-        localStorage.removeItem("ark_user_discord");
-        localStorage.removeItem("ark_user_code");
-        sessionStorage.removeItem("ark_admin");
-        setUserDiscord("");
-        setUserCode("");
-        setIsAuthenticated(false);
-        setAdminUnlocked(false);
-        setView("shop");
-      }
-
-      async function fetchItems() {
-        setItemsLoading(true);
-        setItemsError("");
-        
-        // 1. Fetch Items
-        try {
-          const res = await fetch("/get-items");
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data.items)) {
-              setItems(data.items);
-            }
-          } else {
-            setItemsError("Failed to load shop items.");
-          }
-        } catch (e) {
-          setItemsError("Connection error while loading items.");
-        }
-
-        // 2. Fetch Settings (Optional, don't crash if missing)
-        try {
-          const res = await fetch("/get-settings");
-          if (res.ok) {
-            const data = await res.json();
-            if (data.currency) {
-              let cur = data.currency;
-              if (cur === "Iron Ingots") cur = "Metal Ingots";
-              setCurrency(cur);
-              setEditCurrency(cur);
-            }
-            if (data.materialTiers) {
-              const migrated = { ...data.materialTiers };
-              if (migrated["Iron Ingots"] && !migrated["Metal Ingots"]) {
-                migrated["Metal Ingots"] = migrated["Iron Ingots"];
-                delete migrated["Iron Ingots"];
-              }
-              setMaterialTiers(migrated);
-              setEditMaterials(migrated);
-            }
-
-          }
-        } catch (e) {
-          console.warn("Settings could not be loaded from backend.");
-        }
-
-        setItemsLoading(false);
-      }
-
-      useEffect(() => {
-        fetchItems();
-      }, []);
-
-      useEffect(() => {
-        const orderId = getOrderIdFromHash();
-        if (!orderId) return;
-        setView("order");
-        fetch(`/get-order?id=${orderId}`)
-          .then((response) => response.json())
-          .then((data) => setOrderView(data))
-          .catch(() => setOrderView({ error: true }));
-      }, []);
-
-      async function persistItems(nextItems, successMessage) {
-        const previousItems = items;
-        setItems(nextItems);
-        setItemsSaving(true);
-        setSaveStatus({ type: "saving", message: "Saving to Cloudflare..." });
-
-        try {
-          const response = await fetch("/save-items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: nextItems })
-          });
-          const data = await response.json();
-          if (!response.ok) {
-            throw new Error(data.error || "Failed to save items.");
-          }
-          setSaveStatus({ type: "saved", message: successMessage || "Saved." });
-          return true;
-        } catch (error) {
-          setItems(previousItems);
-          setSaveStatus({ type: "error", message: error.message || "Failed to save items." });
-          return false;
-        } finally {
-          setItemsSaving(false);
-        }
-      }
-
-      async function persistSettings(nextCurrency, nextMaterials) {
-        setItemsSaving(true);
-        setSaveStatus({ type: "saving", message: "Saving settings..." });
-        try {
-          const response = await fetch("/save-settings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ currency: nextCurrency, materialTiers: nextMaterials })
-          });
-          if (!response.ok) throw new Error("Failed to save settings.");
-          setCurrency(nextCurrency);
-          setMaterialTiers(nextMaterials);
-          setSaveStatus({ type: "saved", message: "Settings saved to KV." });
-          return true;
-        } catch (error) {
-          setSaveStatus({ type: "error", message: error.message });
-          return false;
-        } finally {
-          setItemsSaving(false);
-        }
-      }
-
-      function goToShop() {
-        if (window.location.hash) {
-          window.history.replaceState(null, "", window.location.pathname + window.location.search);
-        }
-        setOrderView(null);
-        setView("shop");
-      }
-
-      function addToCart(id) {
-        setCart((current) => ({ ...current, [id]: (current[id] || 0) + 1 }));
-      }
-
-      function decCart(id) {
-        setCart((current) => {
-          const next = { ...current };
-          if (next[id] > 1) next[id] -= 1;
-          else delete next[id];
-          return next;
-        });
-      }
-
-      function removeFromCart(id) {
-        setCart((current) => {
-          const next = { ...current };
-          delete next[id];
-          return next;
-        });
-      }
-
-      function clearCart() {
-        if (window.confirm("Clear cart?")) setCart({});
-      }
-
-      const cartEntries = Object.entries(cart)
-        .map(([id, qty]) => {
-          const item = items.find((entry) => entry.id === id);
-          return item ? { ...item, qty } : null;
-        })
-        .filter(Boolean);
-
       const cartTotal = cartEntries.reduce((sum, item) => sum + item.price * item.qty, 0);
       const categories = ["All", ...new Set(items.map((item) => item.category))];
       const filteredItems = items.filter((item) => {
@@ -1536,143 +49,6 @@
           setCopied(true);
           setTimeout(() => setCopied(false), 2500);
         });
-      }
-
-      async function adminLogin() {
-        setPassLoading(true);
-        setPassError("");
-        try {
-          const response = await fetch("/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password: passInput })
-          });
-          if (!response.ok) {
-            setPassError("Incorrect password.");
-            return;
-          }
-          sessionStorage.setItem("ark_admin", "yes");
-          setAdminUnlocked(true);
-          setPassInput("");
-        } catch {
-          setPassError("Connection failed.");
-        } finally {
-          setPassLoading(false);
-        }
-      }
-
-      async function addItem() {
-        const problem = validateDraft(newItem);
-        if (problem) {
-          setSaveStatus({ type: "error", message: problem });
-          return;
-        }
-
-        const nextItem = buildItemFromDraft(newItem, `i${Date.now().toString(36)}`, materialTiers);
-        const ok = await persistItems([...items, nextItem], `Added ${nextItem.name}.`);
-        if (ok) setNewItem(emptyItemDraft());
-      }
-
-      async function saveEdit() {
-        if (!editItem) return;
-
-        const problem = validateDraft(editItem);
-        if (problem) {
-          setSaveStatus({ type: "error", message: problem });
-          return;
-        }
-
-        const nextItems = items.map((item) =>
-          item.id === editItem.id ? buildItemFromDraft(editItem, item.id, materialTiers) : item
-        );
-
-        const ok = await persistItems(nextItems, `Updated ${editItem.name}.`);
-        if (ok) setEditItem(null);
-      }
-
-      async function deleteItem(id) {
-        if (!window.confirm("Delete this item?")) return;
-        await persistItems(items.filter((item) => item.id !== id), "Item deleted.");
-      }
-
-      async function saveSettings() {
-        setItemsSaving(true);
-        setSaveStatus({ type: "saving", message: "Updating all item prices..." });
-
-        try {
-          // 1. Recalculate all items that use the Formula
-          const updatedItems = items.map(item => {
-            if (item.fixed) return item;
-            const newPriceData = computeFormulaPrice(item.recipe, item.engram, editMaterials);
-            return { ...item, price: newPriceData.price };
-          });
-
-          // 2. Persist both the new settings AND the updated items
-          const settingsRes = await fetch("/save-settings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ currency: editCurrency, materialTiers: editMaterials })
-          });
-          if (!settingsRes.ok) throw new Error("Failed to save settings.");
-
-          const itemsRes = await fetch("/save-items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: updatedItems })
-          });
-          if (!itemsRes.ok) throw new Error("Failed to update item prices.");
-
-          // 3. Update local state
-          setCurrency(editCurrency);
-          setMaterialTiers(editMaterials);
-          setItems(updatedItems);
-          setSaveStatus({ type: "saved", message: "Settings & Prices Updated" });
-
-        } catch (error) {
-          setSaveStatus({ type: "error", message: error.message });
-        } finally {
-          setItemsSaving(false);
-        }
-      }
-
-      function commitRename() {
-        if (!renamingMat) return;
-        const { oldName, newName } = renamingMat;
-        const trimmed = newName.trim();
-        if (!trimmed || trimmed === oldName) {
-          setRenamingMat(null);
-          return;
-        }
-
-        setEditMaterials(prev => {
-          const next = { ...prev };
-          const cost = next[oldName];
-          delete next[oldName];
-          next[trimmed] = cost;
-          return next;
-        });
-        setRenamingMat(null);
-      }
-
-      function exportShopList() {
-        const exportItems = items
-          .filter((item) => !item.fixed)
-          .map((item) => ({
-            name: item.name,
-            engram_level: Math.max(0, Number(item.engram || 0)),
-            recipe: normalizeRecipeDraft(item.recipe).map((row) => ({
-              material: normalizeMaterial(row.material),
-              qty: Number(row.qty || 0)
-            }))
-          }));
-
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportItems, null, 2));
-        const downloadAnchorNode = document.createElement("a");
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "ark_shoplist_export.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
       }
 
       async function importShopListFile(event) {
@@ -1731,20 +107,13 @@
       const shopName = "247 Always Online";
       const cartButtonLabel = `Cart (Total Metal Ingots: ${cartTotal.toLocaleString()})`;
 
+      // --- VIEW RENDER LOGIC ---
+
+      // 1. Order View (Can be viewed if owner OR admin)
       if (view === "order") {
         if (!orderView) {
           return (
-            <div
-              style={{
-                fontFamily: "'Rajdhani', sans-serif",
-                background: C.bg,
-                minHeight: "100vh",
-                color: C.text,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ color: C.dim }}>Loading order...</div>
             </div>
           );
@@ -1752,17 +121,7 @@
 
         if (orderView.error) {
           return (
-            <div
-              style={{
-                fontFamily: "'Rajdhani', sans-serif",
-                background: C.bg,
-                minHeight: "100vh",
-                color: C.text,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ textAlign: "center", color: C.red }}>
                 <div style={{ marginBottom: "10px" }}>Order not found.</div>
                 <button style={btn("ghost")} onClick={goToShop}>Back</button>
@@ -1795,26 +154,12 @@
 
         return (
           <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
-            <div
-              style={{
-                background: C.accentDark,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                position: "sticky",
-                top: 0
-              }}
-            >
-              <div
-                style={{ fontFamily: "'Cinzel', serif", fontSize: "1.1rem", color: C.bg2, cursor: "pointer" }}
-                onClick={goToShop}
-              >
+            <div style={{ background: C.accentDark, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0 }}>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: "1.1rem", color: C.bg2, cursor: "pointer" }} onClick={goToShop}>
                 {shopName.toUpperCase()}
               </div>
               <div style={{ color: C.green, fontSize: "0.8rem", fontWeight: 700 }}>VERIFIED</div>
             </div>
-
             <div style={{ padding: "14px", maxWidth: "700px", margin: "0 auto" }}>
               <div style={sectionStyle}>
                 <div style={sectionTitleStyle}>Order #{orderId}</div>
@@ -1822,87 +167,56 @@
                 <div style={{ marginBottom: "6px", fontSize: "0.9rem" }}><strong>PSN Username:</strong> {orderView.psnUsername}</div>
                 <div style={{ marginBottom: "12px", fontSize: "0.9rem" }}><strong>Discord Username:</strong> {orderView.discordUsername}</div>
                 <div style={{ ...sectionTitleStyle, marginBottom: "0" }}>Items</div>
-
                 {hydratedItems.map((item) => (
-                  <div
-                    key={item.id}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "42px minmax(0,1fr) 60px auto",
-                      gap: "8px",
-                      alignItems: "center",
-                      padding: "8px 0",
-                      borderBottom: `1px solid ${C.border}`
-                    }}
-                  >
+                  <div key={item.id} style={{ display: "grid", gridTemplateColumns: "42px minmax(0,1fr) 60px auto", gap: "8px", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
                     <ItemIcon icon={item.icon} size={34} />
                     <span>{item.name}</span>
                     <span style={{ color: C.dim }}>x{item.qty}</span>
                     <span style={{ color: C.accent, fontWeight: 700 }}>{(item.price * item.qty).toLocaleString()} {currency}</span>
                   </div>
                 ))}
-
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "10px", gap: "8px", flexWrap: "wrap" }}>
                   <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
                   <TotalAmount amount={orderTotal} isMobile={isMobile} currency={currency} />
                 </div>
               </div>
-
               <button style={btn("ghost")} onClick={goToShop}>Back</button>
             </div>
           </div>
         );
       }
 
-    if (!isLoggedIn) {
-      return (
-        <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ ...sectionStyle, maxWidth: "400px", width: "100%", textAlign: "center" }}>
-            <h1 style={{ fontFamily: "'Cinzel', serif", marginBottom: "20px" }}>247 ALWAYS ONLINE</h1>
-            <p style={{ color: C.dim, marginBottom: "30px" }}>Please log in using your Discord credentials provided by the bot.</p>
-            
-            <div style={{ textAlign: "left", marginBottom: "15px" }}>
-              <label style={labelStyle}>Discord Username (e.g. name#1234)</label>
-              <input 
-                style={inputStyle} 
-                value={userDiscord} 
-                onChange={(e) => setUserDiscord(e.target.value)}
-                placeholder="Discord Name"
-              />
-            </div>
-
-            <div style={{ textAlign: "left", marginBottom: "25px" }}>
-              <label style={labelStyle}>6-Digit Login Code</label>
-              <input 
-                style={inputStyle} 
-                type="password"
-                maxLength="6"
-                value={userCode} 
-                onChange={(e) => setUserCode(e.target.value)}
-                placeholder="123456"
-              />
-            </div>
-
-            {loginError && <div style={{ color: C.red, marginBottom: "15px", fontWeight: "bold" }}>{loginError}</div>}
-
-            <button 
-              style={{ ...btn("primary"), width: "100%", fontSize: "1.1rem", padding: "12px" }}
-              onClick={() => attemptLogin(userDiscord, userCode)}
-              disabled={loginLoading}
-            >
-              {loginLoading ? "Verifying..." : "ENTER SHOP"}
-            </button>
-
-            <div style={{ marginTop: "20px", fontSize: "0.85rem", color: C.dim }}>
-              Don't have a code? Type <strong>/register</strong> in our Discord server.
+      // 2. Login Barrier
+      if (!isLoggedIn) {
+        return (
+          <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+            <div style={{ ...sectionStyle, maxWidth: "400px", width: "100%", textAlign: "center" }}>
+              <h1 style={{ fontFamily: "'Cinzel', serif", marginBottom: "20px" }}>247 ALWAYS ONLINE</h1>
+              <p style={{ color: C.dim, marginBottom: "30px" }}>Please log in using your Discord credentials provided by the bot.</p>
+              
+              <div style={{ textAlign: "left", marginBottom: "15px" }}>
+                <label style={labelStyle}>Discord Username (e.g. name#1234)</label>
+                <input style={inputStyle} value={userDiscord} onChange={(e) => setUserDiscord(e.target.value)} placeholder="Discord Name" />
+              </div>
+              <div style={{ textAlign: "left", marginBottom: "25px" }}>
+                <label style={labelStyle}>6-Digit Login Code</label>
+                <input style={inputStyle} type="password" maxLength="6" value={userCode} onChange={(e) => setUserCode(e.target.value)} placeholder="123456" />
+              </div>
+              {loginError && <div style={{ color: C.red, marginBottom: "15px", fontWeight: "bold" }}>{loginError}</div>}
+              <button style={{ ...btn("primary"), width: "100%", fontSize: "1.1rem", padding: "12px" }} onClick={() => attemptLogin(userDiscord, userCode)} disabled={loginLoading}>
+                {loginLoading ? "Verifying..." : "ENTER SHOP"}
+              </button>
+              <div style={{ marginTop: "20px", fontSize: "0.85rem", color: C.dim }}>
+                Don't have a code? Type <strong>/register</strong> in our Discord server.
+              </div>
             </div>
           </div>
-        </div>
-      );
-    }
+        );
+      }
 
-    return (
-      <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
+      // 3. Main Shop UI (For Authenticated Users)
+      return (
+        <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
           <div className="top-bar">
             <div className="top-bar-content">
               <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
@@ -1915,23 +229,13 @@
 
           <div className="nav-bar">
             <div className="nav-buttons">
-              <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>
-                🏪 Shop
-              </button>
-              <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
-                🛒 {cartButtonLabel}
-              </button>
-              <button className="nav-btn" onClick={logout}>
-                🚪 Logout
-              </button>
-              <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
-                📋 Order
-              </button>
+              <button className={`nav-btn ${view === "shop" ? "active" : ""}`} onClick={() => setView("shop")}>🏪 Shop</button>
+              <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>🛒 {cartButtonLabel}</button>
+              <button className="nav-btn" onClick={logout}>🚪 Logout</button>
+              <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>📋 Order</button>
             </div>
             {!isMobile && (
-              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
-                🔧 Admin
-              </button>
+              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>🔧 Admin</button>
             )}
           </div>
 
@@ -1939,12 +243,7 @@
             {view === "shop" && (
               <div>
                 <div style={{ display: "flex", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
-                  <input
-                    style={{ ...inputStyle, flex: "1 1 140px" }}
-                    placeholder="Search..."
-                    value={searchQ}
-                    onChange={(e) => setSearchQ(e.target.value)}
-                  />
+                  <input style={{ ...inputStyle, flex: "1 1 140px" }} placeholder="Search..." value={searchQ} onChange={(e) => setSearchQ(e.target.value)} />
                   <button style={{ ...btn(shopLayout === "grid" ? "primary" : "secondary"), padding: "0", width: "34px", height: "30px", display: "inline-flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShopLayout("grid")}>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 5px)", gap: "2px" }}>
                       <div style={{ width: "5px", height: "5px", background: "currentColor" }}></div>
@@ -1964,71 +263,25 @@
 
                 <div style={{ display: "flex", gap: "3px", flexWrap: "wrap", marginBottom: "10px" }}>
                   {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setCatFilter(category)}
-                      style={{
-                        background: catFilter === category ? C.accent : "transparent",
-                        color: catFilter === category ? C.white : C.dim,
-                        border: `1px solid ${catFilter === category ? C.accent : C.border}`,
-                        padding: "3px 8px",
-                        fontWeight: 600,
-                        fontSize: "0.7rem"
-                      }}
-                    >
-                      {category}
+                    <button key={category} onClick={() => setCatFilter(category)} style={{
+                      background: catFilter === category ? C.accent : "transparent",
+                      color: catFilter === category ? C.white : C.dim,
+                      border: `1px solid ${catFilter === category ? C.accent : C.border}`,
+                      padding: "3px 8px", fontWeight: 600, fontSize: "0.7rem"
+                    }}>
+                      {category.toUpperCase()}
                     </button>
                   ))}
                 </div>
 
                 {itemsLoading ? (
-                  <div style={{ textAlign: "center", color: C.mute, padding: "40px" }}>Loading shop...</div>
+                  <div style={{ textAlign: "center", padding: "40px", color: C.dim }}>Loading Shop...</div>
                 ) : itemsError ? (
-                  <div style={{ textAlign: "center", color: C.red, padding: "40px" }}>
-                    <div style={{ marginBottom: "10px" }}>{itemsError}</div>
-                    <button style={btn("ghost")} onClick={fetchItems}>Retry</button>
-                  </div>
-                ) : filteredItems.length === 0 ? (
-                  <div style={{ textAlign: "center", color: C.mute, padding: "40px" }}>No items found.</div>
-                ) : shopLayout === "grid" ? (
-                  <div className="shop-grid">
-                    {filteredItems.map((item) => (
-                      <div key={item.id} className={`shop-card ${cart[item.id] ? "in-cart" : ""}`}>
-                        <div className="card-icon"><ItemIcon icon={item.icon} size={42} /></div>
-                        <div className="card-name">{item.name}</div>
-                        <div className="card-cat">{item.category}</div>
-                        <div className="card-desc">{item.desc || " "}</div>
-                        <div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div>
-                        <div className="card-action">
-                          {cart[item.id] ? (
-                            <QtyControls id={item.id} cart={cart} setCart={setCart} addToCart={addToCart} decCart={decCart} removeFromCart={removeFromCart} />
-                          ) : (
-                            <button style={{ ...btn("primary"), width: "100%", padding: "5px", fontSize: "0.75rem" }} onClick={() => addToCart(item.id)}>
-                              Add to Cart
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <div style={{ textAlign: "center", padding: "40px", color: C.red }}>{itemsError}</div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={shopLayout === "grid" ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "10px" } : { display: "flex", flexDirection: "column", gap: "8px" }}>
                     {filteredItems.map((item) => (
-                      <div key={item.id} className={`list-row ${cart[item.id] ? "in-cart" : ""}`}>
-                        <ItemIcon icon={item.icon} size={32} />
-                        <div style={{ minWidth: 0 }}>
-                          <div className="list-name">{item.name}</div>
-                          <div className="list-cat">{item.category}</div>
-                        </div>
-                        <div className="list-price">{item.price.toLocaleString()} <span style={{ fontSize: "0.55rem" }}>{currency}</span></div>
-                        <div className="list-qty">
-                          {cart[item.id] ? (
-                            <QtyControls id={item.id} cart={cart} setCart={setCart} addToCart={addToCart} decCart={decCart} removeFromCart={removeFromCart} />
-                          ) : (
-                            <button style={{ ...btn("primary"), padding: "2px 7px", fontSize: "0.7rem" }} onClick={() => addToCart(item.id)}>Add</button>
-                          )}
-                        </div>
-                      </div>
+                      <ShopItem key={item.id} item={item} cart={cart} addToCart={addToCart} layout={shopLayout} currency={currency} />
                     ))}
                   </div>
                 )}
@@ -2047,22 +300,11 @@
                 ) : (
                   <div>
                     {cartEntries.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) auto",
-                          gap: "8px 14px",
-                          alignItems: "start",
-                          padding: "10px 0",
-                          borderBottom: `1px solid ${C.border}`
-                        }}
-                      >
+                      <div key={item.id} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) auto", gap: "8px 14px", alignItems: "start", padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
                           <ItemIcon icon={item.icon} size={34} />
                           <span style={{ fontSize: "0.9rem" }}><strong>{item.name}</strong></span>
                         </div>
-
                         <div style={{ display: "flex", flexDirection: "column", alignItems: isMobile ? "flex-start" : "flex-end", gap: "6px" }}>
                           <span style={{ color: C.accent, fontWeight: 700, fontSize: "0.9rem", whiteSpace: "nowrap" }}>
                             {(item.price * item.qty).toLocaleString()} {currency}
@@ -2071,12 +313,10 @@
                         </div>
                       </div>
                     ))}
-
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "10px", gap: "8px", flexWrap: "wrap" }}>
                       <span style={{ fontFamily: "'Cinzel', serif" }}>TOTAL</span>
                       <TotalAmount amount={cartTotal} isMobile={isMobile} currency={currency} />
                     </div>
-
                     <div style={{ display: "flex", gap: "6px", marginTop: "12px" }}>
                       <button style={btn("danger")} onClick={clearCart}>Clear</button>
                       <button style={btn("primary")} onClick={() => setView("checkout")}>Checkout</button>
@@ -2114,16 +354,9 @@
                           <input style={{ ...inputStyle, borderColor: submittedOnce && !psnUsername.trim() ? C.red : C.border }} value={psnUsername} onChange={(e) => setPsnUsername(e.target.value)} />
                         </div>
                         <div>
-                          <label style={{ ...labelStyle, color: submittedOnce && !discordUsername.trim() ? C.red : C.dim }}>
-                            Discord Username (Locked to login)
-                          </label>
-                          <input 
-                            style={{ ...inputStyle, background: "#f0f0f0", color: "#666" }} 
-                            value={userDiscord} 
-                            readOnly 
-                          />
+                          <label style={{ ...labelStyle, color: C.dim }}>Discord Username (Locked to login)</label>
+                          <input style={{ ...inputStyle, background: "#f0f0f0", color: "#666" }} value={userDiscord} readOnly />
                         </div>
-
                       </div>
                     </div>
 
@@ -2142,34 +375,20 @@
                       </div>
                     </div>
 
-                    {!orderLink ? (
-                      <button style={{ ...btn("primary"), padding: "7px 18px" }} onClick={generateOrder} disabled={orderLoading}>
-                        {orderLoading ? "Saving..." : "Generate Link"}
-                      </button>
-                    ) : (
-                      <div style={sectionStyle}>
-                        <div style={sectionTitleStyle}>Ready!</div>
-                        <div style={{ background: C.white, border: `1px solid ${C.accent}`, padding: "8px", fontSize: "0.75rem", fontFamily: "monospace", wordBreak: "break-all" }}>
-                          {orderLink}
+                    {orderLink ? (
+                      <div style={{ ...sectionStyle, border: `2px solid ${C.green}`, textAlign: "center" }}>
+                        <div style={{ color: C.green, fontWeight: 700, marginBottom: "10px" }}>ORDER CREATED!</div>
+                        <p style={{ fontSize: "0.85rem", marginBottom: "15px" }}>Copy this link and paste it into the Discord #orders channel:</p>
+                        <div style={{ display: "flex", gap: "6px", marginBottom: "10px" }}>
+                          <input style={{ ...inputStyle, fontSize: "0.75rem" }} value={orderLink} readOnly />
+                          <button style={btn("secondary")} onClick={copyLink}>{copied ? "Copied!" : "Copy"}</button>
                         </div>
-                        <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
-                          <button style={btn(copied ? "secondary" : "primary")} onClick={copyLink}>{copied ? "Copied" : "Copy"}</button>
-                          <button
-                            style={btn("ghost")}
-                            onClick={() => {
-                              setOrderLink("");
-                              setCharacterName("");
-                              setPsnUsername("");
-                              setDiscordUsername("");
-                              setSubmittedOnce(false);
-                              setCart({});
-                              setView("shop");
-                            }}
-                          >
-                            New
-                          </button>
-                        </div>
+                        <button style={btn("primary")} onClick={() => { setOrderLink(""); clearCart(); setView("shop"); }}>Done</button>
                       </div>
+                    ) : (
+                      <button style={{ ...btn("primary"), width: "100%", padding: "12px", fontSize: "1.1rem" }} onClick={generateOrder} disabled={orderLoading}>
+                        {orderLoading ? "Processing..." : "Submit Order"}
+                      </button>
                     )}
                   </div>
                 )}
@@ -2179,245 +398,97 @@
             {view === "admin" && (
               <div>
                 {!adminUnlocked ? (
-                  <div style={{ ...sectionStyle, maxWidth: "320px" }}>
-                    <div style={sectionTitleStyle}>Admin</div>
-                    <label style={labelStyle}>Password</label>
-                    <input
-                      type="password"
-                      style={{ ...inputStyle, marginBottom: "6px" }}
-                      value={passInput}
-                      onChange={(e) => setPassInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && adminLogin()}
-                    />
-                    {passError && <div style={{ color: C.red, marginBottom: "6px", fontSize: "0.75rem" }}>{passError}</div>}
-                    <button style={btn("primary")} onClick={adminLogin} disabled={passLoading}>{passLoading ? "..." : "🔓 Unlock"}</button>
+                  <div style={sectionStyle}>
+                    <div style={sectionTitleStyle}>Admin Access</div>
+                    <p style={{ color: C.dim, marginBottom: "15px" }}>Login via Discord to unlock automatically, or enter master password:</p>
+                    <input style={inputStyle} type="password" value={passInput} onChange={(e) => setPassInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && unlockAdmin()} placeholder="••••••••" />
+                    {passError && <div style={{ color: C.red, marginTop: "10px" }}>{passError}</div>}
+                    <button style={{ ...btn("primary"), marginTop: "15px", width: "100%" }} onClick={unlockAdmin} disabled={passLoading}>{passLoading ? "Checking..." : "Unlock"}</button>
                   </div>
                 ) : (
                   <div>
-                    <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-                      {[
-                        ["items", "\u{1F4E6} Items"],
-                        ["calc", "\u{1F9EE} Calc"],
-                        ["settings", "\u2699\uFE0F Settings"]
-                      ].map(([id, label]) => (
-                        <button key={id} style={{ ...btn(adminTab === id ? "primary" : "secondary"), padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => setAdminTab(id)}>
-                          {label}
-                        </button>
-                      ))}
-                      <button style={{ ...btn("secondary"), marginLeft: "auto", padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => { sessionStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
-                        🔒 Lock
-                      </button>
+                    <div style={{ display: "flex", gap: "4px", marginBottom: "15px" }}>
+                      <button className={`nav-btn ${adminTab === "items" ? "active" : ""}`} style={{ flex: 1, fontSize: "0.7rem" }} onClick={() => setAdminTab("items")}>Items</button>
+                      <button className={`nav-btn ${adminTab === "settings" ? "active" : ""}`} style={{ flex: 1, fontSize: "0.7rem" }} onClick={() => setAdminTab("settings")}>Settings</button>
                     </div>
 
                     {adminTab === "items" && (
                       <div style={sectionStyle}>
-                        <div style={{ ...sectionTitleStyle, display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <span>Items</span>
-                          <span style={{ color: saveStatus.type === "error" ? C.red : saveStatus.type === "saved" ? C.green : C.dim, fontSize: "0.72rem" }}>
-                            {itemsSaving ? "Saving to Cloudflare..." : saveStatus.message || "Ready"}
-                          </span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                          <div style={sectionTitleStyle}>Inventory Management</div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => shopListImportRef.current.click()}>Import JSON</button>
+                            <input type="file" ref={shopListImportRef} style={{ display: "none" }} accept=".json" onChange={importShopListFile} />
+                          </div>
                         </div>
-
-                        <input
-                          ref={shopListImportRef}
-                          type="file"
-                          accept=".json,application/json"
-                          style={{ display: "none" }}
-                          onChange={importShopListFile}
-                        />
-
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", marginBottom: "12px" }}>
-                          <span style={{ color: C.accentDark, fontWeight: 700, fontSize: "0.85rem" }}>
-                            Total Items: {items.length}
-                          </span>
-                          <button style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }} onClick={exportShopList}>
-                            Export Recipe List
-                          </button>
-                          <button
-                            style={{ ...btn("secondary"), padding: "4px 10px", fontSize: "0.75rem" }}
-                            onClick={() => shopListImportRef.current?.click()}
-                          >
-                            Import Recipe List
-                          </button>
-                        </div>
-
-                        <div style={{ marginBottom: "12px" }}>
-                          <label style={labelStyle}>Search Items</label>
-                          <input
-                            style={inputStyle}
-                            placeholder="Search name, category, or description..."
-                            value={itemSearch}
-                            onChange={(e) => setItemSearch(e.target.value)}
-                          />
-                        </div>
-
-                        <DraftEditor draft={newItem} setDraft={setNewItem} formula={newItemFormula} isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
-
-                        <div style={{ display: "flex", gap: "6px", marginTop: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
-                          <button style={btn("primary")} onClick={addItem} disabled={itemsSaving}>Add Item</button>
-                          <button style={btn("secondary")} onClick={() => setNewItem(emptyItemDraft())} disabled={itemsSaving}>Clear</button>
-                        </div>
-
-                        {adminFilteredItems.map((item) => (
-                          <div key={item.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
-                            {editItem?.id === item.id ? (
-                              <div style={{ display: "grid", gap: "10px" }}>
-                                <DraftEditor draft={editItem} setDraft={setEditItem} formula={editItemFormula} isEditing isMobile={isMobile} currency={currency} materialTiers={materialTiers} />
-                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                  <button style={btn("primary")} onClick={saveEdit} disabled={itemsSaving}>Save</button>
-                                  <button style={btn("secondary")} onClick={() => setEditItem(null)} disabled={itemsSaving}>Cancel</button>
-                                </div>
+                        <input style={{ ...inputStyle, marginBottom: "15px" }} placeholder="Search items..." value={itemSearch} onChange={(e) => setItemSearch(e.target.value)} />
+                        <div style={{ display: "grid", gap: "10px", maxHeight: "500px", overflowY: "auto", paddingRight: "5px" }}>
+                          {adminFilteredItems.map(it => (
+                            <div key={it.id} style={{ display: "grid", gridTemplateColumns: "40px 1fr auto", gap: "10px", alignItems: "center", padding: "8px", border: `1px solid ${C.border}`, borderRadius: "4px", background: "#fdfdfd" }}>
+                              <ItemIcon icon={it.icon} />
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: "0.85rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</div>
+                                <div style={{ fontSize: "0.7rem", color: C.accent }}>{it.price} {currency}</div>
                               </div>
-                            ) : (
-                              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "42px minmax(0,1fr) auto auto", gap: "8px", alignItems: "center" }}>
-                                <ItemIcon icon={item.icon} size={34} />
-                                <div style={{ minWidth: 0 }}>
-                                  <div style={{ fontSize: "0.9rem" }}><strong>{item.name}</strong></div>
-                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>{item.category} - {item.fixed ? "Fixed" : `Formula - Lvl ${item.engram}`}</div>
-                                  {item.desc ? <div style={{ color: C.dim, fontSize: "0.74rem" }}>{item.desc}</div> : null}
-                                </div>
-                                <div style={{ color: C.accent, fontWeight: 700, fontSize: "0.85rem", whiteSpace: "nowrap" }}>{item.price} {currency}</div>
-                                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                                  <button style={{ ...btn("secondary"), padding: "2px 6px", fontSize: "0.7rem" }} onClick={() => setEditItem(toEditableItem(item))} disabled={itemsSaving}>Edit</button>
-                                  <button style={{ ...btn("danger"), padding: "2px 6px", fontSize: "0.7rem" }} onClick={() => deleteItem(item.id)} disabled={itemsSaving}>Del</button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {adminTab === "calc" && (
-                      <div style={sectionStyle}>
-                        <div style={sectionTitleStyle}>Calculator</div>
-                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                          <button style={btn(calcDraft.fixed ? "secondary" : "primary")} onClick={() => setCalcDraft((current) => ({ ...current, fixed: false }))}>Formula</button>
-                          <button style={btn(calcDraft.fixed ? "primary" : "secondary")} onClick={() => setCalcDraft((current) => ({ ...current, fixed: true }))}>Fixed</button>
+                              <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => setEditItem({ ...it })}>Edit</button>
+                            </div>
+                          ))}
                         </div>
-                        {calcDraft.fixed ? (
-                          <div style={{ maxWidth: "200px", marginBottom: "10px" }}>
-                            <label style={labelStyle}>Price</label>
-                            <input type="number" min="0" style={inputStyle} value={calcDraft.price} onChange={(e) => updateDraft(setCalcDraft, "price", e.target.value)} />
-                          </div>
-                        ) : (
-                          <div style={{ display: "grid", gap: "8px", marginBottom: "10px" }}>
-                            <div style={{ maxWidth: "200px" }}>
-                              <label style={labelStyle}>Engram Level</label>
-                              <input type="number" min="0" style={inputStyle} value={calcDraft.engram} onChange={(e) => updateDraft(setCalcDraft, "engram", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={labelStyle}>Recipe</label>
-                              <RecipeEditor recipe={calcDraft.recipe} onChange={(value) => updateDraftRecipe(setCalcDraft, value)} allMaterials={allMaterials} />
-                            </div>
-                          </div>
-                        )}
-                        <DraftPricing draft={calcDraft} formula={calcFormula} currency={currency} materialTiers={materialTiers} />
                       </div>
                     )}
 
                     {adminTab === "settings" && (
                       <div style={sectionStyle}>
                         <div style={sectionTitleStyle}>Settings</div>
-                        
                         <div style={{ marginBottom: "20px" }}>
                           <label style={labelStyle}>Currency Name</label>
                           <input style={{ ...inputStyle, maxWidth: "240px" }} value={editCurrency} onChange={(e) => setEditCurrency(e.target.value)} />
                         </div>
-
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px", marginBottom: "8px" }}>
                           <div style={{ ...sectionTitleStyle, fontSize: "1rem", marginBottom: 0 }}>Materials & Costs (in Metal Ingots)</div>
                           <div style={{ display: "flex", gap: "6px" }}>
                             <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={exportMaterials}>Export JSON</button>
                             <button style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }} onClick={() => materialsImportRef.current.click()}>Import JSON</button>
-                            <input
-                              type="file"
-                              ref={materialsImportRef}
-                              style={{ display: "none" }}
-                              accept=".json"
-                              onChange={importMaterialsFile}
-                            />
+                            <input type="file" ref={materialsImportRef} style={{ display: "none" }} accept=".json" onChange={importMaterialsFile} />
                           </div>
                         </div>
-                        <div style={{ 
-                          display: "grid", 
-                          gap: "8px", 
-                          maxHeight: "350px", 
-                          overflowY: "auto", 
-                          paddingRight: "8px",
-                          border: `1px solid ${C.border}`,
-                          padding: "8px",
-                          background: "#fdfdfd",
-                          marginBottom: "16px"
-                        }}>
+                        <div style={{ display: "grid", gap: "8px", maxHeight: "350px", overflowY: "auto", paddingRight: "8px", border: `1px solid ${C.border}`, padding: "8px", background: "#fdfdfd", marginBottom: "16px" }}>
                           {Object.keys(editMaterials).sort().map((mat) => {
                             const isRenaming = renamingMat?.oldName === mat;
                             return (
                               <div key={mat} style={{ display: "grid", gridTemplateColumns: "1fr 100px 40px", gap: "8px", alignItems: "center" }}>
                                 {isRenaming ? (
                                   <div style={{ display: "flex", gap: "4px" }}>
-                                    <input 
-                                      autoFocus
-                                      style={{ ...inputStyle, flex: 1 }} 
-                                      value={renamingMat.newName} 
-                                      onChange={(e) => setRenamingMat({ ...renamingMat, newName: e.target.value })}
-                                      onKeyDown={(e) => e.key === "Enter" && commitRename()}
-                                    />
-                                    <button 
-                                      style={{ ...btn("primary"), padding: "4px 8px", fontSize: "0.7rem" }} 
-                                      onClick={commitRename}
-                                    >
-                                      Enter
-                                    </button>
+                                    <input style={{ ...inputStyle, padding: "2px 4px" }} value={renamingMat.newName} onChange={(e) => setRenamingMat({ ...renamingMat, newName: e.target.value })} />
+                                    <button style={{ ...btn("primary"), padding: "2px 6px" }} onClick={() => confirmRenameMat(renamingMat.oldName, renamingMat.newName)}>✓</button>
                                   </div>
                                 ) : (
-                                  <div 
-                                    style={{ fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", color: C.accentDark }}
-                                    onClick={() => setRenamingMat({ oldName: mat, newName: mat })}
-                                  >
-                                    {mat}
-                                  </div>
+                                  <div style={{ fontSize: "0.8rem", cursor: "pointer" }} onClick={() => setRenamingMat({ oldName: mat, newName: mat })}>{mat}</div>
                                 )}
-                                <input 
-                                  type="number" 
-                                  step="any"
-                                  style={inputStyle} 
-                                  value={editMaterials[mat]} 
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 0;
-                                    setEditMaterials(prev => ({ ...prev, [mat]: val }));
-                                  }} 
-                                />
-                                <button 
-                                  style={{ ...btn("danger"), padding: "4px" }} 
-                                  onClick={() => {
-                                    if (confirm(`Delete material "${mat}"?`)) {
-                                      const next = { ...editMaterials };
-                                      delete next[mat];
-                                      setEditMaterials(next);
-                                    }
-                                  }}
-                                >
-                                  X
-                                </button>
+                                <input type="number" step="0.01" style={{ ...inputStyle, padding: "2px 4px" }} value={editMaterials[mat]} onChange={(e) => setEditMaterials({ ...editMaterials, [mat]: e.target.value })} />
+                                <button style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontWeight: "bold" }} onClick={() => { if (window.confirm(`Delete ${mat}?`)) { const n = { ...editMaterials }; delete n[mat]; setEditMaterials(n); } }}>X</button>
                               </div>
                             );
                           })}
-                          <button 
-                            style={{ ...btn("secondary"), padding: "6px", fontSize: "0.75rem", borderStyle: "dashed" }}
-                            onClick={() => {
-                              const newName = `New Material ${Object.keys(editMaterials).length + 1}`;
-                              setEditMaterials(prev => ({ ...prev, [newName]: 0 }));
-                              setRenamingMat({ oldName: newName, newName: newName });
-                            }}
-                          >
-                            + Add New Material Row
-                          </button>
+                          <button style={{ ...btn("secondary"), padding: "6px", fontSize: "0.75rem", borderStyle: "dashed" }} onClick={() => { const newName = `New Material ${Object.keys(editMaterials).length + 1}`; setEditMaterials(prev => ({ ...prev, [newName]: 0 })); setRenamingMat({ oldName: newName, newName: newName }); }}>+ Add New Material Row</button>
                         </div>
-
                         <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
                           <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
-                          {saveStatus.type === "saved" && (
-                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
-                          )}
-                          {itemsSaving && <span style={
+                          {saveStatus.type === "saved" && <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>}
+                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
