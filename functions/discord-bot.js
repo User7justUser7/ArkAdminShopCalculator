@@ -41,60 +41,48 @@ export async function onRequestPost({ env, request }) {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
       try {
-        // Store in KV using the lowercase username
+        // 1. Store in KV
         await env.SHOP_USERS.put(`user:${discordName.toLowerCase()}`, code);
 
-        return new Response(JSON.stringify({
-          type: 4, 
-          data: {
-            content: `## ✅ Registration Successful!\n\nHello **${user.global_name || user.username}**,\n\nYour shop login is now set to your actual Discord username.\n\n### Login Details:\n- **Discord Name:** \` ${discordName} \` \n- **Your Code:** \` ${code} \` \n\n**Login at:** [247alwaysonline.pages.dev](https://247alwaysonline.pages.dev)\n\n*Note: Use your full name exactly as shown above. This message is only visible to you.*`,
-            flags: 64 
-          }
-        }), {
-          headers: { 'Content-Type': 'application/json' }
+        // 2. Send the DM via Discord REST API
+        // First, create/get the DM channel ID
+        const dmChannelResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bot ${env.DISCORD_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ recipient_id: user.id }),
         });
+
+        const dmChannel = await dmChannelResponse.json();
+
+        if (dmChannel.id) {
+          // Send the actual message to that DM channel
+          const messageText = `## 🗝️ Your Shop Login Details\n\nHello **${user.global_name || user.username}**,\n\nHere are your login details for the 247 Always Online Shop. You can refer back to this message whenever you need your code.\n\n- **Discord Name:** \` ${discordName} \` \n- **Your Code:** \` ${code} \` \n\n**Login at:** [https://247alwaysonline.pages.dev](https://247alwaysonline.pages.dev)`;
+
+          await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bot ${env.DISCORD_TOKEN}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: messageText }),
+          });
+
+          // 3. Respond to the slash command with a "Check your DMs" message
+          return new Response(JSON.stringify({
+            type: 4, 
+            data: {
+              content: `✅ **Success!** I have sent your login code to your **Direct Messages**, ${user.username}. Please check your inbox!`,
+              flags: 64 
+            }
+          }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } else {
+          throw new Error("Could not open DM channel. They might have DMs disabled.");
+        }
+
       } catch (e) {
-        console.error('KV Error:', e);
-        return new Response(JSON.stringify({
-          type: 4,
-          data: { content: "❌ Failed to register. There was an error saving your data. Please contact an admin.", flags: 64 }
-        }), { headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-  }
-
-  return new Response('Unknown interaction', { status: 400 });
-}
-
-// Security: Verify that the request actually came from Discord
-async function verifySignature(publicKey, signature, timestamp, body) {
-  if (!publicKey || !signature || !timestamp) return false;
-  
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(timestamp + body);
-    const publicKeyBuffer = hexToUint8Array(publicKey);
-    const signatureBuffer = hexToUint8Array(signature);
-
-    const key = await crypto.subtle.importKey(
-      'raw',
-      publicKeyBuffer,
-      { name: 'NODE-ED25519', namedCurve: 'NODE-ED25519' },
-      false,
-      ['verify']
-    );
-
-    return await crypto.subtle.verify(
-      'NODE-ED25519',
-      key,
-      signatureBuffer,
-      data
-    );
-  } catch (e) {
-    return false;
-  }
-}
-
-function hexToUint8Array(hex) {
-  return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-}
+        console.error('Registration/DM Erro
