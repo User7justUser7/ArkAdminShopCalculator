@@ -692,7 +692,7 @@
       const base = {
         id,
         name: String(draft.name || "").trim(),
-        category: String(draft.category || "").trim(),
+        category: normalizeCategory(draft.category),
         icon: String(draft.icon || "\u{1F4E6}").trim() || "\u{1F4E6}",
         desc: String(draft.desc || "").trim(),
         fixed: Boolean(draft.fixed)
@@ -720,10 +720,19 @@
       };
     }
 
+    function normalizeCategory(cat) {
+      if (!cat) return "Other";
+      const c = String(cat).trim();
+      if (c === "Resource") return "Resources";
+      if (c === "Structure") return "Structures";
+      if (c.toLowerCase().includes("consumable")) return "Consumables";
+      return c;
+    }
+
     function normalizeImportedShopItem(rawItem, index, materialTiers) {
       const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
       const name = String(rawItem?.name || "").trim();
-      const category = String(rawItem?.category || "Imported").trim() || "Imported";
+      const category = normalizeCategory(rawItem?.category || "Imported");
       const wikiType = String(rawItem?.wiki_type || "").trim();
       const icon = String(rawItem?.icon || rawItem?.image_url || "").trim();
       const desc = String(rawItem?.desc || rawItem?.description || rawItem?.quote || "").trim();
@@ -1905,10 +1914,10 @@
     return (
       <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
           <div className="top-bar">
-            <div className="top-bar-content">
+            <div className="top-bar-content" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <div className="top-bar-subtitle">Admin Shop</div>
+                <div className="top-bar-subtitle" style={{ fontSize: "0.6rem", color: C.mute }}>Admin Shop</div>
                 <div style={{ fontSize: "0.75rem", color: C.dim }}>Logged in as: <strong>{userDiscord}</strong></div>
               </div>
             </div>
