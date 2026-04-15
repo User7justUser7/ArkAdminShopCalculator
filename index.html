@@ -1239,6 +1239,13 @@
       const [orderLoading, setOrderLoading] = useState(false);
       const [submittedOnce, setSubmittedOnce] = useState(false);
 
+      // New User Authentication States
+      const [userDiscord, setUserDiscord] = useState(() => localStorage.getItem("ark_user_discord") || "");
+      const [userCode, setUserCode] = useState(() => localStorage.getItem("ark_user_code") || "");
+      const [isLoggedIn, setIsAuthenticated] = useState(() => !!localStorage.getItem("ark_user_discord"));
+      const [loginError, setLoginError] = useState("");
+      const [loginLoading, setLoginLoading] = useState(false);
+
       const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem("ark_admin") === "yes");
       const [passInput, setPassInput] = useState("");
       const [passError, setPassError] = useState("");
@@ -1284,6 +1291,40 @@
         }, 2500);
         return () => clearTimeout(timeout);
       }, [saveStatus]);
+
+      async function attemptLogin(name, code) {
+        setLoginError("");
+        setLoginLoading(true);
+        try {
+          const res = await fetch("/user-login", {
+            method: "POST",
+            body: JSON.stringify({ discordName: name, code: code })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            localStorage.setItem("ark_user_discord", name);
+            localStorage.setItem("ark_user_code", code);
+            setUserDiscord(name);
+            setUserCode(code);
+            setIsAuthenticated(true);
+          } else {
+            setLoginError(data.error || "Invalid login.");
+          }
+        } catch (e) {
+          setLoginError("Connection failed.");
+        } finally {
+          setLoginLoading(false);
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem("ark_user_discord");
+        localStorage.removeItem("ark_user_code");
+        setUserDiscord("");
+        setUserCode("");
+        setIsAuthenticated(false);
+        setView("shop");
+      }
 
       async function fetchItems() {
         setItemsLoading(true);
@@ -1453,7 +1494,7 @@
 
       async function generateOrder() {
         setSubmittedOnce(true);
-        if (!characterName.trim() || !psnUsername.trim() || !discordUsername.trim()) {
+        if (!characterName.trim() || !psnUsername.trim()) {
           return;
         }
 
@@ -1462,7 +1503,7 @@
           const order = {
             characterName: characterName.trim(),
             psnUsername: psnUsername.trim(),
-            discordUsername: discordUsername.trim(),
+            discordUsername: userDiscord,
             timestamp: new Date().toISOString(),
             items: cartEntries.map((item) => ({ id: item.id, qty: item.qty }))
           };
@@ -1729,6 +1770,20 @@
         const orderTotal = hydratedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
         const orderId = getOrderIdFromHash();
 
+        // Security check: Only the person who made the order can see it
+        const isOwner = isLoggedIn && (orderView.discordUsername === userDiscord);
+        
+        if (!isOwner) {
+          return (
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ textAlign: "center", background: C.bg2, padding: "40px", border: `2px solid ${C.red}`, borderRadius: "8px" }}>
+                <h1 style={{ color: C.red, fontSize: "2.5rem", marginBottom: "20px" }}>Cannot view other players cart</h1>
+                <button style={btn("primary")} onClick={goToShop}>Return to Shop</button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
             <div
@@ -1790,12 +1845,62 @@
         );
       }
 
+    if (!isLoggedIn) {
       return (
-        <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
+        <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ ...sectionStyle, maxWidth: "400px", width: "100%", textAlign: "center" }}>
+            <h1 style={{ fontFamily: "'Cinzel', serif", marginBottom: "20px" }}>247 ALWAYS ONLINE</h1>
+            <p style={{ color: C.dim, marginBottom: "30px" }}>Please log in using your Discord credentials provided by the bot.</p>
+            
+            <div style={{ textAlign: "left", marginBottom: "15px" }}>
+              <label style={labelStyle}>Discord Username (e.g. name#1234)</label>
+              <input 
+                style={inputStyle} 
+                value={userDiscord} 
+                onChange={(e) => setUserDiscord(e.target.value)}
+                placeholder="Discord Name"
+              />
+            </div>
+
+            <div style={{ textAlign: "left", marginBottom: "25px" }}>
+              <label style={labelStyle}>6-Digit Login Code</label>
+              <input 
+                style={inputStyle} 
+                type="password"
+                maxLength="6"
+                value={userCode} 
+                onChange={(e) => setUserCode(e.target.value)}
+                placeholder="123456"
+              />
+            </div>
+
+            {loginError && <div style={{ color: C.red, marginBottom: "15px", fontWeight: "bold" }}>{loginError}</div>}
+
+            <button 
+              style={{ ...btn("primary"), width: "100%", fontSize: "1.1rem", padding: "12px" }}
+              onClick={() => attemptLogin(userDiscord, userCode)}
+              disabled={loginLoading}
+            >
+              {loginLoading ? "Verifying..." : "ENTER SHOP"}
+            </button>
+
+            <div style={{ marginTop: "20px", fontSize: "0.85rem", color: C.dim }}>
+              Don't have a code? Type <strong>!register</strong> in our Discord server.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text }}>
           <div className="top-bar">
             <div className="top-bar-content">
               <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
-              <div className="top-bar-subtitle">Admin Shop</div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <div className="top-bar-subtitle">Admin Shop</div>
+                <div style={{ fontSize: "0.75rem", color: C.dim }}>Logged in as: <strong>{userDiscord}</strong></div>
+              </div>
             </div>
           </div>
 
@@ -1806,6 +1911,9 @@
               </button>
               <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
                 🛒 {cartButtonLabel}
+              </button>
+              <button className="nav-btn" onClick={logout}>
+                🚪 Logout
               </button>
               <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
                 📋 Order
@@ -1998,10 +2106,15 @@
                         </div>
                         <div>
                           <label style={{ ...labelStyle, color: submittedOnce && !discordUsername.trim() ? C.red : C.dim }}>
-                            {submittedOnce && !discordUsername.trim() ? "Please Enter Discord Username *" : "Discord Username *"}
+                            Discord Username (Locked to login)
                           </label>
-                          <input style={{ ...inputStyle, borderColor: submittedOnce && !discordUsername.trim() ? C.red : C.border }} value={discordUsername} onChange={(e) => setDiscordUsername(e.target.value)} />
+                          <input 
+                            style={{ ...inputStyle, background: "#f0f0f0", color: "#666" }} 
+                            value={userDiscord} 
+                            readOnly 
+                          />
                         </div>
+
                       </div>
                     </div>
 
