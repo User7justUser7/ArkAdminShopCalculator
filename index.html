@@ -1246,7 +1246,7 @@
       const [loginError, setLoginError] = useState("");
       const [loginLoading, setLoginLoading] = useState(false);
 
-      const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem("ark_admin") === "yes");
+      const [adminUnlocked, setAdminUnlocked] = useState(() => localStorage.getItem("ark_admin") === "yes");
       const [passInput, setPassInput] = useState("");
       const [passError, setPassError] = useState("");
       const [passLoading, setPassLoading] = useState(false);
@@ -1307,6 +1307,12 @@
             setUserDiscord(name);
             setUserCode(code);
             setIsAuthenticated(true);
+
+            // Automatically promote to Admin if this is the master Discord user
+            if (data.isAdmin) {
+              localStorage.setItem("ark_admin", "yes");
+              setAdminUnlocked(true);
+            }
           } else {
             setLoginError(data.error || "Invalid login.");
           }
@@ -1320,9 +1326,11 @@
       function logout() {
         localStorage.removeItem("ark_user_discord");
         localStorage.removeItem("ark_user_code");
+        localStorage.removeItem("ark_admin");
         setUserDiscord("");
         setUserCode("");
         setIsAuthenticated(false);
+        setAdminUnlocked(false);
         setView("shop");
       }
 
@@ -1543,7 +1551,7 @@
             setPassError("Incorrect password.");
             return;
           }
-          sessionStorage.setItem("ark_admin", "yes");
+          localStorage.setItem("ark_admin", "yes");
           setAdminUnlocked(true);
           setPassInput("");
         } catch {
@@ -1770,10 +1778,11 @@
         const orderTotal = hydratedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
         const orderId = getOrderIdFromHash();
 
-        // Security check: Only the person who made the order can see it
+        // Security check: Only the person who made the order (or an Admin) can see it
         const isOwner = isLoggedIn && (orderView.discordUsername === userDiscord);
+        const canView = isOwner || adminUnlocked;
         
-        if (!isOwner) {
+        if (!canView) {
           return (
             <div style={{ fontFamily: "'Rajdhani', sans-serif", background: C.bg, minHeight: "100vh", color: C.text, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ textAlign: "center", background: C.bg2, padding: "40px", border: `2px solid ${C.red}`, borderRadius: "8px" }}>
@@ -2195,7 +2204,7 @@
                           {label}
                         </button>
                       ))}
-                      <button style={{ ...btn("secondary"), marginLeft: "auto", padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => { sessionStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
+                      <button style={{ ...btn("secondary"), marginLeft: "auto", padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => { localStorage.removeItem("ark_admin"); setAdminUnlocked(false); }}>
                         🔒 Lock
                       </button>
                     </div>
