@@ -23,34 +23,37 @@ export async function onRequestPost({ env, request }) {
     });
   }
 
-  // 3. Handle Slash Commands (Type 2)
-  if (interaction.type === 2) {
-    const { name } = interaction.data;
-
     if (name === 'register') {
       const user = interaction.member ? interaction.member.user : interaction.user;
-      const discordName = `${user.username}${user.discriminator !== '0' ? '#' + user.discriminator : ''}`;
+      
+      // Get the "Actual Username" (the one they use to log in to Discord)
+      // For old accounts: name#1234
+      // For new accounts: name
+      const discordName = user.discriminator && user.discriminator !== '0' && user.discriminator !== '0000'
+        ? `${user.username}#${user.discriminator}` 
+        : user.username;
       
       // Generate code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
       try {
-        // Save to KV directly
+        // Store in KV using the lowercase username to avoid case-sensitivity issues
         await env.SHOP_USERS.put(`user:${discordName.toLowerCase()}`, code);
 
         return new Response(JSON.stringify({
-          type: 4, // Respond immediately
+          type: 4, 
           data: {
-            content: `Hello ${user.username}!\n\nYour 6-digit shop login code is: **${code}**\nUse your Discord name (**${discordName}**) to log in at:\nhttps://247alwaysonline.pages.dev`,
-            flags: 64 // EPHEMERAL - Only the user who typed the command sees this!
+            content: `## ✅ Registration Successful!\n\nHello **${user.global_name || user.username}**,\n\nYour shop login is now set to your actual Discord username.\n\n### Login Details:\n- **Discord Name:** \` ${discordName} \` \n- **Your Code:** \` ${code} \` \n\n**Login at:** [247alwaysonline.pages.dev](https://247alwaysonline.pages.dev)\n\n*Note: Use your full name exactly as shown above. This message is only visible to you.*`,
+            flags: 64 
           }
         }), {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
+        console.error('KV Error:', e);
         return new Response(JSON.stringify({
           type: 4,
-          data: { content: "❌ Failed to register. Please contact an admin.", flags: 64 }
+          data: { content: "❌ Failed to register. There was an error saving your data. Please contact an admin.", flags: 64 }
         }), { headers: { 'Content-Type': 'application/json' } });
       }
     }
