@@ -85,4 +85,51 @@ export async function onRequestPost({ env, request }) {
         }
 
       } catch (e) {
-        console.error('Registration/DM Erro
+        console.error('Registration/DM Error:', e);
+        return new Response(JSON.stringify({
+          type: 4,
+          data: { 
+            content: `❌ **I couldn't DM you!**\n\nPlease enable **"Allow direct messages from server members"** in your Privacy Settings for this server and try again.`, 
+            flags: 64 
+          }
+        }), { headers: { 'Content-Type': 'application/json' } });
+      }
+
+    }
+  }
+
+  return new Response('Unknown interaction', { status: 400 });
+}
+
+// Security: Verify that the request actually came from Discord
+async function verifySignature(publicKey, signature, timestamp, body) {
+  if (!publicKey || !signature || !timestamp) return false;
+  
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(timestamp + body);
+    const publicKeyBuffer = hexToUint8Array(publicKey);
+    const signatureBuffer = hexToUint8Array(signature);
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      publicKeyBuffer,
+      { name: 'NODE-ED25519', namedCurve: 'NODE-ED25519' },
+      false,
+      ['verify']
+    );
+
+    return await crypto.subtle.verify(
+      'NODE-ED25519',
+      key,
+      signatureBuffer,
+      data
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function hexToUint8Array(hex) {
+  return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+}
