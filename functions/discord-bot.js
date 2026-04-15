@@ -23,6 +23,10 @@ export async function onRequestPost({ env, request }) {
     });
   }
 
+  // 3. Handle Slash Commands (Type 2)
+  if (interaction.type === 2) {
+    const { name } = interaction.data;
+
     if (name === 'register') {
       const user = interaction.member ? interaction.member.user : interaction.user;
       
@@ -37,7 +41,7 @@ export async function onRequestPost({ env, request }) {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
       try {
-        // Store in KV using the lowercase username to avoid case-sensitivity issues
+        // Store in KV using the lowercase username
         await env.SHOP_USERS.put(`user:${discordName.toLowerCase()}`, code);
 
         return new Response(JSON.stringify({
