@@ -622,7 +622,7 @@
       return {
         icon: "\u{1F4E6}",
         name: "",
-        category: "",
+        category: ["Imported"],
         desc: "",
         fixed: true,
         price: "",
@@ -657,6 +657,7 @@
     function toEditableItem(item) {
       return {
         ...item,
+        category: Array.isArray(item?.category) ? [...item.category] : [item?.category || "Imported"],
         price: String(item?.price ?? ""),
         engram: String(item?.engram ?? ""),
         yield: String(item?.yield ?? "1"),
@@ -668,7 +669,7 @@
 
     function validateDraft(draft) {
       if (!String(draft.name || "").trim()) return "Item name is required.";
-      if (!String(draft.category || "").trim()) return "Category is required.";
+      if (!Array.isArray(draft.category) || draft.category.length === 0 || !draft.category[0]) return "At least one category is required.";
 
       if (draft.fixed) {
         const price = Number(draft.price);
@@ -688,11 +689,20 @@
       return "";
     }
 
+    function normalizeCategory(cat) {
+      if (!cat) return "Other";
+      const c = String(cat).trim();
+      if (c === "Resource") return "Resources";
+      if (c === "Structure") return "Structures";
+      if (c.toLowerCase().includes("consumable")) return "Consumables";
+      return c;
+    }
+
     function buildItemFromDraft(draft, id, materialTiers) {
       const base = {
         id,
         name: String(draft.name || "").trim(),
-        category: normalizeCategory(draft.category),
+        category: draft.category.map(c => normalizeCategory(c)),
         icon: String(draft.icon || "\u{1F4E6}").trim() || "\u{1F4E6}",
         desc: String(draft.desc || "").trim(),
         fixed: Boolean(draft.fixed)
@@ -720,19 +730,14 @@
       };
     }
 
-    function normalizeCategory(cat) {
-      if (!cat) return "Other";
-      const c = String(cat).trim();
-      if (c === "Resource") return "Resources";
-      if (c === "Structure") return "Structures";
-      if (c.toLowerCase().includes("consumable")) return "Consumables";
-      return c;
-    }
-
     function normalizeImportedShopItem(rawItem, index, materialTiers) {
       const id = String(rawItem?.id || `import_${Date.now()}_${index}`).trim();
       const name = String(rawItem?.name || "").trim();
-      const category = normalizeCategory(rawItem?.category || "Imported");
+      
+      const rawCat = rawItem?.category;
+      const categoryArray = Array.isArray(rawCat) ? rawCat : [rawCat || "Imported"];
+      const category = categoryArray.map(c => normalizeCategory(c));
+
       const wikiType = String(rawItem?.wiki_type || "").trim();
       const icon = String(rawItem?.icon || rawItem?.image_url || "").trim();
       const desc = String(rawItem?.desc || rawItem?.description || rawItem?.quote || "").trim();
@@ -1067,12 +1072,39 @@
             </div>
 
             <div>
-              <label style={labelStyle}>Category</label>
-              <input
-                style={inputStyle}
-                value={draft.category}
-                onChange={(e) => updateDraft(setDraft, "category", e.target.value)}
-              />
+              <label style={labelStyle}>Categories</label>
+              <div style={{ display: "grid", gap: "4px" }}>
+                {(draft.category || ["Imported"]).map((cat, i) => (
+                  <div key={i} style={{ display: "flex", gap: "4px" }}>
+                    <input
+                      style={inputStyle}
+                      value={cat}
+                      onChange={(e) => {
+                        const next = [...draft.category];
+                        next[i] = e.target.value;
+                        updateDraft(setDraft, "category", next);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      style={{ ...btn("danger"), padding: "2px 8px" }}
+                      onClick={() => {
+                        const next = draft.category.filter((_, idx) => idx !== i);
+                        updateDraft(setDraft, "category", next.length ? next : ["Imported"]);
+                      }}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  style={{ ...btn("secondary"), padding: "2px 8px", fontSize: "0.7rem" }}
+                  onClick={() => updateDraft(setDraft, "category", [...draft.category, ""])}
+                >
+                  + Add Category
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1495,15 +1527,24 @@
         .filter(Boolean);
 
       const cartTotal = cartEntries.reduce((sum, item) => sum + item.price * item.qty, 0);
-      const categories = ["All", ...new Set(items.map((item) => item.category))];
+      
+      // Extract all unique categories from all items (handling both strings and arrays)
+      const allCategoryTags = items.flatMap(item => {
+        if (Array.isArray(item.category)) return item.category;
+        return [item.category || "Imported"];
+      });
+      const categories = ["All", ...new Set(allCategoryTags)].sort();
+
       const filteredItems = items.filter((item) => {
-        const matchesCategory = catFilter === "All" || item.category === catFilter;
+        const itemCats = Array.isArray(item.category) ? item.category : [item.category || "Imported"];
+        const matchesCategory = catFilter === "All" || itemCats.includes(catFilter);
         const matchesSearch = item.name.toLowerCase().includes(searchQ.toLowerCase());
         return matchesCategory && matchesSearch;
       });
-      const adminFilteredItems = items.filter((item) =>
-        `${item.name} ${item.category} ${item.desc || ""}`.toLowerCase().includes(itemSearch.toLowerCase())
-      );
+      const adminFilteredItems = items.filter((item) => {
+        const itemCats = Array.isArray(item.category) ? item.category : [item.category || "Imported"];
+        return `${item.name} ${itemCats.join(" ")} ${item.desc || ""}`.toLowerCase().includes(itemSearch.toLowerCase());
+      });
 
       const newItemFormula = computeFormulaPrice(newItem.recipe, newItem.engram, materialTiers);
       const editItemFormula = editItem ? computeFormulaPrice(editItem.recipe, editItem.engram, materialTiers) : null;
@@ -2006,7 +2047,7 @@
                       <div key={item.id} className={`shop-card ${cart[item.id] ? "in-cart" : ""}`}>
                         <div className="card-icon"><ItemIcon icon={item.icon} size={42} /></div>
                         <div className="card-name">{item.name}</div>
-                        <div className="card-cat">{item.category}</div>
+                        <div className="card-cat">{Array.isArray(item.category) ? item.category.join(", ") : (item.category || "Imported")}</div>
                         <div className="card-desc">{item.desc || " "}</div>
                         <div className="card-price">{item.price.toLocaleString()} <span>{currency}</span></div>
                         <div className="card-action">
@@ -2028,7 +2069,7 @@
                         <ItemIcon icon={item.icon} size={32} />
                         <div style={{ minWidth: 0 }}>
                           <div className="list-name">{item.name}</div>
-                          <div className="list-cat">{item.category}</div>
+                          <div className="list-cat">{Array.isArray(item.category) ? item.category.join(", ") : (item.category || "Imported")}</div>
                         </div>
                         <div className="list-price">{item.price.toLocaleString()} <span style={{ fontSize: "0.55rem" }}>{currency}</span></div>
                         <div className="list-qty">
@@ -2283,7 +2324,9 @@
                                 <ItemIcon icon={item.icon} size={34} />
                                 <div style={{ minWidth: 0 }}>
                                   <div style={{ fontSize: "0.9rem" }}><strong>{item.name}</strong></div>
-                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>{item.category} - {item.fixed ? "Fixed" : `Formula - Lvl ${item.engram}`}</div>
+                                  <div style={{ color: C.mute, fontSize: "0.74rem" }}>
+                                    {(Array.isArray(item.category) ? item.category.join(", ") : (item.category || "Imported"))} - {item.fixed ? "Fixed" : `Formula - Lvl ${item.engram}`}
+                                  </div>
                                   {item.desc ? <div style={{ color: C.dim, fontSize: "0.74rem" }}>{item.desc}</div> : null}
                                 </div>
                                 <div style={{ color: C.accent, fontWeight: 700, fontSize: "0.85rem", whiteSpace: "nowrap" }}>{item.price} {currency}</div>
