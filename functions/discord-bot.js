@@ -59,7 +59,7 @@ export async function onRequestPost({ env, request }) {
 
         if (dmChannel.id) {
           // Send the actual message to that DM channel
-          const messageText = `## 🗝️ Your Shop Login Details\n\nHello **${user.global_name || user.username}**,\n\nHere are your login details for the 247 Always Online Shop. You can refer back to this message whenever you need your code.\n\n- **Discord Name:** \` ${discordName} \` \n- **Your Code:** \` ${code} \` \n\n**Login at:** [https://247alwaysonline.pages.dev](https://247alwaysonline.pages.dev)`;
+          const messageText = `## 🗝️ Your Shop Login Details\n\nHello **${user.global_name || user.username}**,\n\nHere are your login details for the 247 Always Online Shop. You can refer back to this message whenever you need your code.\n\n- **Discord Name:** \` ${discordName} \` \n- **Your Code:** \` ${code} \` \n\n**Login at:** https://247alwaysonline.pages.dev`;
 
           await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
             method: 'POST',
