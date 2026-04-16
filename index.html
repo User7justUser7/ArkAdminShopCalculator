@@ -24,6 +24,7 @@
     body {
       background: #e9ebe9;
       font-family: "Rajdhani", sans-serif;
+      overflow-x: hidden;
     }
 
     button,
@@ -310,11 +311,17 @@
       line-height: 1;
     }
 
+    @media (max-width: 1024px) {
+      .admin-btn {
+        display: none !important;
+      }
+    }
+
     @media (max-width: 600px) {
       .top-bar {
         padding: 8px 12px;
         height: auto;
-        min-height: 50px;
+        min-height: 55px;
       }
 
       .top-bar-content {
@@ -333,12 +340,18 @@
         top: auto;
         position: relative;
         height: auto;
-        padding: 6px 8px;
+        padding: 6px 4px;
+        overflow-x: auto;
+      }
+
+      .nav-buttons {
+        gap: 3px;
+        justify-content: center;
       }
 
       .nav-btn {
-        padding: 4px 5px;
-        font-size: 0.66rem;
+        padding: 4px 6px;
+        font-size: 0.65rem;
         min-width: 0;
         flex: 0 1 auto;
       }
@@ -350,18 +363,16 @@
         font-size: 0.6rem;
       }
 
-      .admin-btn {
-        display: none;
-      }
-
       .shop-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 6px;
+        width: 100%;
       }
 
       .shop-card {
-        height: 300px;
-        padding: 10px;
+        height: 310px;
+        padding: 8px;
+        min-width: 0;
       }
 
       .card-icon {
@@ -1957,9 +1968,27 @@
           <div className="top-bar">
             <div className="top-bar-content" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", textAlign: "right" }}>
-                <div className="top-bar-subtitle" style={{ fontSize: "0.6rem", color: C.mute }}>Admin Shop</div>
-                <div style={{ fontSize: "0.75rem", color: C.dim }}>Logged in as: <strong>{userDiscord}</strong></div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", textAlign: "right" }}>
+                  <div className="top-bar-subtitle" style={{ fontSize: "0.6rem", color: C.mute }}>Admin Shop</div>
+                  <div style={{ fontSize: "0.75rem", color: C.dim }}>Logged in as: <strong>{userDiscord}</strong></div>
+                </div>
+                {isMobile && (
+                  <button 
+                    onClick={logout}
+                    style={{ 
+                      background: "transparent", 
+                      border: `1px solid ${C.mute}`, 
+                      color: C.mute, 
+                      padding: "4px 8px", 
+                      fontSize: "0.7rem", 
+                      fontWeight: 700,
+                      borderRadius: "4px"
+                    }}
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1972,18 +2001,20 @@
               <button className={`nav-btn nav-btn-cart ${view === "cart" ? "active" : ""}`} onClick={() => setView("cart")}>
                 🛒 {cartButtonLabel}
               </button>
-              <button className="nav-btn" onClick={logout}>
-                🚪 Logout
-              </button>
+              {!isMobile && (
+                <button className="nav-btn" onClick={logout}>
+                  🚪 Logout
+                </button>
+              )}
               <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
                 📋 Order
               </button>
+              {adminUnlocked && !isMobile && (
+                <button className={`nav-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
+                  🔧 Admin
+                </button>
+              )}
             </div>
-            {!isMobile && (
-              <button className={`admin-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
-                🔧 Admin
-              </button>
-            )}
           </div>
 
           <div style={{ padding: "10px", maxWidth: "1100px", margin: "0 auto" }}>
@@ -2465,28 +2496,4 @@
                             }}
                           >
                             + Add New Material Row
-                          </button>
-                        </div>
-
-                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
-                          {saveStatus.type === "saved" && (
-                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
-                          )}
-                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
-</html>
+                          </bu
