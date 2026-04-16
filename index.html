@@ -311,12 +311,6 @@
       line-height: 1;
     }
 
-    @media (max-width: 1024px) {
-      .admin-btn {
-        display: none !important;
-      }
-    }
-
     @media (max-width: 600px) {
       .top-bar {
         padding: 8px 12px;
@@ -2009,7 +2003,7 @@
               <button className={`nav-btn ${view === "checkout" ? "active" : ""}`} onClick={() => setView("checkout")}>
                 📋 Order
               </button>
-              {adminUnlocked && !isMobile && (
+              {adminUnlocked && (
                 <button className={`nav-btn ${view === "admin" ? "active" : ""}`} onClick={() => setView("admin")}>
                   🔧 Admin
                 </button>
