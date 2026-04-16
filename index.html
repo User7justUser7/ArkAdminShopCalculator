@@ -98,20 +98,21 @@
 
     .nav-buttons {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       min-width: 0;
       width: 100%;
+      flex-wrap: nowrap;
     }
 
     .nav-btn {
       background: transparent;
       color: #d0e1e4;
       border: 1px solid #7a9aa4;
-      padding: 5px 12px;
-      font-size: 0.8rem;
+      padding: 5px 6px;
+      font-size: 0.75rem;
       font-weight: 600;
       white-space: nowrap;
-      min-width: 60px;
+      min-width: 0;
       text-align: center;
       flex: 0 1 auto;
     }
@@ -123,9 +124,9 @@
     }
 
     .nav-btn-cart {
-      flex: 1 1 auto;
-      min-width: 145px;
-      max-width: 340px;
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: none;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -314,7 +315,6 @@
         padding: 8px 12px;
         height: auto;
         min-height: 50px;
-        text-align: center;
       }
 
       .top-bar-content {
@@ -340,13 +340,13 @@
         padding: 4px 5px;
         font-size: 0.66rem;
         min-width: 0;
-        flex: 1;
+        flex: 0 1 auto;
       }
 
       .nav-btn-cart {
         min-width: 0;
         max-width: none;
-        flex: 1.35;
+        flex: 0 1 auto;
         font-size: 0.6rem;
       }
 
@@ -1779,7 +1779,7 @@
       }
 
       const shopName = "247 Always Online";
-      const cartButtonLabel = `Cart (Total Metal Ingots: ${cartTotal.toLocaleString()})`;
+      const cartButtonLabel = `Cart (Total Ingots: ${cartTotal.toLocaleString()})`;
 
       if (view === "order") {
         if (!orderView) {
@@ -1957,7 +1957,7 @@
           <div className="top-bar">
             <div className="top-bar-content" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <div className="top-bar-title" onClick={goToShop}>247 ALWAYS ONLINE</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", textAlign: "right" }}>
                 <div className="top-bar-subtitle" style={{ fontSize: "0.6rem", color: C.mute }}>Admin Shop</div>
                 <div style={{ fontSize: "0.75rem", color: C.dim }}>Logged in as: <strong>{userDiscord}</strong></div>
               </div>
