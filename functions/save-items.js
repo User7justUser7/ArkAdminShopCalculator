@@ -30,10 +30,18 @@ function normalizeRecipe(recipe) {
 
 function normalizeItem(rawItem) {
   const fixed = Boolean(rawItem?.fixed);
+  
+  let category = rawItem?.category;
+  if (Array.isArray(category)) {
+    category = category.map(c => String(c || '').trim()).filter(Boolean);
+  } else {
+    category = [String(category || '').trim()].filter(Boolean);
+  }
+
   return {
     id: String(rawItem?.id || '').trim(),
     name: String(rawItem?.name || '').trim(),
-    category: String(rawItem?.category || '').trim(),
+    category: category.length > 0 ? category : ['Imported'],
     icon: String(rawItem?.icon ?? '').trim(),
     price: Number(rawItem?.price || 0),
     fixed,
@@ -54,7 +62,7 @@ export async function onRequestPost({ env, request }) {
 
     const items = body.items
       .map(normalizeItem)
-      .filter((item) => item.id && item.name && item.category && item.price >= 0);
+      .filter((item) => item.id && item.name && item.category.length > 0 && item.price >= 0);
 
     if (items.length === 0) {
       return jsonResponse({ error: 'No valid items to save' }, 400);
