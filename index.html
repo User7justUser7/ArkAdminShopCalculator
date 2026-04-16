@@ -2496,4 +2496,28 @@
                             }}
                           >
                             + Add New Material Row
-                          </bu
+                          </button>
+                        </div>
+
+                        <div style={{ marginTop: "24px", borderTop: `2px solid ${C.border}`, paddingTop: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <button style={btn("primary")} onClick={saveSettings} disabled={itemsSaving}>Save All Settings</button>
+                          {saveStatus.type === "saved" && (
+                            <span style={{ color: C.red, fontWeight: 700, fontSize: "0.9rem" }}>Settings Saved</span>
+                          )}
+                          {itemsSaving && <span style={{ color: C.dim, fontSize: "0.8rem" }}>Saving...</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
