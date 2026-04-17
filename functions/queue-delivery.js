@@ -37,7 +37,8 @@ export async function onRequestPost({ env, request }) {
       return {
         ...entry,
         name: shopItem ? shopItem.name : 'Unknown',
-        bp: shopItem ? shopItem.bp : null
+        bp: shopItem ? shopItem.bp : null,
+        item_num: shopItem ? shopItem.item_num : null
       };
     });
 

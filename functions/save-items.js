@@ -50,6 +50,7 @@ function normalizeItem(rawItem) {
     recipe: normalizeRecipe(rawItem?.recipe),
     desc: String(rawItem?.desc || '').trim(),
     bp: String(rawItem?.bp || '').trim(),
+    item_num: String(rawItem?.item_num || '').trim(),
     spawn_command: String(rawItem?.spawn_command || '').trim()
   };
 }
