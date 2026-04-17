@@ -634,6 +634,7 @@
         engram: "",
         yield: "1",
         bp: "",
+        item_num: "",
         spawn_command: "",
         recipe: [blankRecipeRow()]
       };
@@ -669,6 +670,7 @@
         engram: String(item?.engram ?? ""),
         yield: String(item?.yield ?? "1"),
         bp: String(item?.bp || ""),
+        item_num: String(item?.item_num || ""),
         spawn_command: String(item?.spawn_command || ""),
         recipe: Array.isArray(item?.recipe) && item.recipe.length
           ? item.recipe.map((row) => ({ material: row.material, qty: String(row.qty ?? "") }))
@@ -716,6 +718,7 @@
         desc: String(draft.desc || "").trim(),
         fixed: Boolean(draft.fixed),
         bp: String(draft.bp || "").trim(),
+        item_num: String(draft.item_num || "").trim(),
         spawn_command: String(draft.spawn_command || "").trim()
       };
 
@@ -777,6 +780,7 @@
         yield: yieldValue,
         recipe,
         bp: String(rawItem?.bp || "").trim(),
+        item_num: String(rawItem?.item_num || "").trim(),
         spawn_command: String(rawItem?.spawn_command || "").trim()
       };
 
@@ -1130,14 +1134,25 @@
                 onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
               />
             </div>
-            <div>
-              <label style={labelStyle}>Blueprint Path (for RCON Automation)</label>
-              <input
-                style={{ ...inputStyle, fontFamily: "monospace", fontSize: "0.75rem" }}
-                value={draft.bp}
-                onChange={(e) => updateDraft(setDraft, "bp", e.target.value)}
-                placeholder="Blueprint'/Game/...'"
-              />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: "8px" }}>
+              <div>
+                <label style={labelStyle}>Blueprint Path (RCON)</label>
+                <input
+                  style={{ ...inputStyle, fontFamily: "monospace", fontSize: "0.75rem" }}
+                  value={draft.bp}
+                  onChange={(e) => updateDraft(setDraft, "bp", e.target.value)}
+                  placeholder="Blueprint'/Game/...'"
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Item ID (Num)</label>
+                <input
+                  style={{ ...inputStyle, fontFamily: "monospace", fontSize: "0.75rem" }}
+                  value={draft.item_num}
+                  onChange={(e) => updateDraft(setDraft, "item_num", e.target.value)}
+                  placeholder="e.g. 161"
+                />
+              </div>
             </div>
           </div>
 
