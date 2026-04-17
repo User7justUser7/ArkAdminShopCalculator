@@ -633,6 +633,8 @@
         price: "",
         engram: "",
         yield: "1",
+        bp: "",
+        spawn_command: "",
         recipe: [blankRecipeRow()]
       };
     }
@@ -666,6 +668,8 @@
         price: String(item?.price ?? ""),
         engram: String(item?.engram ?? ""),
         yield: String(item?.yield ?? "1"),
+        bp: String(item?.bp || ""),
+        spawn_command: String(item?.spawn_command || ""),
         recipe: Array.isArray(item?.recipe) && item.recipe.length
           ? item.recipe.map((row) => ({ material: row.material, qty: String(row.qty ?? "") }))
           : [blankRecipeRow()]
@@ -710,7 +714,9 @@
         category: draft.category.map(c => normalizeCategory(c)),
         icon: String(draft.icon || "\u{1F4E6}").trim() || "\u{1F4E6}",
         desc: String(draft.desc || "").trim(),
-        fixed: Boolean(draft.fixed)
+        fixed: Boolean(draft.fixed),
+        bp: String(draft.bp || "").trim(),
+        spawn_command: String(draft.spawn_command || "").trim()
       };
 
       if (base.fixed) {
@@ -769,7 +775,9 @@
         price: isFixed ? jsonPrice : formula.price,
         engram,
         yield: yieldValue,
-        recipe
+        recipe,
+        bp: String(rawItem?.bp || "").trim(),
+        spawn_command: String(rawItem?.spawn_command || "").trim()
       };
 
     }
@@ -1113,13 +1121,24 @@
             </div>
           </div>
 
-          <div>
-            <label style={labelStyle}>Description</label>
-            <input
-              style={inputStyle}
-              value={draft.desc}
-              onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px" }}>
+            <div>
+              <label style={labelStyle}>Description</label>
+              <input
+                style={inputStyle}
+                value={draft.desc}
+                onChange={(e) => updateDraft(setDraft, "desc", e.target.value)}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Blueprint Path (for RCON Automation)</label>
+              <input
+                style={{ ...inputStyle, fontFamily: "monospace", fontSize: "0.75rem" }}
+                value={draft.bp}
+                onChange={(e) => updateDraft(setDraft, "bp", e.target.value)}
+                placeholder="Blueprint'/Game/...'"
+              />
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -1278,6 +1297,10 @@
 
       const [characterName, setCharacterName] = useState("");
       const [psnUsername, setPsnUsername] = useState("");
+      const [playId, setPlayId] = useState("");
+      const [isPsnVerified, setIsPsnVerified] = useState(false);
+      const [psnError, setPsnError] = useState("");
+      const [psnLoading, setPsnLoading] = useState(false);
       const [discordUsername, setDiscordUsername] = useState("");
       const [orderLink, setOrderLink] = useState("");
       const [copied, setCopied] = useState(false);
@@ -1561,11 +1584,17 @@
           return;
         }
 
+        if (!isPsnVerified) {
+          setPsnError("Please verify your PSN account before ordering.");
+          return;
+        }
+
         setOrderLoading(true);
         try {
           const order = {
             characterName: characterName.trim(),
             psnUsername: psnUsername.trim(),
+            playId: playId,
             discordUsername: userDiscord,
             timestamp: new Date().toISOString(),
             items: cartEntries.map((item) => ({ id: item.id, qty: item.qty }))
@@ -1586,11 +1615,63 @@
         }
       }
 
+      async function verifyPsn() {
+        const name = psnUsername.trim();
+        if (!name) {
+          setPsnError("Enter your PSN Online ID.");
+          return;
+        }
+
+        setPsnLoading(true);
+        setPsnError("");
+        setPlayId("");
+        setIsPsnVerified(false);
+
+        try {
+          const res = await fetch(`/psn-lookup?username=${encodeURIComponent(name)}`);
+          const data = await res.json();
+          if (res.ok && data.playId) {
+            setPlayId(data.playId);
+            setIsPsnVerified(true);
+            setPsnUsername(data.psnUsername); // Handle case-correction
+          } else {
+            setPsnError(data.error || "PSN Account not found.");
+          }
+        } catch (e) {
+          setPsnError("Lookup failed. Please try again.");
+        } finally {
+          setPsnLoading(false);
+        }
+      }
+
       function copyLink() {
         navigator.clipboard.writeText(orderLink).then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2500);
         });
+      }
+
+      async function queueDelivery(id) {
+        if (!window.confirm("Send these items to the player's in-game inventory?")) return;
+        setOrderLoading(true);
+        try {
+          const res = await fetch("/queue-delivery", {
+            method: "POST",
+            body: JSON.stringify({ orderId: id })
+          });
+          if (res.ok) {
+            // Refresh order view
+            const data = await fetch(`/get-order?id=${id}`);
+            const updated = await data.json();
+            setOrderView(updated);
+          } else {
+            alert("Failed to queue delivery.");
+          }
+        } catch (e) {
+          alert("Error connecting to server.");
+        } finally {
+          setOrderLoading(false);
+        }
       }
 
       async function adminLogin() {
@@ -1643,6 +1724,32 @@
 
         const ok = await persistItems(nextItems, `Updated ${editItem.name}.`);
         if (ok) setEditItem(null);
+      }
+
+      async function bulkMatchBPs() {
+        if (!window.confirm("Try to automatically extract Blueprint Paths from existing spawn commands for all items?")) return;
+        
+        let count = 0;
+        const nextItems = items.map(item => {
+          if (item.bp) return item;
+          
+          const cmd = item.spawn_command || "";
+          // Regex to find Blueprint'...' inside quotes or otherwise
+          const match = cmd.match(/Blueprint'([^']+)'/);
+          if (match) {
+            count++;
+            return { ...item, bp: match[0] };
+          }
+          return item;
+        });
+
+        if (count === 0) {
+          alert("No new Blueprint Paths could be extracted.");
+          return;
+        }
+
+        const ok = await persistItems(nextItems, `Extracted ${count} Blueprint Paths.`);
+        if (ok) setSaveStatus({ type: "saved", message: `Updated ${count} items.` });
       }
 
       async function deleteItem(id) {
@@ -1875,7 +1982,49 @@
                 <div style={sectionTitleStyle}>Order #{orderId}</div>
                 <div style={{ marginBottom: "6px", fontSize: "0.9rem" }}><strong>In-game Character's Name:</strong> {orderView.characterName}</div>
                 <div style={{ marginBottom: "6px", fontSize: "0.9rem" }}><strong>PSN Username:</strong> {orderView.psnUsername}</div>
+                {orderView.playId && <div style={{ marginBottom: "6px", fontSize: "0.9rem" }}><strong>PlayID (RCON):</strong> {orderView.playId}</div>}
                 <div style={{ marginBottom: "12px", fontSize: "0.9rem" }}><strong>Discord Username:</strong> {orderView.discordUsername}</div>
+                
+                {/* Admin Delivery Controls */}
+                {adminUnlocked && (
+                  <div style={{ padding: "10px", background: "#ffffff22", borderRadius: "4px", marginBottom: "12px", border: `1px solid ${C.accent}` }}>
+                    <div style={{ fontSize: "0.75rem", textTransform: "uppercase", fontWeight: 700, color: C.accent, marginBottom: "8px" }}>Admin Delivery Control</div>
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                      <div style={{ 
+                        padding: "4px 10px", 
+                        borderRadius: "12px", 
+                        fontSize: "0.75rem", 
+                        fontWeight: 700,
+                        background: orderView.status === 'delivered' ? C.green : orderView.status === 'queued' ? '#f0ad4e' : orderView.status === 'failed' ? C.red : C.dim,
+                        color: "#fff"
+                      }}>
+                        STATUS: {(orderView.status || 'pending').toUpperCase()}
+                      </div>
+                      
+                      {orderView.status !== 'delivered' && orderView.status !== 'queued' && (
+                        <button 
+                          style={{ ...btn("primary"), padding: "5px 12px" }} 
+                          onClick={() => queueDelivery(orderId)}
+                          disabled={orderLoading}
+                        >
+                          🚀 Send to Server (RCON)
+                        </button>
+                      )}
+
+                      {orderView.status === 'queued' && (
+                        <div style={{ fontSize: "0.75rem", color: C.accent, fontStyle: "italic" }}>
+                          Waiting for Bot to process...
+                        </div>
+                      )}
+                    </div>
+                    {orderView.deliveryMessage && (
+                      <div style={{ marginTop: "8px", fontSize: "0.75rem", color: orderView.status === 'failed' ? C.red : C.dim, borderTop: `1px solid ${C.border}`, paddingTop: "6px" }}>
+                        <strong>Bot Response:</strong> {orderView.deliveryMessage}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ ...sectionTitleStyle, marginBottom: "0" }}>Items</div>
 
                 {hydratedItems.map((item) => (
@@ -2184,22 +2333,44 @@
                           <input style={{ ...inputStyle, borderColor: submittedOnce && !characterName.trim() ? C.red : C.border }} value={characterName} onChange={(e) => setCharacterName(e.target.value)} />
                         </div>
                         <div>
-                          <label style={{ ...labelStyle, color: submittedOnce && !psnUsername.trim() ? C.red : C.dim }}>
-                            {submittedOnce && !psnUsername.trim() ? "Please Enter PSN Username *" : "PSN Username *"}
+                          <label style={{ ...labelStyle, color: (submittedOnce && !psnUsername.trim()) || psnError ? C.red : C.dim }}>
+                            {(submittedOnce && !psnUsername.trim()) || psnError ? (psnError || "Please Enter and Verify PSN Username *") : "PSN Username (Verify to continue) *"}
                           </label>
-                          <input style={{ ...inputStyle, borderColor: submittedOnce && !psnUsername.trim() ? C.red : C.border }} value={psnUsername} onChange={(e) => setPsnUsername(e.target.value)} />
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <input 
+                              style={{ ...inputStyle, borderColor: (submittedOnce && !psnUsername.trim()) || psnError ? C.red : C.border, flex: 1 }} 
+                              value={psnUsername} 
+                              onChange={(e) => {
+                                setPsnUsername(e.target.value);
+                                setIsPsnVerified(false);
+                                setPlayId("");
+                              }} 
+                              placeholder="e.g. Sniper_Ark_99"
+                            />
+                            <button 
+                              style={{ ...btn(isPsnVerified ? "ghost" : "primary"), whiteSpace: "nowrap", padding: "0 12px", minWidth: "100px" }} 
+                              onClick={verifyPsn}
+                              disabled={psnLoading}
+                            >
+                              {psnLoading ? "..." : isPsnVerified ? "✅ Verified" : "Verify Account"}
+                            </button>
+                          </div>
+                          {isPsnVerified && (
+                            <div style={{ color: C.green, fontSize: "0.72rem", marginTop: "4px", fontWeight: 700 }}>
+                              Found PlayID: {playId}
+                            </div>
+                          )}
                         </div>
                         <div>
-                          <label style={{ ...labelStyle, color: submittedOnce && !discordUsername.trim() ? C.red : C.dim }}>
+                          <label style={{ ...labelStyle, color: C.dim }}>
                             Discord Username (Locked to login)
                           </label>
-                          <input 
-                            style={{ ...inputStyle, background: "#f0f0f0", color: "#666" }} 
-                            value={userDiscord} 
-                            readOnly 
+                          <input
+                            style={{ ...inputStyle, background: "#f0f0f0", color: "#666" }}
+                            value={userDiscord}
+                            readOnly
                           />
                         </div>
-
                       </div>
                     </div>
 
@@ -2315,8 +2486,13 @@
                           >
                             Import Recipe List
                           </button>
+                          <button
+                            style={{ ...btn("ghost"), padding: "4px 10px", fontSize: "0.75rem" }}
+                            onClick={bulkMatchBPs}
+                          >
+                            🚀 Auto-Extract BPs from Spawn Commands
+                          </button>
                         </div>
-
                         <div style={{ marginBottom: "12px" }}>
                           <label style={labelStyle}>Search Items</label>
                           <input
