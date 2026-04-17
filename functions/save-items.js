@@ -48,7 +48,9 @@ function normalizeItem(rawItem) {
     engram: Number(rawItem?.engram || 0),
     yield: fixed ? 1 : Math.max(1, Number(rawItem?.yield || 1)),
     recipe: normalizeRecipe(rawItem?.recipe),
-    desc: String(rawItem?.desc || '').trim()
+    desc: String(rawItem?.desc || '').trim(),
+    bp: String(rawItem?.bp || '').trim(),
+    spawn_command: String(rawItem?.spawn_command || '').trim()
   };
 }
 

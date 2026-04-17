@@ -32,8 +32,10 @@ export async function onRequestPost({ env, request }) {
     const order = {
       characterName: String(rawOrder.characterName || '').trim(),
       psnUsername: String(rawOrder.psnUsername || '').trim(),
+      playId: String(rawOrder.playId || '').trim(),
       discordUsername: String(rawOrder.discordUsername || '').trim(),
       timestamp: rawOrder.timestamp || new Date().toISOString(),
+      status: 'pending',
       items: Array.isArray(rawOrder.items)
         ? rawOrder.items
             .map(item => ({
@@ -44,8 +46,8 @@ export async function onRequestPost({ env, request }) {
         : []
     };
 
-    if (!order.characterName || !order.psnUsername || !order.discordUsername || order.items.length === 0) {
-      return jsonResponse({ error: 'Missing required order fields' }, 400);
+    if (!order.characterName || !order.psnUsername || !order.playId || !order.discordUsername || order.items.length === 0) {
+      return jsonResponse({ error: 'Missing required order fields (including PSN verification)' }, 400);
     }
 
     const id = await createOrderId(env.SHOP_ORDERS);
